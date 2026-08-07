@@ -48,14 +48,26 @@ architecture has earned its keep and nothing here requires abandoning it.
 
 ---
 
-## Phase 0 — Foundation: samplux's own multi-tenant Firebase project
+## Phase 0 — Foundation: samplux's own multi-tenant Firebase project ✅ DONE (2026-08-07)
 
-Blocking everything else. Right now samplux has **no Firebase project of its
-own at all** — no `.firebaserc`, no `firebase.json`, no `firestore.rules`, and
-`js/firebaseClient.js` points at the legacy `sssss-e8013` project with a TODO
-left in place. `docs/ARCHITECTURE.md` §9 already documents the single-survey
-version of this setup step; this phase is that step, done with a multi-tenant
-data shape instead of the single-project-per-survey one perseg/pausa use.
+Completed. Project `samplux-lamp`, Firestore Native mode in `southamerica-west1`
+(Santiago — locked in, can't be changed later), Google auth enabled,
+`lamp-umag.github.io` authorized, `firestore.rules` deployed and verified
+(valid `samplux_demo` submissions accepted, unknown surveyId + anonymous reads
+correctly rejected — tested directly against the REST API). `.firebaserc`,
+`firebase.json`, `firestore.indexes.json`, `firestore.rules` committed as IaC.
+`js/firebaseClient.js` swapped off the legacy `sssss-e8013` config and live on
+GitHub Pages with zero console errors.
+
+**Not done yet, deliberately deferred:** the multi-tenant `surveys/{surveyId}`
+Firestore shape (`ownerId`/`adminIds`) — that's real Phase 1 work, once the
+form builder exists to actually populate it; no sense guessing the shape with
+no consumer yet. **Optional hardening, not blocking:** Delete Protection and
+Point-in-Time Recovery are both off on the new database by default — worth
+enabling once real study data lives there.
+
+<details>
+<summary>Original step-by-step checklist (kept for reference)</summary>
 
 ### Step-by-step (console work — do this by hand, in order)
 
@@ -134,6 +146,8 @@ data shape instead of the single-project-per-survey one perseg/pausa use.
       security rules (simplest, recommended to start) vs. physically separate
       collections/DBs per org (only revisit this if a future compliance pass
       demands stronger isolation than rules alone provide).
+
+</details>
 
 ## Phase 1 — Form builder / configurator (keystone)
 
