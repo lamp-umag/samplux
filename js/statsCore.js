@@ -15,20 +15,19 @@ const EXPORT_META_ROOT = 'response_export_meta';
 /* ------------------------------------------------------------------ */
 
 export async function fetchSurveyIndex() {
-  const res = await fetch('surveys/index.json?_=' + Date.now());
-  const data = await res.json();
-  return data.surveys || [];
+  const snap = await getDocs(collection(db, 'surveys'));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
 export async function fetchSurveyDefinition(meta) {
-  if (!meta || !meta.file) return null;
+  // meta already IS the full definition (Firestore doc), fetchSurveyIndex
+  // no longer needs a second round-trip — this just resolves `extends`.
+  if (!meta) return null;
   try {
-    const res = await fetch(`surveys/${meta.file}?_=${Date.now()}`);
-    const def = await res.json();
-    return await resolveSurveyExtends(def);
+    return await resolveSurveyExtends(meta);
   } catch (e) {
-    console.warn('No se pudo leer la definición de la encuesta:', meta.file, e);
-    return null;
+    console.warn('No se pudo resolver la definición de la encuesta:', meta.id, e);
+    return meta;
   }
 }
 

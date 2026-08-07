@@ -11,21 +11,21 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
       :root {
-        --bg: #0d0d0d;
-        --foreground: #f0f0f0;
-        --muted: #888888;
-        --primary-soft: rgba(240,240,240,0.08);
-        --primary-foreground: #0d0d0d;
-        --surface-soft: rgba(18,18,18,0.9);
-        --surface: rgba(22,22,22,0.95);
-        --border: rgba(200,200,200,0.12);
-        --border-strong: rgba(200,200,200,0.25);
-        --danger: #f87171;
-        --warn: #fbbf24;
+        /* Same strict black & white theme as index.html / perseg */
+        --bg: #ffffff;
+        --foreground: #000000;
+        --muted: #1f2937;
+        --primary-foreground: #ffffff;
+        --surface-soft: #fafafa;
+        --surface: #f7f7f7;
+        --border: #d4d4d4;
+        --border-strong: #b5b5b5;
+        --danger: #000000;
+        --warn: #000000;
         /* shared chart variables consumed by .sc-* classes */
-        --sc-ink: #f0f0f0;
-        --sc-track: rgba(255,255,255,0.08);
-        --sc-fill: #f0f0f0;
+        --sc-ink: #000000;
+        --sc-track: #ececec;
+        --sc-fill: #000000;
       }
       * { box-sizing: border-box; }
       html, body { margin: 0; padding: 0; }
@@ -37,7 +37,7 @@
       header {
         padding: 16px 24px; display: flex; align-items: center; justify-content: space-between;
         position: sticky; top: 0; z-index: 10;
-        background: rgba(13,13,13,0.95); backdrop-filter: blur(12px);
+        background: rgba(255,255,255,0.92); backdrop-filter: blur(12px);
         border-bottom: 1px solid var(--border);
       }
       .brand { font-weight: 800; font-size: 16px; letter-spacing: -0.3px; color: var(--foreground); text-decoration: none; }
@@ -52,29 +52,30 @@
       h2 { font-size: 16px; margin: 0; font-weight: 700; }
       .muted { color: var(--muted); font-size: 14px; }
       .small { color: var(--muted); font-size: 12px; }
-      .danger { color: var(--danger); }
+      .danger { color: var(--danger); font-weight: 700; }
+      .danger::before { content: '⚠ '; }
       .row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
       .pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; font-size: 11px; border-radius: 999px; border: 1px solid var(--border-strong); color: var(--muted); }
-      .pill-dot { width: 7px; height: 7px; border-radius: 999px; background: #f0f0f0; box-shadow: 0 0 8px rgba(240,240,240,0.5); }
+      .pill-dot { width: 7px; height: 7px; border-radius: 999px; background: #000000; }
       .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 11px; border: 1px solid var(--border-strong); background: transparent; }
-      .status-dot { width: 7px; height: 7px; border-radius: 999px; background: #f0f0f0; box-shadow: 0 0 6px rgba(240,240,240,0.6); }
-      .status-dot.warn { background: var(--warn); box-shadow: 0 0 6px rgba(251,191,36,0.5); }
+      .status-dot { width: 7px; height: 7px; border-radius: 999px; background: #000000; }
+      .status-dot.warn { background: var(--warn); box-shadow: 0 0 0 2px #000000; }
       .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; border: 1px solid transparent; cursor: pointer; background: transparent; color: inherit; font-family: inherit; transition: all .15s ease; }
       .btn-primary { background: var(--foreground); color: var(--primary-foreground); border-color: var(--foreground); }
-      .btn-primary:hover { background: #cccccc; border-color: #cccccc; transform: translateY(-1px); }
-      .btn-outline { border-color: var(--border-strong); color: var(--muted); }
-      .btn-outline:hover { border-color: var(--foreground); color: var(--foreground); background: var(--primary-soft); }
+      .btn-primary:hover { background: #262626; border-color: #262626; transform: translateY(-1px); }
+      .btn-outline { border-color: var(--border-strong); color: var(--foreground); }
+      .btn-outline:hover { border-color: var(--foreground); background: var(--surface); }
       .btn-sm { padding: 5px 10px; font-size: 12px; }
       .hidden { display: none; }
-      .select { padding: 7px 10px; border-radius: 7px; border: 1px solid var(--border-strong); background: rgba(255,255,255,0.05); color: var(--foreground); font-size: 13px; font-family: inherit; font-weight: 600; }
-      .select option { background: #1a1a1a; }
+      .select { padding: 7px 10px; border-radius: 7px; border: 1px solid var(--border-strong); background: #ffffff; color: var(--foreground); font-size: 13px; font-family: inherit; font-weight: 600; }
       .mt-8 { margin-top: 8px; } .mt-16 { margin-top: 16px; }
-      code { font-family: ui-monospace, Menlo, monospace; font-size: 11px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.07); border: 1px solid var(--border); color: var(--foreground); }
+      code { font-family: ui-monospace, Menlo, monospace; font-size: 11px; padding: 2px 6px; border-radius: 4px; background: var(--surface); border: 1px solid var(--border); color: var(--foreground); }
 
       .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
       .kpi { border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; background: var(--surface); }
       .kpi-value { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
       .kpi-value.warn { color: var(--warn); }
+      .kpi.warn { border-width: 2px; border-color: var(--foreground); }
       .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-top: 4px; }
 
       .subhead { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 22px 0 8px; font-weight: 700; }
@@ -83,7 +84,7 @@
       table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
       th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
       th { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-weight: 600; }
-      tbody tr:hover { background: var(--primary-soft); }
+      tbody tr:hover { background: var(--surface); }
       .text-right { text-align: right; font-variant-numeric: tabular-nums; }
       .table-scroll { overflow-x: auto; }
       .var-block { padding: 12px 0; border-top: 1px solid var(--border); }
@@ -124,6 +125,7 @@
       </div>
       <div style="display:flex;align-items:center;gap:10px;">
         <div id="userChip" class="chip hidden"><span class="status-dot" id="userStatusDot"></span><span id="userEmail"></span></div>
+        <a class="nav-link" href="builder.html">constructor</a>
         <a class="nav-link" href="admin.html">← admin</a>
       </div>
     </header>

@@ -84,7 +84,7 @@ async function boot() {
   try {
     surveys = await fetchSurveyIndex();
   } catch (e) {
-    kpis.innerHTML = `<div class="small danger">No se pudo cargar surveys/index.json.</div>`;
+    kpis.innerHTML = `<div class="small danger">No se pudieron cargar las encuestas desde Firestore.</div>`;
     return;
   }
   surveySelect.innerHTML = surveys

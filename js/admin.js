@@ -91,20 +91,19 @@ function requireAuthorized(user) {
 }
 
 async function fetchSurveyIndex() {
-  const res = await fetch('surveys/index.json?_=' + Date.now());
-  const data = await res.json();
-  return data.surveys || [];
+  const snap = await getDocs(collection(db, 'surveys'));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
 async function fetchSurveyDefinition(surveyMeta) {
-  if (!surveyMeta || !surveyMeta.file) return null;
+  // surveyMeta already IS the full definition (Firestore doc) — this just
+  // resolves `extends` if present.
+  if (!surveyMeta) return null;
   try {
-    const res = await fetch(`surveys/${surveyMeta.file}?_=${Date.now()}`);
-    const def = await res.json();
-    return await resolveSurveyExtends(def);
+    return await resolveSurveyExtends(surveyMeta);
   } catch (e) {
-    console.warn('No se pudo leer la definición de la encuesta:', surveyMeta.file, e);
-    return null;
+    console.warn('No se pudo resolver la definición de la encuesta:', surveyMeta.id, e);
+    return surveyMeta;
   }
 }
 
@@ -639,14 +638,14 @@ async function openCaseReview(surveyMeta) {
 async function renderTable() {
   setLoading(true);
   surveyTableBody.innerHTML = `
-    <tr><td colspan="4" class="small muted">Cargando encuestas desde surveys/index.json…</td></tr>
+    <tr><td colspan="4" class="small muted">Cargando encuestas desde Firestore…</td></tr>
   `;
 
   try {
     const surveys = await fetchSurveyIndex();
     if (!surveys.length) {
       surveyTableBody.innerHTML = `
-        <tr><td colspan="4" class="small muted">No se encontraron encuestas en surveys/index.json.</td></tr>
+        <tr><td colspan="4" class="small muted">No se encontraron encuestas. Créalas en el <a href="builder.html">constructor</a>.</td></tr>
       `;
       surveyCountChip.classList.add('hidden');
       return;
@@ -716,7 +715,7 @@ async function renderTable() {
   } catch (err) {
     console.error(err);
     surveyTableBody.innerHTML = `
-      <tr><td colspan="4" class="small danger">Error al leer surveys/index.json o Firestore.</td></tr>
+      <tr><td colspan="4" class="small danger">Error al leer encuestas desde Firestore.</td></tr>
     `;
   } finally {
     setLoading(false);

@@ -9,11 +9,12 @@ what you read in `js/` is exactly what runs.
 ## 1. Runtime overview
 
 ```
-                    surveys/index.json  ──┐
-                    surveys/*.json  ───────┤  (fetched at runtime)
-                                           ▼
-  index.html ──▶ js/main.js ──▶ js/surveyRunner.js ──▶ Firestore
-                                       │                responses/{surveyId}/entries
+  builder.html ──▶ js/builder.js ──▶ Firestore surveys/{surveyId}  (write, admin-gated)
+                          │
+                          └─▶ previewSurvey() ──▶ js/surveyRunner.js  (same render pipeline, no write)
+
+  index.html ──▶ js/main.js ──▶ js/surveyRunner.js ──▶ Firestore surveys/{surveyId}  (read, published only)
+                                       │            ──▶ Firestore responses/{surveyId}/entries  (write)
                                        └─▶ js/tasks/{rt,stroop,gonogo}.js
                                               (full-screen overlay, returns result)
 
@@ -33,12 +34,21 @@ The runner is a small state machine over a flat array of `items`.
 
 **Lifecycle**
 
-1. `loadSurveyIndex()` reads `surveys/index.json`.
-2. The selected survey JSON is fetched and passed through `resolveExtends()`
-   (survey inheritance, §4) and the **randomization engine** (§3).
+1. `loadSurveyIndex()` queries the `surveys` Firestore collection for docs
+   where `published == true` (see §11 — survey definitions live in Firestore,
+   authored via `builder.html`, not in static files).
+2. The selected survey doc is fetched by id, passed through `resolveExtends()`
+   (survey inheritance, §4 — still resolves its *base* from a static
+   `surveys/*.json` file if used) and the **randomization engine** (§3).
 3. Items render one at a time. Each item type has a renderer that draws into the
    `#question` / `#options` / `#controls` slots.
 4. On submit, the answers + paradata (§5) are written to Firestore.
+
+`createSurveyApp()` also exposes `previewSurvey(rawSurveyObject)`, which runs
+an in-memory survey object through the exact same `resolveExtends` →
+randomize → render pipeline without touching Firestore or the URL — this is
+how `builder.html`'s live preview stays byte-for-byte identical to what
+participants actually see, instead of a separate reimplementation.
 
 **Item types** are dispatched by `item.type`:
 
@@ -172,30 +182,60 @@ Exports and stats read these flags and can drop excluded cases.
 
 ## 9. Firebase setup
 
-`js/firebaseClient.js` exports `{ app, db }`. To move off the temporary
-`sssss-e8013` project:
-
-1. Create a new Firebase project (e.g. `samplux`), add a **Web app**, enable
-   **Firestore** and **Google** auth.
-2. Paste the web config into `firebaseClient.js`.
-3. Firestore rules — minimal shape:
-   ```
-   match /responses/{surveyId}/entries/{entryId} {
-     allow create: if true;          // anonymous participants submit
-     allow read, update, delete: if false;  // (admin reads via console / privileged)
-   }
-   match /response_export_meta/{surveyId}/flags/{id} {
-     allow read, write: if request.auth != null
-       && request.auth.token.email in [ /* admin emails */ ];
-   }
-   ```
-4. Add admin emails to `ALLOWED_EMAILS` in `admin.js` and `adminStats.js`.
-
-No other file needs to change.
+`js/firebaseClient.js` exports `{ app, db }`, pointing at the dedicated
+`samplux-lamp` project (Firestore in `southamerica-west1`). The full CLI
+config is checked into the repo as IaC: `.firebaserc`, `firebase.json`,
+`firestore.rules`, `firestore.indexes.json`. Deploy rule changes with
+`firebase deploy --only firestore:rules`. Admin emails live in
+`ALLOWED_EMAILS` in `admin.js`, `adminStats.js`, and `builder.js` — keep all
+three in sync with the email list inside `firestore.rules`' `isAdmin()`.
 
 ---
 
-## 10. Rollback
+## 11. Survey authoring (`builder.html` / `js/builder.js`)
+
+Survey definitions live in Firestore (`surveys/{surveyId}` docs), authored
+through `builder.html` instead of hand-edited JSON files. A survey doc has
+exactly the same shape as the old static JSON files (`id` is the doc key,
+plus `title`, `description`, `published`, `settings`, `optionSets`, `items`)
+— nothing about the item/optionSet/randomization model from §2–§4 changed,
+only *where the definition lives and how it's edited*.
+
+**Editor layout:** three tabs per survey — **Detalles** (title, description,
+published toggle, randomization mode, splash config), **Escalas** (named
+`optionSets`, reusable across items via the item type dropdown), **Preguntas**
+(ordered item list; each card expands into a type-driven form — the visible
+fields change based on the selected item type, e.g. a `slider` gets
+min/max/step, a `single_choice` gets an inline options editor or a shared-scale
+picker, an `info` item gets an "es encabezado de sección" checkbox that splits
+into separate title/body fields and composes the `SECCIÓN` prefix from §2 for
+you instead of requiring it to be typed by hand).
+
+**Live preview** calls `previewSurvey()` (§2) directly on the in-memory,
+unsaved survey object — what you see in the preview overlay is pixel-for-pixel
+what `index.html` will render once published, because it *is* the same
+runner instance.
+
+**Import from JSON:** the old `surveys/*.json` files still work as a seed
+format — "Importar JSON" in the survey list reads one in, marks it
+unpublished, and drops you into the editor to review before it goes live.
+Existing `extends`-based surveys (§4) still resolve their base from a static
+JSON file even though the *derived* survey itself now lives in Firestore —
+that mechanism wasn't changed, since it isn't exposed in the builder UI yet.
+
+**Dynamic response validation:** `firestore.rules`' `responses/{surveyId}/entries`
+create rule no longer hardcodes a survey id allowlist — it checks
+`exists()` + `published == true` against the matching `surveys/{surveyId}`
+doc instead. A new survey works the moment it's published, with no rules
+redeploy needed.
+
+**Deliberately out of scope for now:** per-survey ownership/permissions
+(`ownerId`/`adminIds`) — every admin in `ALLOWED_EMAILS` can edit every
+survey. See `docs/ROADMAP.md` Phase 2.
+
+---
+
+## 12. Rollback
 
 samplux is a standalone repo; the original `sssss` is untouched and remains the
 ultimate fallback. The first clean release is tagged `v0.1.0`

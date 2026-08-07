@@ -149,12 +149,53 @@ enabling once real study data lives there.
 
 </details>
 
-## Phase 1 — Form builder / configurator (keystone)
+## Phase 1 — Form builder / configurator (keystone) ✅ SHIPPED (2026-08-07)
 
 The thing you've been avoiding, and the highest-leverage piece: it's also
 what makes multi-tenant real, since a Firestore-backed survey document can
 carry the `ownerId`/`adminIds` fields Phase 0 needs, where a static JSON file
 in the repo never could.
+
+**What shipped:** `builder.html` + `js/builder.js` — Google-auth gated,
+themed with the exact strict black & white tokens ported from perseg
+(`index.html`, `admin.html`, `admin-stats.html`, `stats.html`, and the
+builder itself were all converted from samplux's old dark/soft-black admin
+look to perseg's true theme, per your "like perseg, for everything" call —
+zero non-monochrome color left anywhere in the app). Full CRUD over
+Firestore `surveys/{surveyId}` docs: Detalles/Escalas/Preguntas tabs, every
+item type from §2 of ARCHITECTURE.md (including the `SECCIÓN` section-header
+convention as a checkbox instead of hand-typed magic strings), reusable
+`optionSets` scales that a `single_choice` item can pick from a dropdown
+instead of only inline options, all four `randomizeItems` modes, a dirty-check
+that warns before navigating away from unsaved changes, live preview that reuses
+the *actual* `surveyRunner.js` via a new `previewSurvey()` export (§2) — not a
+reimplementation. `index.html`/`admin.js`/`statsCore.js` all switched from
+static `surveys/index.json` to the Firestore collection; `responses/*/entries`
+create rule now validates dynamically against the matching `surveys/{id}` doc
+(`exists()` + `published==true`) instead of a hardcoded id array, so new
+surveys work the instant they're published — no rules redeploy per survey.
+Old `surveys/*.json` files still work as an **import format** (button in the
+builder) for bringing legacy content in for review before publishing.
+
+**Deliberately deferred, not regressions:**
+- `extends`/`transforms` survey inheritance (§4) still works at runtime
+  (base file resolution untouched) but has **no builder UI** — creating a new
+  T1→T2-style derived survey still means hand-authoring that piece of JSON
+  and importing it. Low usage today (perseg/pausa use it, samplux's own demo
+  doesn't); revisit if a real study needs it built.
+- `ownerId`/`adminIds` per-survey permissions — every `ALLOWED_EMAILS` admin
+  can edit every survey for now. Real Phase 2 work, see below.
+- Splash-image preview inside the builder's live-preview overlay is a no-op
+  (falls through gracefully, no crash) — the overlay doesn't have a splash
+  layer wired up. Minor; splash usage is rare.
+- Seeding the original `samplux_demo` survey into Firestore needs one manual
+  step: sign in to `builder.html` and use "Importar JSON" on
+  `surveys/samplux_demo.json` — deliberately not done via an elevated/service
+  script, since authoring should go through the real authenticated admin path
+  every other survey will use.
+
+<details>
+<summary>Original scope notes (kept for reference)</summary>
 
 - [ ] Move survey definitions from `surveys/*.json` files into Firestore
       documents, editable through a new admin UI (not raw JSON editing).

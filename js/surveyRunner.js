@@ -1,4 +1,4 @@
-import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { collection, addDoc, serverTimestamp, getDocs, query, where, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import { run as runRT }     from './tasks/rt.js';
 import { run as runStroop } from './tasks/stroop.js';
 import { run as runGoNoGo } from './tasks/gonogo.js';
@@ -122,9 +122,12 @@ export function createSurveyApp({ db, elements }) {
   }
 
   async function loadSurveyIndex() {
-    const res = await fetch('surveys/index.json?_=' + Date.now());
-    const data = await res.json();
-    return data.surveys || [];
+    const q = query(collection(db, 'surveys'), where('published', '==', true));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => {
+      const data = d.data();
+      return { id: d.id, title: data.title, description: data.description || '' };
+    });
   }
 
   function qsParam(name) {
@@ -154,20 +157,26 @@ export function createSurveyApp({ db, elements }) {
         const url = new URL(location.href);
         url.searchParams.set('survey', item.id);
         history.pushState({}, '', url);
-        startSurveyById(item.id, items);
+        startSurveyById(item.id);
       });
       if (listContainer) listContainer.appendChild(row);
     });
   }
 
-  async function startSurveyById(id, indexData) {
-    const meta = (indexData || await loadSurveyIndex()).find(s => s.id === id);
-    if (!meta) {
+  async function startSurveyById(id) {
+    const snap = await getDoc(doc(db, 'surveys', id));
+    if (!snap.exists() || snap.data().published !== true) {
       alert('Encuesta no encontrada');
       return;
     }
-    const res = await fetch(`surveys/${meta.file}?_=${Date.now()}`);
-    let data = await res.json();
+    let data = { id: snap.id, ...snap.data() };
+    data = await resolveSurveyExtends(data);
+    const prepared = prepareSurvey(data);
+    startSurvey(prepared);
+  }
+
+  async function previewSurvey(rawSurvey) {
+    let data = structuredClone(rawSurvey);
     data = await resolveSurveyExtends(data);
     const prepared = prepareSurvey(data);
     startSurvey(prepared);
@@ -809,9 +818,9 @@ export function createSurveyApp({ db, elements }) {
     // ── Cognitive task types ──────────────────────────
     if (item.type === 'task_rt' || item.type === 'task_stroop' || item.type === 'task_gonogo') {
       const TASK_INFO = {
-        task_rt:     { icon: '⚡', title: 'Tiempo de Reacción', desc: '~2 min · Toca el círculo cuando aparezca',    color: '#F59E0B' },
-        task_stroop: { icon: '🎨', title: 'Test de Stroop',     desc: '~3 min · Identifica el color de la tinta',   color: '#6366F1' },
-        task_gonogo: { icon: '🚦', title: 'Go / No-Go',          desc: '~2 min · Toca el círculo verde, no la X roja', color: '#22C55E' },
+        task_rt:     { icon: '⚡', title: 'Tiempo de Reacción', desc: '~2 min · Toca el círculo cuando aparezca',    color: '#000000' },
+        task_stroop: { icon: '🎨', title: 'Test de Stroop',     desc: '~3 min · Identifica el color de la tinta',   color: '#000000' },
+        task_gonogo: { icon: '🚦', title: 'Go / No-Go',          desc: '~2 min · Toca el círculo verde, no la X roja', color: '#000000' },
       };
       const info = TASK_INFO[item.type];
       questionContainer.innerHTML = `
@@ -946,12 +955,12 @@ export function createSurveyApp({ db, elements }) {
     const selected = qsParam('survey');
     const items = await loadSurveyIndex();
     if (selected) {
-      await startSurveyById(selected, items);
+      await startSurveyById(selected);
     } else {
       showHome(items);
     }
     document.body.style.paddingBottom = '24px';
   }
 
-  return { init };
+  return { init, previewSurvey };
 }

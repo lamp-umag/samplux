@@ -11,17 +11,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
       :root {
-        --bg: #0d0d0d;
-        --foreground: #f0f0f0;
-        --muted: #888888;
-        --primary: #f0f0f0;
-        --primary-soft: rgba(240, 240, 240, 0.08);
-        --primary-foreground: #0d0d0d;
-        --surface: rgba(22, 22, 22, 0.95);
-        --surface-soft: rgba(18, 18, 18, 0.9);
-        --border: rgba(200, 200, 200, 0.12);
-        --border-strong: rgba(200, 200, 200, 0.25);
-        --danger: #f87171;
+        /* Same strict black & white theme as index.html / perseg */
+        --bg: #ffffff;
+        --foreground: #000000;
+        --muted: #1f2937;
+        --primary: #000000;
+        --primary-foreground: #ffffff;
+        --accent: #262626;
+        --surface: #f7f7f7;
+        --surface-soft: #fafafa;
+        --border: #d4d4d4;
+        --border-strong: #b5b5b5;
+        --danger: #000000;
       }
       * { box-sizing: border-box; }
       html, body { height: 100%; margin: 0; padding: 0; }
@@ -40,7 +41,7 @@
         position: sticky;
         top: 0;
         z-index: 10;
-        background: rgba(13, 13, 13, 0.95);
+        background: rgba(255, 255, 255, 0.92);
         backdrop-filter: blur(12px);
         border-bottom: 1px solid var(--border);
       }
@@ -90,7 +91,8 @@
       h2 { font-size: 16px; margin: 0; font-weight: 700; }
       .muted { color: var(--muted); font-size: 14px; }
       .small { color: var(--muted); font-size: 12px; }
-      .danger { color: var(--danger); }
+      .danger { color: var(--danger); font-weight: 700; }
+      .danger::before { content: '⚠ '; }
       .row {
         display: flex;
         align-items: center;
@@ -112,8 +114,7 @@
         width: 7px;
         height: 7px;
         border-radius: 999px;
-        background: #f0f0f0;
-        box-shadow: 0 0 8px rgba(240, 240, 240, 0.5);
+        background: #000000;
       }
       .btn {
         display: inline-flex;
@@ -132,24 +133,23 @@
         transition: all 0.15s ease;
       }
       .btn-primary {
-        background: var(--foreground);
+        background: var(--primary);
         color: var(--primary-foreground);
-        border-color: var(--foreground);
+        border-color: var(--primary);
       }
       .btn-primary:hover {
-        background: #cccccc;
-        border-color: #cccccc;
+        background: var(--accent);
+        border-color: var(--accent);
         transform: translateY(-1px);
       }
       .btn-outline {
         border-color: var(--border-strong);
-        color: var(--muted);
+        color: var(--foreground);
         background: transparent;
       }
       .btn-outline:hover {
         border-color: var(--foreground);
-        color: var(--foreground);
-        background: var(--primary-soft);
+        background: var(--surface);
       }
       .btn-sm { padding: 5px 10px; font-size: 12px; }
       .chip {
@@ -166,10 +166,9 @@
         width: 7px;
         height: 7px;
         border-radius: 999px;
-        background: #f0f0f0;
-        box-shadow: 0 0 6px rgba(240, 240, 240, 0.6);
+        background: #000000;
       }
-      .status-dot.warn { background: #fbbf24; box-shadow: 0 0 6px rgba(251, 191, 36, 0.5); }
+      .status-dot.warn { background: #000000; box-shadow: 0 0 0 2px #000000; }
       table {
         width: 100%;
         border-collapse: collapse;
@@ -188,13 +187,13 @@
         color: var(--muted);
         font-weight: 600;
       }
-      tbody tr:hover { background: var(--primary-soft); }
+      tbody tr:hover { background: var(--surface); }
       code {
         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         font-size: 11px;
         padding: 2px 6px;
         border-radius: 4px;
-        background: rgba(255,255,255,0.07);
+        background: var(--surface);
         border: 1px solid var(--border);
         color: var(--foreground);
       }
@@ -208,7 +207,7 @@
         border-radius: 999px;
         font-size: 12px;
         font-weight: 600;
-        background: rgba(255,255,255,0.07);
+        background: var(--surface);
         border: 1px solid var(--border-strong);
       }
       .spinner {
@@ -228,13 +227,12 @@
         padding: 6px 8px;
         border-radius: 6px;
         border: 1px solid var(--border-strong);
-        background: rgba(255,255,255,0.05);
+        background: #ffffff;
         color: var(--foreground);
         font-size: 12px;
         font-family: inherit;
       }
       .input::placeholder { color: var(--muted); }
-      .select option { background: #1a1a1a; }
       .table-scroll { overflow-x: auto; }
       .w-compact { min-width: 100px; }
       .w-medium { min-width: 160px; }
@@ -256,6 +254,7 @@
           <span class="status-dot" id="userStatusDot"></span>
           <span id="userEmail"></span>
         </div>
+        <a class="back-link" href="builder.html">constructor</a>
         <a class="back-link" href="admin-stats.html">estadísticas</a>
         <a class="back-link" href="index.html">← encuestas</a>
       </div>
