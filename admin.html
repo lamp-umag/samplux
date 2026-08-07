@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>samplux — admin</title>
+    <meta name="description" content="Panel de administración samplux — LAMP UMAG" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%90%8D</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --bg: #0d0d0d;
+        --foreground: #f0f0f0;
+        --muted: #888888;
+        --primary: #f0f0f0;
+        --primary-soft: rgba(240, 240, 240, 0.08);
+        --primary-foreground: #0d0d0d;
+        --surface: rgba(22, 22, 22, 0.95);
+        --surface-soft: rgba(18, 18, 18, 0.9);
+        --border: rgba(200, 200, 200, 0.12);
+        --border-strong: rgba(200, 200, 200, 0.25);
+        --danger: #f87171;
+      }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; margin: 0; padding: 0; }
+      body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background: var(--bg);
+        color: var(--foreground);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      header {
+        padding: 16px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: rgba(13, 13, 13, 0.95);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+      }
+      .brand {
+        font-weight: 800;
+        font-size: 16px;
+        letter-spacing: -0.3px;
+        color: var(--foreground);
+        text-decoration: none;
+      }
+      .tagline {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+      .back-link {
+        font-size: 12px;
+        color: var(--muted);
+        text-decoration: none;
+        padding: 6px 12px;
+        border: 1px solid var(--border-strong);
+        border-radius: 999px;
+        transition: all 0.15s ease;
+      }
+      .back-link:hover { color: var(--foreground); border-color: var(--foreground); }
+      main {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 24px 16px 40px;
+      }
+      .card {
+        background: var(--surface-soft);
+        border-radius: 14px;
+        padding: 22px;
+        border: 1px solid var(--border);
+      }
+      .card + .card { margin-top: 14px; }
+      .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+      }
+      h1 { font-size: 20px; margin: 0; font-weight: 700; }
+      h2 { font-size: 16px; margin: 0; font-weight: 700; }
+      .muted { color: var(--muted); font-size: 14px; }
+      .small { color: var(--muted); font-size: 12px; }
+      .danger { color: var(--danger); }
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        font-size: 11px;
+        border-radius: 999px;
+        border: 1px solid var(--border-strong);
+        color: var(--muted);
+      }
+      .pill-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: #f0f0f0;
+        box-shadow: 0 0 8px rgba(240, 240, 240, 0.5);
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        border: 1px solid transparent;
+        cursor: pointer;
+        background: transparent;
+        color: inherit;
+        font-family: inherit;
+        transition: all 0.15s ease;
+      }
+      .btn-primary {
+        background: var(--foreground);
+        color: var(--primary-foreground);
+        border-color: var(--foreground);
+      }
+      .btn-primary:hover {
+        background: #cccccc;
+        border-color: #cccccc;
+        transform: translateY(-1px);
+      }
+      .btn-outline {
+        border-color: var(--border-strong);
+        color: var(--muted);
+        background: transparent;
+      }
+      .btn-outline:hover {
+        border-color: var(--foreground);
+        color: var(--foreground);
+        background: var(--primary-soft);
+      }
+      .btn-sm { padding: 5px 10px; font-size: 12px; }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        border: 1px solid var(--border-strong);
+        background: transparent;
+      }
+      .status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: #f0f0f0;
+        box-shadow: 0 0 6px rgba(240, 240, 240, 0.6);
+      }
+      .status-dot.warn { background: #fbbf24; box-shadow: 0 0 6px rgba(251, 191, 36, 0.5); }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+        font-size: 13px;
+      }
+      th, td {
+        padding: 9px 10px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+      }
+      th {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      tbody tr:hover { background: var(--primary-soft); }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 11px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: rgba(255,255,255,0.07);
+        border: 1px solid var(--border);
+        color: var(--foreground);
+      }
+      .text-right { text-align: right; }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 28px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        background: rgba(255,255,255,0.07);
+        border: 1px solid var(--border-strong);
+      }
+      .spinner {
+        width: 14px;
+        height: 14px;
+        border-radius: 999px;
+        border: 2px solid var(--border-strong);
+        border-top-color: var(--foreground);
+        animation: spin 0.7s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .mt-8 { margin-top: 8px; }
+      .mt-16 { margin-top: 16px; }
+      .hidden { display: none; }
+      .input, .select {
+        width: 100%;
+        padding: 6px 8px;
+        border-radius: 6px;
+        border: 1px solid var(--border-strong);
+        background: rgba(255,255,255,0.05);
+        color: var(--foreground);
+        font-size: 12px;
+        font-family: inherit;
+      }
+      .input::placeholder { color: var(--muted); }
+      .select option { background: #1a1a1a; }
+      .table-scroll { overflow-x: auto; }
+      .w-compact { min-width: 100px; }
+      .w-medium { min-width: 160px; }
+      a { color: var(--foreground); text-decoration: none; opacity: 0.7; }
+      a:hover { opacity: 1; }
+      ul { margin: 8px 0 0 0; padding-left: 20px; }
+      li { margin-bottom: 4px; }
+      p { margin: 8px 0 0 0; line-height: 1.5; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <a class="brand" href=".">🐍 samplux</a>
+        <div class="tagline">Panel de administración · LAMP UMAG</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div id="userChip" class="chip hidden">
+          <span class="status-dot" id="userStatusDot"></span>
+          <span id="userEmail"></span>
+        </div>
+        <a class="back-link" href="admin-stats.html">estadísticas</a>
+        <a class="back-link" href="index.html">← encuestas</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="card" id="authCard">
+        <div class="card-header">
+          <h1>Acceso restringido</h1>
+          <span class="pill">
+            <span class="pill-dot"></span>
+            Solo administradores
+          </span>
+        </div>
+        <p class="muted">
+          Este panel permite revisar el estado de las encuestas y descargar respuestas
+          en formatos listos para análisis estadístico.
+        </p>
+        <div class="mt-16 row">
+          <div>
+            <p class="small">Acceso restringido a cuentas administradoras autenticadas con Google.</p>
+            <p class="small muted" style="margin-top:4px;">Cualquier otra cuenta será bloqueada.</p>
+          </div>
+          <button id="loginBtn" class="btn btn-primary">Entrar con Google</button>
+        </div>
+        <p id="authError" class="small danger mt-8 hidden"></p>
+      </section>
+
+      <section class="card hidden" id="contentCard">
+        <div class="card-header">
+          <h2>Encuestas en Firebase</h2>
+          <div class="row" style="gap:8px;">
+            <span id="surveyCountChip" class="chip hidden">
+              <span class="status-dot"></span>
+              <span id="surveyCountLabel"></span>
+            </span>
+            <button id="refreshBtn" class="btn btn-outline btn-sm">
+              <span class="spinner hidden" id="refreshSpinner"></span>
+              <span>Actualizar</span>
+            </button>
+          </div>
+        </div>
+        <p class="muted">
+          Respuestas <strong>incluidas en exportación</strong> (no excluidas en revisión de casos).
+          Accesos directos de descarga:
+        </p>
+        <ul class="small">
+          <li><strong>CSV datos</strong> — solo variables de respuesta, listo para R / Python / SPSS.</li>
+          <li><strong>CSV datos (dedupe)</strong> — ídem con deduplicación automática.</li>
+          <li><strong>CSV + paradata (dedupe)</strong> — incluye tiempos por ítem, orden de presentación y metadatos.</li>
+        </ul>
+
+        <div class="mt-16">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:18%;">Encuesta</th>
+                <th>Título</th>
+                <th style="width:10%;">Incluidas</th>
+                <th>Descargas</th>
+              </tr>
+            </thead>
+            <tbody id="surveyTableBody">
+              <tr>
+                <td colspan="4" class="small muted">Cargando…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="small mt-8">
+          El conteo excluye respuestas marcadas como excluidas en
+          <code>response_export_meta/&lt;surveyId&gt;/flags</code>.
+        </p>
+      </section>
+
+      <section class="card hidden" id="caseReviewCard">
+        <div class="card-header">
+          <h2>Revisión de casos</h2>
+          <div class="row" style="gap:8px;">
+            <span id="caseSurveyChip" class="chip hidden"></span>
+            <button id="closeCaseReviewBtn" class="btn btn-outline btn-sm">Cerrar</button>
+          </div>
+        </div>
+        <p class="muted">
+          Revisa respuestas individuales y marca exclusiones persistentes para no incluirlas en exportaciones.
+        </p>
+        <div class="row mt-8" style="align-items:flex-end;gap:12px;">
+          <label class="small w-compact">
+            Filtro exclusión
+            <select id="excludeFilterSelect" class="select">
+              <option value="all">Todos</option>
+              <option value="included">Solo incluidos</option>
+              <option value="excluded">Solo excluidos</option>
+            </select>
+          </label>
+          <label class="small w-compact">
+            Filtro dedupe
+            <select id="dedupeFilterSelect" class="select">
+              <option value="all">Todos</option>
+              <option value="high">Duplicado HIGH</option>
+              <option value="medium">Duplicado MEDIUM</option>
+              <option value="low">Sin señal fuerte</option>
+            </select>
+          </label>
+          <button id="refreshCasesBtn" class="btn btn-outline btn-sm">Recargar</button>
+        </div>
+        <div class="table-scroll mt-16">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:12%;">responseId</th>
+                <th style="width:10%;">Fecha</th>
+                <th style="width:9%;">Tiempo</th>
+                <th style="width:6%;">Atrás</th>
+                <th style="width:6%;">Cambios</th>
+                <th style="width:7%;">serverCode</th>
+                <th style="width:7%;">Completitud</th>
+                <th style="width:9%;">Dedupe</th>
+                <th style="width:7%;">Excluir</th>
+                <th style="width:8%;">Motivo</th>
+                <th>Nota</th>
+              </tr>
+            </thead>
+            <tbody id="caseTableBody">
+              <tr>
+                <td colspan="11" class="small muted">Selecciona "Gestionar casos" en una encuesta para comenzar.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./js/admin.js"></script>
+  </body>
+</html>

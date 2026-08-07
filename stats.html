@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>samplux — estadísticas</title>
+    <meta name="description" content="Estadísticas públicas de las encuestas samplux — LAMP UMAG" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%90%8D</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --bg: #ffffff;
+        --foreground: #111111;
+        --muted: #6b6b6b;
+        --surface: #f7f7f7;
+        --border: #e0e0e0;
+        --border-strong: #cfcfcf;
+        /* shared chart variables consumed by .sc-* classes */
+        --sc-ink: #111111;
+        --sc-track: #ececec;
+        --sc-fill: #111111;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background: var(--bg);
+        color: var(--foreground);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      header {
+        padding: 18px 24px;
+        display: flex; align-items: center; justify-content: space-between;
+        border-bottom: 1px solid var(--border);
+        position: sticky; top: 0; z-index: 10;
+        background: rgba(255,255,255,0.95); backdrop-filter: blur(8px);
+      }
+      .brand { font-weight: 800; font-size: 18px; letter-spacing: -0.5px; color: var(--foreground); text-decoration: none; }
+      .tagline { font-size: 12px; color: var(--muted); margin-top: 2px; }
+      .nav-link {
+        font-size: 12px; color: var(--muted); text-decoration: none;
+        padding: 6px 12px; border: 1px solid var(--border-strong); border-radius: 999px;
+        transition: all .15s ease;
+      }
+      .nav-link:hover { color: var(--foreground); border-color: var(--foreground); }
+      main { max-width: 880px; margin: 0 auto; padding: 28px 16px 56px; }
+      h1 { font-size: 22px; margin: 0 0 4px; font-weight: 800; letter-spacing: -0.4px; }
+      h2 { font-size: 15px; margin: 0; font-weight: 700; }
+      .muted { color: var(--muted); }
+      .small { font-size: 12px; color: var(--muted); }
+      .card {
+        background: var(--bg); border: 1px solid var(--border);
+        border-radius: 14px; padding: 20px; margin-top: 16px;
+      }
+      .card-header { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+
+      /* KPI grid */
+      .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+      .kpi { border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; background: var(--surface); }
+      .kpi-value { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+      .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-top: 4px; }
+
+      /* survey selector */
+      .select {
+        padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-strong);
+        background: var(--bg); color: var(--foreground); font-size: 13px; font-family: inherit; font-weight: 600;
+      }
+      .summary-line { display: flex; flex-wrap: wrap; gap: 18px; margin: 4px 0 0; }
+      .summary-line .stat { font-size: 13px; }
+      .summary-line .stat b { font-size: 15px; }
+
+      .subhead { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 22px 0 8px; font-weight: 700; }
+      .var-block { padding: 12px 0; border-top: 1px solid var(--border); }
+      .var-block:first-of-type { border-top: none; }
+      .var-prompt { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+      .var-numeric-line { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+
+      /* ---- shared sc-* chart classes ---- */
+      .sc-bar-row { display: grid; grid-template-columns: 150px 1fr 90px; align-items: center; gap: 10px; margin: 4px 0; }
+      .sc-bar-label { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .sc-bar-track { height: 16px; background: var(--sc-track); border-radius: 4px; overflow: hidden; }
+      .sc-bar-fill { height: 100%; background: var(--sc-fill); border-radius: 4px; min-width: 2px; }
+      .sc-bar-meta { font-size: 11px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+
+      .sc-hist { display: flex; align-items: flex-end; gap: 3px; height: 130px; padding-top: 14px; }
+      .sc-hist-col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
+      .sc-hist-bar { width: 100%; background: var(--sc-fill); border-radius: 3px 3px 0 0; min-height: 0; }
+      .sc-hist-count { font-size: 9px; color: var(--muted); margin-bottom: 2px; font-variant-numeric: tabular-nums; }
+      .sc-hist-axis { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-top: 6px; }
+
+      .sc-timeline { width: 100%; height: 120px; display: block; }
+      .sc-tl-area { fill: var(--sc-fill); opacity: 0.08; }
+      .sc-tl-line { stroke: var(--sc-ink); stroke-width: 1.5; }
+      .sc-tl-dot { fill: var(--sc-ink); }
+      .sc-empty { font-size: 12px; color: var(--muted); padding: 16px 0; }
+
+      .text-right { text-align: right; }
+      .sc-metric-table { width: 100%; border-collapse: collapse; margin: 8px 0 4px; font-size: 12px; }
+      .sc-metric-table th, .sc-metric-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); text-align: left; }
+      .sc-metric-table th { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+      .sc-metric-table td.text-right, .sc-metric-table th.text-right { text-align: right; font-variant-numeric: tabular-nums; }
+      .sc-metric-hist-label { font-size: 11px; color: var(--muted); margin: 10px 0 2px; }
+
+      .notice { font-size: 12px; color: var(--muted); padding: 16px; border: 1px dashed var(--border-strong); border-radius: 10px; }
+      .spinner { width: 16px; height: 16px; border-radius: 999px; border: 2px solid var(--border-strong); border-top-color: var(--foreground); animation: spin .7s linear infinite; display: inline-block; vertical-align: middle; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .hidden { display: none; }
+      @media (max-width: 560px) {
+        .sc-bar-row { grid-template-columns: 110px 1fr 64px; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <a class="brand" href="index.html">🐍 samplux</a>
+        <div class="tagline">Estadísticas públicas · LAMP UMAG</div>
+      </div>
+      <a class="nav-link" href="index.html">← encuestas</a>
+    </header>
+
+    <main>
+      <h1>Estadísticas de participación</h1>
+      <p class="muted small" style="margin-top:0;">
+        Resumen agregado de las respuestas recibidas. No se muestran respuestas individuales ni datos personales.
+      </p>
+
+      <section class="card" id="overviewCard">
+        <div class="card-header"><h2>Resumen global</h2><span class="small" id="overviewMeta"></span></div>
+        <div class="kpis" id="kpis">
+          <div class="kpi"><div class="kpi-value"><span class="spinner"></span></div><div class="kpi-label">Cargando…</div></div>
+        </div>
+        <div id="timelineWrap" style="margin-top:20px;">
+          <div class="subhead">Respuestas por día (todas las encuestas)</div>
+          <div id="globalTimeline"></div>
+        </div>
+      </section>
+
+      <section class="card" id="surveyCard">
+        <div class="card-header">
+          <h2>Detalle por encuesta</h2>
+          <select id="surveySelect" class="select"><option>Cargando…</option></select>
+        </div>
+        <div id="surveyBody">
+          <div class="notice">Selecciona una encuesta para ver sus distribuciones.</div>
+        </div>
+      </section>
+
+      <p class="small" style="margin-top:20px;text-align:center;">
+        ¿Eres administrador? <a href="admin-stats.html" style="color:var(--foreground);">Panel de estadísticas avanzado →</a>
+      </p>
+    </main>
+
+    <script type="module" src="./js/stats.js"></script>
+  </body>
+</html>

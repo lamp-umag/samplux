@@ -1,0 +1,31 @@
+{
+  "name": "samplux",
+  "version": "0.1.0",
+  "description": "samplux — Survey Application for Modern Psychometrics with a lightweight user experience. Mobile-first static site for running psychometric surveys and cognitive tasks with anonymous responses in Firebase Firestore.",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lamp-umag/samplux.git"
+  },
+  "keywords": [
+    "survey",
+    "psychometrics",
+    "firebase",
+    "cognitive-tasks",
+    "paradata",
+    "lamp-umag"
+  ],
+  "author": "LAMP UMAG",
+  "license": "UNLICENSED",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/lamp-umag/samplux/issues"
+  },
+  "homepage": "https://github.com/lamp-umag/samplux#readme",
+  "dependencies": {
+    "firebase": "^12.3.0",
+    "firebase-admin": "^13.5.0"
+  }
+}

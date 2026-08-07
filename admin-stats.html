@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>samplux — estadísticas (admin)</title>
+    <meta name="description" content="Panel de estadísticas avanzado samplux — LAMP UMAG" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%90%8D</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --bg: #0d0d0d;
+        --foreground: #f0f0f0;
+        --muted: #888888;
+        --primary-soft: rgba(240,240,240,0.08);
+        --primary-foreground: #0d0d0d;
+        --surface-soft: rgba(18,18,18,0.9);
+        --surface: rgba(22,22,22,0.95);
+        --border: rgba(200,200,200,0.12);
+        --border-strong: rgba(200,200,200,0.25);
+        --danger: #f87171;
+        --warn: #fbbf24;
+        /* shared chart variables consumed by .sc-* classes */
+        --sc-ink: #f0f0f0;
+        --sc-track: rgba(255,255,255,0.08);
+        --sc-fill: #f0f0f0;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background: var(--bg); color: var(--foreground);
+        -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+      }
+      header {
+        padding: 16px 24px; display: flex; align-items: center; justify-content: space-between;
+        position: sticky; top: 0; z-index: 10;
+        background: rgba(13,13,13,0.95); backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+      }
+      .brand { font-weight: 800; font-size: 16px; letter-spacing: -0.3px; color: var(--foreground); text-decoration: none; }
+      .tagline { font-size: 12px; color: var(--muted); margin-top: 2px; }
+      .nav-link { font-size: 12px; color: var(--muted); text-decoration: none; padding: 6px 12px; border: 1px solid var(--border-strong); border-radius: 999px; transition: all .15s ease; }
+      .nav-link:hover { color: var(--foreground); border-color: var(--foreground); }
+      main { max-width: 1000px; margin: 0 auto; padding: 24px 16px 48px; }
+      .card { background: var(--surface-soft); border-radius: 14px; padding: 22px; border: 1px solid var(--border); }
+      .card + .card { margin-top: 14px; }
+      .card-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+      h1 { font-size: 20px; margin: 0; font-weight: 700; }
+      h2 { font-size: 16px; margin: 0; font-weight: 700; }
+      .muted { color: var(--muted); font-size: 14px; }
+      .small { color: var(--muted); font-size: 12px; }
+      .danger { color: var(--danger); }
+      .row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+      .pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; font-size: 11px; border-radius: 999px; border: 1px solid var(--border-strong); color: var(--muted); }
+      .pill-dot { width: 7px; height: 7px; border-radius: 999px; background: #f0f0f0; box-shadow: 0 0 8px rgba(240,240,240,0.5); }
+      .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 11px; border: 1px solid var(--border-strong); background: transparent; }
+      .status-dot { width: 7px; height: 7px; border-radius: 999px; background: #f0f0f0; box-shadow: 0 0 6px rgba(240,240,240,0.6); }
+      .status-dot.warn { background: var(--warn); box-shadow: 0 0 6px rgba(251,191,36,0.5); }
+      .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; border: 1px solid transparent; cursor: pointer; background: transparent; color: inherit; font-family: inherit; transition: all .15s ease; }
+      .btn-primary { background: var(--foreground); color: var(--primary-foreground); border-color: var(--foreground); }
+      .btn-primary:hover { background: #cccccc; border-color: #cccccc; transform: translateY(-1px); }
+      .btn-outline { border-color: var(--border-strong); color: var(--muted); }
+      .btn-outline:hover { border-color: var(--foreground); color: var(--foreground); background: var(--primary-soft); }
+      .btn-sm { padding: 5px 10px; font-size: 12px; }
+      .hidden { display: none; }
+      .select { padding: 7px 10px; border-radius: 7px; border: 1px solid var(--border-strong); background: rgba(255,255,255,0.05); color: var(--foreground); font-size: 13px; font-family: inherit; font-weight: 600; }
+      .select option { background: #1a1a1a; }
+      .mt-8 { margin-top: 8px; } .mt-16 { margin-top: 16px; }
+      code { font-family: ui-monospace, Menlo, monospace; font-size: 11px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.07); border: 1px solid var(--border); color: var(--foreground); }
+
+      .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+      .kpi { border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; background: var(--surface); }
+      .kpi-value { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+      .kpi-value.warn { color: var(--warn); }
+      .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-top: 4px; }
+
+      .subhead { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 22px 0 8px; font-weight: 700; }
+      .var-numeric-line { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+
+      table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+      th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+      th { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-weight: 600; }
+      tbody tr:hover { background: var(--primary-soft); }
+      .text-right { text-align: right; font-variant-numeric: tabular-nums; }
+      .table-scroll { overflow-x: auto; }
+      .var-block { padding: 12px 0; border-top: 1px solid var(--border); }
+      .var-prompt { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+      .sc-metric-table { width: 100%; border-collapse: collapse; margin: 8px 0 4px; font-size: 12px; }
+      .sc-metric-table th, .sc-metric-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); text-align: left; }
+      .sc-metric-table th { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+      .sc-metric-table td.text-right, .sc-metric-table th.text-right { text-align: right; font-variant-numeric: tabular-nums; }
+      .sc-metric-hist-label { font-size: 11px; color: var(--muted); margin: 10px 0 2px; }
+      .dl-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+      /* ---- shared sc-* chart classes ---- */
+      .sc-bar-row { display: grid; grid-template-columns: 160px 1fr 96px; align-items: center; gap: 10px; margin: 4px 0; }
+      .sc-bar-label { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .sc-bar-track { height: 16px; background: var(--sc-track); border-radius: 4px; overflow: hidden; }
+      .sc-bar-fill { height: 100%; background: var(--sc-fill); border-radius: 4px; min-width: 2px; }
+      .sc-bar-meta { font-size: 11px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+      .sc-hist { display: flex; align-items: flex-end; gap: 3px; height: 130px; padding-top: 14px; }
+      .sc-hist-col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
+      .sc-hist-bar { width: 100%; background: var(--sc-fill); border-radius: 3px 3px 0 0; }
+      .sc-hist-count { font-size: 9px; color: var(--muted); margin-bottom: 2px; font-variant-numeric: tabular-nums; }
+      .sc-hist-axis { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-top: 6px; }
+      .sc-timeline { width: 100%; height: 120px; display: block; }
+      .sc-tl-area { fill: var(--sc-fill); opacity: 0.10; }
+      .sc-tl-line { stroke: var(--sc-ink); stroke-width: 1.5; }
+      .sc-tl-dot { fill: var(--sc-ink); }
+      .sc-empty { font-size: 12px; color: var(--muted); padding: 16px 0; }
+      .spinner { width: 14px; height: 14px; border-radius: 999px; border: 2px solid var(--border-strong); border-top-color: var(--foreground); animation: spin .7s linear infinite; display: inline-block; vertical-align: middle; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      @media (max-width: 560px) { .sc-bar-row { grid-template-columns: 110px 1fr 70px; } }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <a class="brand" href="index.html">🐍 samplux</a>
+        <div class="tagline">Estadísticas avanzadas · LAMP UMAG</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div id="userChip" class="chip hidden"><span class="status-dot" id="userStatusDot"></span><span id="userEmail"></span></div>
+        <a class="nav-link" href="admin.html">← admin</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="card" id="authCard">
+        <div class="card-header">
+          <h1>Acceso restringido</h1>
+          <span class="pill"><span class="pill-dot"></span>Solo administradores</span>
+        </div>
+        <p class="muted">Panel de estadísticas detalladas: tiempos de respuesta, distribuciones de variables,
+          casos atípicos (speeders), tiempos por ítem y completitud — respetando exclusiones de la revisión de casos.</p>
+        <div class="mt-16 row" style="justify-content:space-between;">
+          <p class="small">Inicia sesión con una cuenta administradora autorizada.</p>
+          <button id="loginBtn" class="btn btn-primary">Entrar con Google</button>
+        </div>
+        <p id="authError" class="small danger mt-8 hidden"></p>
+      </section>
+
+      <section class="card hidden" id="controlsCard">
+        <div class="card-header">
+          <h2>Encuesta</h2>
+          <div class="row" style="gap:8px;">
+            <select id="surveySelect" class="select"></select>
+            <label class="small row" style="gap:6px;">
+              <input type="checkbox" id="includeExcluded" /> incluir excluidas
+            </label>
+            <button id="refreshBtn" class="btn btn-outline btn-sm"><span class="spinner hidden" id="refreshSpinner"></span><span>Recargar</span></button>
+          </div>
+        </div>
+        <div class="kpis" id="kpis"></div>
+        <div class="dl-row mt-16">
+          <button id="dlCsvBtn" class="btn btn-primary btn-sm">⬇ Descargar CSV completo</button>
+          <button id="dlMetaBtn" class="btn btn-outline btn-sm">⬇ metadata.txt (codebook)</button>
+          <span class="small" id="dlHint">CSV ordenado: meta · tiempos · respuestas · tareas cognitivas · tiempos por ítem. El codebook describe cada columna.</span>
+        </div>
+      </section>
+
+      <section class="card hidden" id="cogCard">
+        <div class="card-header"><h2>Tareas cognitivas</h2><span class="small" id="cogMeta"></span></div>
+        <div id="cogList"></div>
+      </section>
+
+      <section class="card hidden" id="timeCard">
+        <div class="card-header"><h2>Tiempo total de respuesta</h2><span class="small" id="timeMeta"></span></div>
+        <div id="timeSummary" class="var-numeric-line"></div>
+        <div id="timeHist"></div>
+        <div class="subhead">Velocidad de respuesta</div>
+        <div id="speedBuckets"></div>
+        <div class="subhead">Respuestas por día</div>
+        <div id="timeline"></div>
+      </section>
+
+      <section class="card hidden" id="itemTimeCard">
+        <div class="card-header"><h2>Tiempo por ítem</h2><span class="small">mediana y rango intercuartil (segundos)</span></div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>Ítem</th><th class="text-right">n</th><th class="text-right">Mediana</th>
+              <th class="text-right">P25–P75</th><th class="text-right">Máx</th><th class="text-right">Cambios</th>
+            </tr></thead>
+            <tbody id="itemTimeBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card hidden" id="varCard">
+        <div class="card-header"><h2>Distribución de variables</h2><span class="small" id="varMeta"></span></div>
+        <div id="varList"></div>
+      </section>
+    </main>
+
+    <script type="module" src="./js/adminStats.js"></script>
+  </body>
+</html>

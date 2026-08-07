@@ -1,0 +1,10 @@
+{
+  "surveys": [
+    {
+      "id": "samplux_demo",
+      "title": "Encuesta de demostración",
+      "description": "Ejemplo que muestra todos los tipos de ítem disponibles: secciones, escalas Likert, opciones, texto, sliders, tareas cognitivas y más.",
+      "file": "samplux_demo.json"
+    }
+  ]
+}

@@ -1,0 +1,194 @@
+{
+  "id": "samplux_demo",
+  "title": "Encuesta de demostración",
+  "description": "Encuesta de ejemplo para verificar el flujo y los tipos de ítem disponibles.",
+  "settings": {
+    "randomizeItems": false
+  },
+  "optionSets": {
+    "acuerdo_5": [
+      { "code": 1, "label": "Totalmente en desacuerdo" },
+      { "code": 2, "label": "En desacuerdo" },
+      { "code": 3, "label": "Ni de acuerdo ni en desacuerdo" },
+      { "code": 4, "label": "De acuerdo" },
+      { "code": 5, "label": "Totalmente de acuerdo" }
+    ],
+    "frecuencia_5": [
+      { "code": 1, "label": "Nunca" },
+      { "code": 2, "label": "Rara vez" },
+      { "code": 3, "label": "A veces" },
+      { "code": 4, "label": "A menudo" },
+      { "code": 5, "label": "Siempre o casi siempre" }
+    ]
+  },
+  "items": [
+    {
+      "id": "task_intro",
+      "type": "info",
+      "prompt": "SECCIÓN 1 — Tareas cognitivas\n\nAntes de las preguntas realizarás tres tareas breves.\n\nCada tarea incluye una fase de práctica y luego la prueba real. Lee bien las instrucciones de cada una.\n\nTiempo total: ~6 minutos."
+    },
+    {
+      "id": "tarea_rt",
+      "type": "task_rt",
+      "prompt": "Tarea 1/3 — Tiempo de Reacción"
+    },
+    {
+      "id": "tarea_stroop",
+      "type": "task_stroop",
+      "prompt": "Tarea 2/3 — Test de Stroop"
+    },
+    {
+      "id": "tarea_gonogo",
+      "type": "task_gonogo",
+      "prompt": "Tarea 3/3 — Go / No-Go"
+    },
+    {
+      "id": "intro",
+      "type": "info",
+      "prompt": "SECCIÓN 2 — Bienvenida\n\nGracias por participar en esta encuesta de demostración.\n\nA continuación hay algunas preguntas sobre ti y sobre tu bienestar."
+    },
+    {
+      "id": "nombre",
+      "type": "text",
+      "prompt": "¿Cuál es tu nombre o apodo?",
+      "placeholder": "Tu nombre o apodo...",
+      "required": false
+    },
+    {
+      "id": "correo",
+      "type": "email",
+      "prompt": "¿Cuál es tu correo electrónico?",
+      "placeholder": "ejemplo@correo.com",
+      "required": false
+    },
+    {
+      "id": "edad",
+      "type": "number",
+      "prompt": "¿Cuántos años tienes?",
+      "placeholder": "Edad",
+      "min": 10,
+      "max": 110,
+      "required": false
+    },
+    {
+      "id": "genero",
+      "type": "single_choice",
+      "prompt": "¿Con qué género te identificas?",
+      "options": [
+        "Mujer",
+        "Hombre",
+        "No binario / otra identidad",
+        "Prefiero no responder"
+      ],
+      "required": false
+    },
+    {
+      "id": "seccion2",
+      "type": "info",
+      "prompt": "SECCIÓN 3 — Bienestar\n\nLas siguientes preguntas son sobre tu bienestar general durante las últimas dos semanas.\n\nResponde con la opción que mejor describa tu experiencia."
+    },
+    {
+      "id": "wb1",
+      "type": "acuerdo_5",
+      "prompt": "En general, me siento satisfecho/a con mi vida.",
+      "scale": "bienestar",
+      "required": true
+    },
+    {
+      "id": "wb2",
+      "type": "acuerdo_5",
+      "prompt": "Me siento tranquilo/a y en paz.",
+      "scale": "bienestar",
+      "required": true
+    },
+    {
+      "id": "wb3",
+      "type": "acuerdo_5",
+      "prompt": "Me siento lleno/a de energía.",
+      "scale": "bienestar",
+      "required": true
+    },
+    {
+      "id": "wb4",
+      "type": "frecuencia_5",
+      "prompt": "¿Con qué frecuencia te sientes genuinamente feliz?",
+      "scale": "bienestar",
+      "required": true
+    },
+    {
+      "id": "satisfaccion_slider",
+      "type": "slider",
+      "prompt": "En una escala del 0 al 100, ¿cómo calificarías tu satisfacción con la vida en este momento? (0 = nada satisfecho/a, 100 = completamente satisfecho/a)",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "required": true
+    },
+    {
+      "id": "seccion3",
+      "type": "info",
+      "prompt": "SECCIÓN 4 — Hábitos y rutinas\n\nA continuación algunas preguntas sobre tus hábitos cotidianos."
+    },
+    {
+      "id": "ejercicio",
+      "type": "single_choice",
+      "prompt": "¿Cuántos días a la semana realizas algún tipo de ejercicio o actividad física?",
+      "options": [
+        "0 días",
+        "1 a 2 días",
+        "3 a 4 días",
+        "5 o más días"
+      ],
+      "required": true
+    },
+    {
+      "id": "horas_sueno",
+      "type": "number",
+      "prompt": "¿Cuántas horas duermes en promedio por noche?",
+      "placeholder": "Horas",
+      "min": 0,
+      "max": 24,
+      "required": false
+    },
+    {
+      "id": "pantallas",
+      "type": "yes_no",
+      "prompt": "¿Usas pantallas (teléfono, computador, TV) por más de 4 horas al día?",
+      "required": true
+    },
+    {
+      "id": "intereses",
+      "type": "multi_choice",
+      "prompt": "¿Cuáles de los siguientes temas te interesan? (selecciona todos los que apliquen)",
+      "options": [
+        "Salud y bienestar",
+        "Tecnología",
+        "Arte y cultura",
+        "Deportes",
+        "Ciencia",
+        "Asuntos sociales"
+      ],
+      "required": false
+    },
+    {
+      "id": "seccion4",
+      "type": "info",
+      "prompt": "SECCIÓN 5 — Sobre esta encuesta\n\nFinalmente, unas preguntas sobre la encuesta misma.\n\nTu opinión nos ayuda a mejorar la plataforma."
+    },
+    {
+      "id": "claridad",
+      "type": "acuerdo_5",
+      "prompt": "Las preguntas de esta encuesta fueron claras y fáciles de entender.",
+      "required": true
+    },
+    {
+      "id": "comentarios",
+      "type": "text",
+      "prompt": "¿Tienes algún comentario o sugerencia?",
+      "placeholder": "Escribe tus comentarios aquí...",
+      "long": true,
+      "maxLength": 600,
+      "required": false
+    }
+  ]
+}
