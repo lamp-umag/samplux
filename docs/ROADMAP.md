@@ -57,18 +57,83 @@ left in place. `docs/ARCHITECTURE.md` §9 already documents the single-survey
 version of this setup step; this phase is that step, done with a multi-tenant
 data shape instead of the single-project-per-survey one perseg/pausa use.
 
-- [ ] Create a dedicated `samplux` (or similarly named) Firebase project.
-- [ ] Commit `.firebaserc` + `firebase.json` + `firestore.rules` +
-      `firestore.indexes.json` to the repo (perseg commits `firestore.rules`;
-      samplux should go further and check in the whole CLI config as IaC).
-- [ ] Redesign the Firestore shape around a top-level `surveys/{surveyId}`
-      document carrying `ownerId`, `adminIds: []`, and metadata — this is the
-      seam multi-admin and the form builder both hang off of. Responses stay
-      nested/scoped per survey as today.
-- [ ] Decide response data isolation: same project, scoped by security rules
-      (simplest) vs. physically separate collections/DBs per org (only if the
-      hosting-region compliance check in Phase 4 calls for it).
-- [ ] Swap `js/firebaseClient.js` off `sssss-e8013`.
+### Step-by-step (console work — do this by hand, in order)
+
+**A. Project creation**
+- [ ] console.firebase.google.com → Add project → name it `samplux` (project ID
+      will auto-suggest something like `samplux-xxxxx` since `samplux` itself
+      is likely taken globally — that's fine, the ID is internal, nothing
+      user-facing shows it).
+- [ ] Decline Google Analytics for this project (not needed, and it's one less
+      third-party data flow to justify under Ley 21.719 later).
+
+**B. Firestore — ⚠️ the one truly irreversible decision in this whole phase**
+- [ ] Build a database → **Firestore, Native mode** (not Datastore mode).
+- [ ] **Region: pick `southamerica-west1` (Santiago) deliberately, right now.**
+      Firestore location **cannot be changed later** without exporting all
+      data and recreating the database from scratch. This is your one shot at
+      the region decision — get it right before any real data lands in it.
+      (Reminder from the compliance note below: this alone doesn't satisfy
+      Ley 21.719, but it's the correct infra default and can't be fixed after
+      the fact, so lock it in now regardless.)
+- [ ] Start in **production mode** for security rules (locked down by
+      default) — we'll deploy real rules from the repo in step D, not write
+      them by hand in the console.
+
+**C. Authentication**
+- [ ] Build → Authentication → Get started → enable **Google** sign-in
+      provider (this is what `admin.js`/`adminStats.js` use for admin login).
+- [ ] Authentication → Settings → **Authorized domains** → add
+      `lamp-umag.github.io`. Easy to forget, and without it Google sign-in
+      fails with an `unauthorized-domain` error on the live site (localhost
+      is usually already whitelisted by default for local testing).
+
+**D. Web app + config**
+- [ ] Project settings (gear icon) → Add app → **Web** (`</>`) → register it
+      (nickname `samplux-web` or similar, no Firebase Hosting needed — hosting
+      stays on GitHub Pages).
+- [ ] Copy the resulting `firebaseConfig` object (`apiKey`, `authDomain`,
+      `projectId`, `storageBucket`, `messagingSenderId`, `appId`).
+- [ ] Paste it into `js/firebaseClient.js`, replacing the `sssss-e8013` config
+      and removing the TODO comment. (This key is meant to be public — Firebase
+      web API keys aren't secrets; real access control is the rules in step E.)
+
+**E. Firestore rules + local CLI wiring (back in the repo, not the console)**
+- [ ] `firebase login`, then `firebase init firestore` inside the samplux repo
+      → select the new project → this generates `.firebaserc` + `firebase.json`
+      → **commit these** (perseg only commits `firestore.rules`; go further
+      here and check in the full CLI config as IaC, per the goal above).
+- [ ] Write `firestore.rules` starting from the shape in
+      `docs/ARCHITECTURE.md` §9, then add the multi-tenant piece: a top-level
+      `surveys/{surveyId}` document carrying `ownerId` and `adminIds: []` —
+      this is the seam Phase 1 (form builder) and Phase 2 (multi-admin) both
+      hang off of. Responses stay nested per survey exactly as today
+      (`responses/{surveyId}/entries`); don't restructure those yet.
+- [ ] `firebase deploy --only firestore:rules` to publish.
+- [ ] Leave `firestore.indexes.json` minimal/empty for now — composite indexes
+      get added on demand when the CLI/console prompts for one on a failing
+      query, no need to guess them upfront.
+
+**F. Hardening (do before any real study points at this, not urgent today)**
+- [ ] Consider **Firebase App Check** (reCAPTCHA v3) once this goes
+      multi-tenant/production-facing — the runner's `allow create: if true`
+      rule means anyone can currently write junk responses, and that gets
+      riskier as more real studies rely on data quality here.
+- [ ] Consider the **Blaze** (pay-as-you-go) plan over the free Spark plan if
+      multiple concurrent studies are expected — Spark's quotas are easy to
+      hit with several tenants; set a billing budget alert if you switch.
+
+**G. Verify end-to-end before calling Phase 0 done**
+- [ ] Submit a test response anonymously on the live site → confirm it lands
+      in the new project's Firestore console.
+- [ ] Sign in via the admin panel with Google → confirm stats load.
+- [ ] Add real admin email(s) to `ALLOWED_EMAILS` in `js/admin.js` and
+      `js/adminStats.js` (still the flat-list model for now — Phase 2 replaces
+      it with real roles).
+- [ ] Decide response data isolation going forward: same project, scoped by
+      security rules (simplest, recommended to start) vs. physically separate
+      collections/DBs per org (only revisit this if a future compliance pass
+      demands stronger isolation than rules alone provide).
 
 ## Phase 1 — Form builder / configurator (keystone)
 

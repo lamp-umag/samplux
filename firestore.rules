@@ -1,0 +1,52 @@
+rules_version = '2';
+
+// samplux (samplux-lamp) — Firestore security rules.
+//
+// To apply: Firebase Console → samplux-lamp → Firestore Database → Rules
+// → paste this whole file → Publish. (Or `firebase deploy --only firestore:rules`.)
+//
+// Paths used by the app:
+// - responses/<surveyId>/entries/<responseId>: one survey response, written
+//   anonymously by index.html on submit.
+// - response_export_meta/<surveyId>/flags/<responseId>: exclusion-flag
+//   metadata for CSV export, read/written by admin.html and admin-stats.html
+//   (both Google-auth gated).
+//
+// IMPORTANT: keep the email list below in sync with ALLOWED_EMAILS in
+// js/admin.js and js/adminStats.js. Keep the surveyId list below in sync with
+// surveys/index.json — a new survey's submissions will silently fail with
+// "permission-denied" until its id is added here.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /responses/{surveyId}/entries/{responseId} {
+      // Anyone can create a response (public, anonymous survey), but only if
+      // the surveyId is one we know about and the document has the expected
+      // shape — stops bots from blind-writing junk documents into the
+      // collection.
+      allow create: if
+        surveyId in ['samplux_demo'] &&
+        request.resource.data.surveyId == surveyId &&
+        request.resource.data.answers is map;
+
+      // Only admins (Google login) can read responses — admin.html and
+      // admin-stats.html need this for counts/exports. Nobody can edit or
+      // delete a response once submitted (immutable by design).
+      allow read: if request.auth != null &&
+        request.auth.token.email in [
+          'hermanelgueta@gmail.com',
+          'herman.elgueta@umag.cl'
+        ];
+      allow update, delete: if false;
+    }
+
+    match /response_export_meta/{surveyId}/flags/{responseId} {
+      allow read, write: if request.auth != null &&
+        request.auth.token.email in [
+          'hermanelgueta@gmail.com',
+          'herman.elgueta@umag.cl'
+        ];
+    }
+  }
+}
