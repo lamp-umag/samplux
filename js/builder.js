@@ -634,6 +634,9 @@ function wireItemBody(item, body, refreshHead) {
   const longEl = body.querySelector('[data-f="long"]');
   if (longEl) longEl.addEventListener('change', e => { item.long = e.target.checked; });
 
+  const allowedCharsEl = body.querySelector('[data-f="allowedChars"]');
+  if (allowedCharsEl) allowedCharsEl.addEventListener('input', e => { item.allowedChars = e.target.value || undefined; });
+
   const minEl = body.querySelector('[data-f="min"]');
   if (minEl) minEl.addEventListener('input', e => { item.min = e.target.value === '' ? undefined : Number(e.target.value); });
 
