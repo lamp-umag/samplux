@@ -3,6 +3,22 @@ import { run as runRT }     from './tasks/rt.js';
 import { run as runStroop } from './tasks/stroop.js';
 import { run as runGoNoGo } from './tasks/gonogo.js';
 
+// Item-level extensions (ported from perseg + added for espacios-telares-1;
+// see docs/ARCHITECTURE.md §2):
+// - `item.section`: short label shown above the question (block / topic kicker).
+// - `item.sectionHeader === true`: renders an `info` item as a section header
+//   without requiring its prompt to start with "SECCIÓN".
+// - `item.followUp`: { id, whenCode, prompt, long } — conditional text box shown
+//   on the same step when the answer includes `whenCode` (e.g. "Otro, ¿cuál?").
+//   Works on single_choice/optionSet items, yes_no, multi_choice and ranking.
+// - `item.showIf`: { item, in: [codes] } or { anyOf: [ ...clauses ] } — the item
+//   is skipped (and its answer cleared) unless a previous answer matches.
+// - `item.exitOnAnswer`: [codes] — ends the survey without saving (consent).
+// - multi_choice: `maxSelect` (e.g. "hasta 3") and per-option `exclusive: true`
+//   (e.g. "Nada", "No ocurre" — deselects everything else).
+// - `ranking`: tap options in order of priority; `maxRank` (default 3). Stored
+//   as an ordered array of codes, most important first.
+// - survey.settings.thankYou: HTML that replaces the default thank-you message.
 export const APP_CONFIG = {
   enableParadata: true,
   maxAnswerChangeEvents: 50,
@@ -10,7 +26,8 @@ export const APP_CONFIG = {
     enabled: false
   },
   messages: {
-    thankYou: '<div class="q center">¡Muchas gracias!</div><div class="info-text center">Tus respuestas han sido registradas correctamente.\n\nPuedes cerrar esta ventana o <a href=".">volver al inicio</a>.</div>'
+    thankYou: '<div class="q center">¡Muchas gracias!</div><div class="info-text center">Tus respuestas han sido registradas correctamente.\n\nPuedes cerrar esta ventana o <a href=".">volver al inicio</a>.</div>',
+    declined: '<div class="q center">Gracias por tu tiempo.</div><div class="info-text center">No se ha guardado ninguna respuesta.\n\nPuedes cerrar esta ventana cuando quieras.</div>'
   }
 };
 
@@ -192,7 +209,56 @@ export function createSurveyApp({ db, elements }) {
   }
 
   function isSectionHeader(item) {
-    return item && item.type === 'info' && typeof item.prompt === 'string' && item.prompt.startsWith('SECCIÓN');
+    if (!item || item.type !== 'info') return false;
+    if (item.sectionHeader === true) return true;
+    return typeof item.prompt === 'string' && item.prompt.startsWith('SECCIÓN');
+  }
+
+  /* ── Conditional display (item.showIf) ─────────────────── */
+
+  function answerAsList(v) {
+    if (Array.isArray(v)) return v;
+    if (v == null || String(v).trim() === '') return [];
+    return [v];
+  }
+
+  function matchesClause(clause) {
+    if (!clause || !clause.item) return true;
+    const list = answerAsList(answers[clause.item]);
+    if (Array.isArray(clause.in)) {
+      const wanted = clause.in.map(String);
+      return list.some(v => wanted.includes(String(v)));
+    }
+    return list.length > 0; // no `in`: "was answered at all"
+  }
+
+  function isItemVisible(item) {
+    const cond = item && item.showIf;
+    if (!cond) return true;
+    if (Array.isArray(cond.anyOf)) return cond.anyOf.some(matchesClause);
+    return matchesClause(cond);
+  }
+
+  function clearItemAnswers(item) {
+    delete answers[item.id];
+    if (item.followUp && item.followUp.id) delete answers[item.followUp.id];
+  }
+
+  // Next visible index after `from` (clears answers of skipped items, so a
+  // changed earlier answer never leaves stale conditional data behind).
+  function nextVisibleIndex(from, { clear = false } = {}) {
+    let i = from + 1;
+    while (i < survey.items.length && !isItemVisible(survey.items[i])) {
+      if (clear) clearItemAnswers(survey.items[i]);
+      i += 1;
+    }
+    return i;
+  }
+
+  function prevVisibleIndex(from) {
+    let i = from - 1;
+    while (i > 0 && !isItemVisible(survey.items[i])) i -= 1;
+    return Math.max(0, i);
   }
 
   function applyRandomization(surveyCopy) {
@@ -457,7 +523,7 @@ export function createSurveyApp({ db, elements }) {
       const back = button('← Atrás', 'secondary');
       back.onclick = () => {
         if (APP_CONFIG.enableParadata) navBackCount += 1;
-        currentIndex = total - 1;
+        currentIndex = prevVisibleIndex(total);
         renderStep();
       };
       const send = button('Enviar respuestas', 'primary');
@@ -467,19 +533,22 @@ export function createSurveyApp({ db, elements }) {
     }
 
     const item = survey.items[currentIndex];
-    const isLastItem = currentIndex === survey.items.length - 1;
+    const isLastItem = nextVisibleIndex(currentIndex) >= survey.items.length;
     itemStartTime = Date.now();
     if (item && item.type !== 'info') {
       stepEntrySnapshot[item.id] = cloneAnswerValue(answers[item.id]);
+    }
+
+    if (item.section) {
+      metaContainer.innerHTML = `<div class="kicker">${item.section}</div>`;
     }
 
     if (item.type === 'info') {
       const lines = item.prompt.split('\n');
       const headerText = lines[0];
       const content = lines.slice(1).join('\n').trim();
-      const isSection = headerText.startsWith('SECCIÓN');
 
-      if (isSection) {
+      if (isSectionHeader(item)) {
         questionContainer.innerHTML = `
           <div class="section-header">${headerText}</div>
           <div class="info-text">${content}</div>
@@ -494,14 +563,14 @@ export function createSurveyApp({ db, elements }) {
 
     const goNext = () => {
       leaveCurrentItemParadata(item);
-      currentIndex += 1;
+      currentIndex = nextVisibleIndex(currentIndex, { clear: true });
       renderStep();
     };
 
     const goPrev = () => {
       leaveCurrentItemParadata(item);
       if (APP_CONFIG.enableParadata) navBackCount += 1;
-      currentIndex = Math.max(0, currentIndex - 1);
+      currentIndex = prevVisibleIndex(currentIndex);
       renderStep();
     };
 
@@ -523,8 +592,11 @@ export function createSurveyApp({ db, elements }) {
   }
 
   function renderControlsForItem({ item, goNext, goPrev, isLastItem }) {
-    if (isSingleChoiceItem(item)) {
-      const options = normalizeOptions(item);
+    if (isSingleChoiceItem(item) || item.type === 'yes_no') {
+      const options = item.type === 'yes_no'
+        ? [{ label: 'Sí', code: 'yes' }, { label: 'No', code: 'no' }]
+        : normalizeOptions(item);
+      const followUp = createFollowUp(item);
       const selectedCode = answers[item.id] ?? null;
       options.forEach(opt => {
         const el = document.createElement('button');
@@ -534,40 +606,141 @@ export function createSurveyApp({ db, elements }) {
           answers[item.id] = opt.code;
           optionsContainer.querySelectorAll('.opt').forEach(b => b.classList.remove('selected'));
           el.classList.add('selected');
+
+          if (Array.isArray(item.exitOnAnswer) && item.exitOnAnswer.map(String).includes(String(opt.code))) {
+            leaveCurrentItemParadata(item);
+            endSurveyWithoutSaving(item.exitMessage);
+            return;
+          }
+          if (followUp && followUp.matches(opt.code)) {
+            followUp.show(true);
+            return; // stay on this step so the text box can be filled in
+          }
+          if (followUp) followUp.hide();
           setTimeout(goNext, 120);
         };
         optionsContainer.appendChild(el);
       });
+      if (followUp) followUp.sync(selectedCode);
       const back = button('← Atrás', 'secondary');
       back.onclick = goPrev;
       const next = button('Siguiente →', 'primary');
-      next.onclick = goNext;
+      next.onclick = () => {
+        if (item.required && answers[item.id] == null) return;
+        goNext();
+      };
       controlsContainer.append(back, next);
       return;
     }
 
     if (item.type === 'multi_choice') {
       const options = normalizeOptions(item);
+      const followUp = createFollowUp(item);
+      const maxSelect = Number(item.maxSelect) > 0 ? Number(item.maxSelect) : null;
       const prev = Array.isArray(answers[item.id]) ? new Set(answers[item.id].map(String)) : new Set();
+      const buttons = new Map();
+
+      // Store codes in option order and with their original type (numbers stay numbers).
+      const commit = () => {
+        answers[item.id] = options.filter(o => prev.has(String(o.code))).map(o => o.code);
+        buttons.forEach((b, key) => b.classList.toggle('selected', prev.has(key)));
+        if (followUp) followUp.sync(answers[item.id]);
+        if (maxSelect) footnoteContainer.innerText = `${prev.size} de ${maxSelect} seleccionadas`;
+      };
+
       options.forEach(opt => {
+        const key = String(opt.code);
         const el = document.createElement('button');
-        const isSel = prev.has(String(opt.code));
-        el.className = 'opt' + (isSel ? ' selected' : '');
+        el.className = 'opt';
         el.textContent = opt.label;
         el.onclick = () => {
-          const key = String(opt.code);
-          if (prev.has(key)) prev.delete(key); else prev.add(key);
-          el.classList.toggle('selected');
+          if (prev.has(key)) {
+            prev.delete(key);
+          } else if (opt.exclusive) {
+            prev.clear();
+            prev.add(key);
+          } else {
+            const regular = options.filter(o => !o.exclusive && prev.has(String(o.code))).length;
+            if (maxSelect && regular >= maxSelect) {
+              footnoteContainer.innerText = `Puedes elegir hasta ${maxSelect}. Quita una para cambiarla.`;
+              el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake');
+              return;
+            }
+            options.filter(o => o.exclusive).forEach(o => prev.delete(String(o.code)));
+            prev.add(key);
+          }
+          commit();
+          if (followUp && opt.code != null && followUp.matches(opt.code) && prev.has(key)) followUp.focus();
         };
+        buttons.set(key, el);
         optionsContainer.appendChild(el);
       });
+      if (prev.size || maxSelect) commit();
       const back = button('← Atrás', 'secondary');
       back.onclick = goPrev;
       const next = button('Siguiente →', 'primary');
       next.onclick = () => {
-        const arr = Array.from(prev);
-        if (item.required && arr.length === 0) return;
-        answers[item.id] = arr;
+        if (item.required && prev.size === 0) return;
+        if (!prev.size) delete answers[item.id];
+        goNext();
+      };
+      controlsContainer.append(back, next);
+      return;
+    }
+
+    if (item.type === 'ranking') {
+      const options = normalizeOptions(item);
+      const followUp = createFollowUp(item);
+      const maxRank = Number(item.maxRank) > 0 ? Math.min(Number(item.maxRank), options.length) : Math.min(3, options.length);
+      const byKey = new Map(options.map(o => [String(o.code), o]));
+      let order = Array.isArray(answers[item.id])
+        ? answers[item.id].map(String).filter(k => byKey.has(k)).slice(0, maxRank)
+        : [];
+      const buttons = new Map();
+
+      const commit = () => {
+        if (order.length) answers[item.id] = order.map(k => byKey.get(k).code);
+        else delete answers[item.id];
+        buttons.forEach((b, key) => {
+          const pos = order.indexOf(key);
+          b.classList.toggle('selected', pos >= 0);
+          b.querySelector('.rank-badge').textContent = pos >= 0 ? String(pos + 1) : '';
+        });
+        if (followUp) followUp.sync(answers[item.id]);
+        footnoteContainer.innerText = order.length >= maxRank
+          ? `Listo: ${maxRank} de ${maxRank}. Toca una para quitarla y reordenar.`
+          : `Elige la n.º ${order.length + 1} de ${maxRank}.`;
+      };
+
+      options.forEach(opt => {
+        const key = String(opt.code);
+        const el = document.createElement('button');
+        el.className = 'opt opt-rank';
+        el.innerHTML = '<span class="rank-badge"></span><span class="rank-label"></span>';
+        el.querySelector('.rank-label').textContent = opt.label;
+        el.onclick = () => {
+          const pos = order.indexOf(key);
+          if (pos >= 0) {
+            order.splice(pos, 1);
+          } else {
+            if (order.length >= maxRank) {
+              el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake');
+              return;
+            }
+            order.push(key);
+          }
+          commit();
+          if (followUp && followUp.matches(opt.code) && order.includes(key)) followUp.focus();
+        };
+        buttons.set(key, el);
+        optionsContainer.appendChild(el);
+      });
+      commit();
+      const back = button('← Atrás', 'secondary');
+      back.onclick = goPrev;
+      const next = button('Siguiente →', 'primary');
+      next.onclick = () => {
+        if (item.required && order.length < maxRank) return;
         goNext();
       };
       controlsContainer.append(back, next);
@@ -589,7 +762,16 @@ export function createSurveyApp({ db, elements }) {
       const next = button('Siguiente →', 'primary');
       next.onclick = () => {
         if (item.required && (input.value === '' || isNaN(Number(input.value)))) return;
-        answers[item.id] = input.value === '' ? null : Number(input.value);
+        const num = input.value === '' ? null : Number(input.value);
+        if (num != null && typeof item.min === 'number' && num < item.min) {
+          footnoteContainer.innerText = item.rangeHelp || `El valor mínimo permitido es ${item.min}.`;
+          return;
+        }
+        if (num != null && typeof item.max === 'number' && num > item.max) {
+          footnoteContainer.innerText = item.rangeHelp || `El valor máximo permitido es ${item.max}.`;
+          return;
+        }
+        if (num == null) delete answers[item.id]; else answers[item.id] = num;
         goNext();
       };
       controlsContainer.append(back, next);
@@ -746,32 +928,6 @@ export function createSurveyApp({ db, elements }) {
       return;
     }
 
-    if (item.type === 'yes_no') {
-      const options = [
-        { label: 'Sí', code: 'yes' },
-        { label: 'No', code: 'no' }
-      ];
-      const selectedCode = answers[item.id] ?? null;
-      options.forEach(opt => {
-        const el = document.createElement('button');
-        el.className = 'opt' + (selectedCode === opt.code ? ' selected' : '');
-        el.textContent = opt.label;
-        el.onclick = () => {
-          answers[item.id] = opt.code;
-          optionsContainer.querySelectorAll('.opt').forEach(b => b.classList.remove('selected'));
-          el.classList.add('selected');
-          setTimeout(goNext, 120);
-        };
-        optionsContainer.appendChild(el);
-      });
-      const back = button('← Atrás', 'secondary');
-      back.onclick = goPrev;
-      const next = button('Siguiente →', 'primary');
-      next.onclick = goNext;
-      controlsContainer.append(back, next);
-      return;
-    }
-
     if (item.type === 'phone') {
       const input = document.createElement('input');
       input.type = 'tel';
@@ -861,6 +1017,61 @@ export function createSurveyApp({ db, elements }) {
     optionsContainer.innerHTML = '<div class="tiny">Tipo de ítem no soportado: ' + item.type + '</div>';
   }
 
+  /** Conditional "especifica" text box tied to one or more option codes. */
+  function createFollowUp(item) {
+    const fu = item.followUp;
+    if (!fu || !fu.id) return null;
+    const codes = (Array.isArray(fu.whenCode) ? fu.whenCode : [fu.whenCode]).map(String);
+    let wrap = null;
+    let input = null;
+    return {
+      matches(value) {
+        return answerAsList(value).some(v => codes.includes(String(v)));
+      },
+      show(focus) {
+        if (!wrap) {
+          wrap = document.createElement('div');
+          wrap.className = 'followup fade-in';
+          const label = document.createElement('div');
+          label.className = 'item-instruction';
+          label.textContent = fu.prompt || 'Por favor, especifica:';
+          input = document.createElement(fu.long ? 'textarea' : 'input');
+          if (input.tagName.toLowerCase() === 'input') input.type = 'text';
+          input.placeholder = fu.placeholder || '';
+          input.maxLength = fu.maxLength || (fu.long ? 1000 : 200);
+          if (answers[fu.id] != null) input.value = answers[fu.id];
+          input.addEventListener('input', () => {
+            if (input.value.trim() === '') delete answers[fu.id];
+            else answers[fu.id] = input.value;
+          });
+          wrap.append(label, input);
+          optionsContainer.appendChild(wrap);
+        }
+        if (focus) this.focus();
+      },
+      focus() {
+        if (input) setTimeout(() => input.focus({ preventScroll: false }), 30);
+      },
+      hide() {
+        delete answers[fu.id];
+        if (wrap) { wrap.remove(); wrap = null; input = null; }
+      },
+      sync(value) {
+        if (this.matches(value)) this.show(false); else this.hide();
+      }
+    };
+  }
+
+  /** Ends the survey without writing anything (e.g. consent declined). */
+  function endSurveyWithoutSaving(customMessageHtml) {
+    bar.style.width = '100%';
+    metaContainer.innerHTML = '';
+    optionsContainer.innerHTML = '';
+    controlsContainer.innerHTML = '';
+    footnoteContainer.innerHTML = '';
+    questionContainer.innerHTML = customMessageHtml || APP_CONFIG.messages.declined;
+  }
+
   function button(label, kind) {
     const b = document.createElement('button');
     b.className = `btn ${kind}`;
@@ -881,12 +1092,12 @@ export function createSurveyApp({ db, elements }) {
       if (typeof opt === 'string') return { label: opt, code: idx + 1 };
       const label = opt.label ?? String(opt.code ?? opt.value ?? opt);
       const code = opt.code ?? opt.value ?? (idx + 1);
-      return { label, code };
+      return { label, code, exclusive: opt.exclusive === true };
     });
   }
 
   function isSingleChoiceItem(item) {
-    if (item.type === 'multi_choice') return false;
+    if (item.type === 'multi_choice' || item.type === 'ranking' || item.type === 'yes_no') return false;
     const opts = getItemOptions(item);
     return opts.length > 0;
   }
@@ -896,6 +1107,9 @@ export function createSurveyApp({ db, elements }) {
       const item = survey.items[currentIndex];
       leaveCurrentItemParadata(item);
     }
+
+    // Final safety net: drop answers to items whose showIf ended up false.
+    survey.items.forEach(it => { if (!isItemVisible(it)) clearItemAnswers(it); });
 
     const urlParams = new URLSearchParams(location.search);
     const serverCode = urlParams.get('srv') || urlParams.get('iden') || null;
@@ -940,7 +1154,9 @@ export function createSurveyApp({ db, elements }) {
     try {
       const col = collection(db, `responses/${survey.id}/entries`);
       await addDoc(col, payload);
-      questionContainer.innerHTML = APP_CONFIG.messages.thankYou;
+      const customThanks = survey.settings && survey.settings.thankYou;
+      questionContainer.innerHTML = customThanks || APP_CONFIG.messages.thankYou;
+      metaContainer.innerHTML = '';
       optionsContainer.innerHTML = '';
       controlsContainer.innerHTML = '';
       footnoteContainer.innerHTML = '';

@@ -16,7 +16,7 @@ up fixes and features the other (and samplux) never got back:
 |---|---|---|---|
 | Own Firebase project | ✅ `perseg-8471a` | ✅ `pausa-39df2` | ❌ still on legacy `sssss-e8013` |
 | `firestore.rules` committed | ✅ | ❌ (console-managed) | ❌ |
-| Tabbed admin-stats dashboard + case mgmt | ✅ (origin of the pattern) | ✅ (ported from perseg) | ❌ (older layout) |
+| Tabbed admin-stats dashboard + case mgmt | ✅ (origin of the pattern) | ✅ (ported from perseg) | ✅ (2026-09-29, now `admin.html`, + open-answer drawers) |
 | Psychometrics compute engine (Cómputo tab) | ❌ | ✅ | ❌ |
 | Extended paradata (`navBackCount`, `answerChangeCount`, events) | ? | ✅ | ✅ (already present) |
 | Form authoring | hardcoded JSON | hardcoded JSON | hardcoded JSON |
@@ -211,6 +211,10 @@ builder) for bringing legacy content in for review before publishing.
       happen live against a real backend instead of a git commit.
 
 ## Phase 2 — Multi-admin & permissions
+
+> **Partial, 2026-09-29:** per-survey read-only admins shipped as
+> `surveys/<id>.adminEmails` + `isSurveyAdmin()` in the rules (first user:
+> espacios-telares-1). Roles (owner/editor) and builder access are still open.
 
 Straightforward once Phase 0's `ownerId`/`adminIds` fields exist.
 

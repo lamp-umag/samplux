@@ -25,10 +25,10 @@ participants interact (timing, back-navigation, answer changes), reusable
 |------|------|----------|---------|
 | **Survey runner** | `index.html` | Participants | Runs a survey one item at a time; injects cognitive tasks; writes responses to Firestore. |
 | **Public stats** | `stats.html` | Anyone | Read-only aggregate dashboard — counts, completion, **total response-time distribution**, per-variable distributions, cognitive-task summaries. No individual answers, no PII. |
-| **Admin** | `admin.html` | Lab (Google login) | Per-survey response counts, CSV exports (raw / deduplicated / +paradata), case review & exclusion flags. |
-| **Admin stats** | `admin-stats.html` | Lab (Google login) | In-depth distributions, per-item timing, speeder detection, codebook/CSV export. |
+| **Admin** | `admin.html` | Lab (Google login) | Tabbed dashboard: response times, case review & exclusion flags, per-item timing, distributions with expandable open-ended answers, CSV / codebook / raw-JSON export. |
+| **Builder** | `builder.html` | Lab (Google login) | Create/edit/publish surveys in Firestore; import `surveys/*.json`. |
 
-All four are plain HTML + ES modules. **No build step, no framework, no bundler.**
+All of them are plain HTML + ES modules (`admin-stats.html` now just redirects to `admin.html`). **No build step, no framework, no bundler.**
 
 ---
 
@@ -58,16 +58,17 @@ Pages serves the `js/` modules untouched.
 samplux/
 ├── index.html              # Survey runner (participant-facing)
 ├── stats.html              # Public aggregate dashboard
-├── admin.html              # Admin: exports + case review (Google auth)
-├── admin-stats.html        # Admin: in-depth stats + codebook (Google auth)
+├── admin.html              # Admin dashboard: stats, open answers, cases, exports (Google auth)
+├── admin-stats.html        # Redirect → admin.html (old links)
+├── builder.html            # Survey builder (Google auth)
 ├── js/
 │   ├── firebaseClient.js   # ⚙️  Firebase config — the ONE file to edit to swap projects
 │   ├── main.js             # Boots the survey runner
 │   ├── surveyRunner.js     # Survey engine: rendering, randomization, paradata, submit
-│   ├── admin.js            # Admin panel logic (exports, dedupe, exclusion flags)
 │   ├── statsCore.js        # Shared, auth-free stats compute + chart rendering
 │   ├── stats.js            # Public dashboard wiring
-│   ├── adminStats.js       # Admin dashboard wiring
+│   ├── adminStats.js       # Admin dashboard (admin.html)
+│   ├── builder.js          # Survey builder
 │   └── tasks/              # Cognitive tasks (full-screen overlay)
 │       ├── helpers.js      #   shared: sleep, rand, shuffle, mean, pct
 │       ├── rt.js           #   Simple Reaction Time
@@ -75,7 +76,9 @@ samplux/
 │       └── gonogo.js       #   Go / No-Go inhibition
 ├── surveys/
 │   ├── index.json          # Registry: which surveys exist
-│   └── samplux_demo.json   # The one demo survey (sections, scales, tasks)
+│   ├── samplux_demo.json   # Demo survey (sections, scales, tasks)
+│   ├── espacios-telares-1.json  # TELARES student survey (import via builder)
+│   └── assets/             # Images referenced by surveys
 ├── docs/
 │   └── ARCHITECTURE.md     # Deeper technical walkthrough
 └── package.json
@@ -108,8 +111,11 @@ The demo (`samplux_demo.json`) exercises every feature. The essentials:
 ```
 
 - **Item types**: `info`, `text`, `email`, `url`, `number`, `phone`, `date`,
-  `time`, `single_choice`, `multi_choice`, `likert`, `yes_no`, `slider`, `file`,
+  `time`, `single_choice`, `multi_choice`, `ranking`, `likert`, `yes_no`, `slider`, `file`,
   plus any **custom type backed by an `optionSet`** (e.g. `agree_5` above).
+- **Logic**: `followUp` ("Otro, ¿cuál?" boxes), `showIf` (conditional items),
+  `maxSelect` / `exclusive` options for multi-choice, `section` labels — see
+  `docs/ARCHITECTURE.md §2`.
 - **Cognitive tasks**: `task_rt`, `task_stroop`, `task_gonogo` — drop one in as an
   item and it launches full-screen, then returns to the survey.
 - **Sections**: an `info` item whose prompt starts with `SECCIÓN` renders as a
@@ -181,8 +187,8 @@ documents themselves are typically write-once / locked.
 > rules allowing public `create` on `responses/**` and admin-only access to
 > `response_export_meta/**`. See `docs/ARCHITECTURE.md → Firebase setup`.
 
-Admin pages gate on a Google-login allow-list (`ALLOWED_EMAILS` in `admin.js`
-and `adminStats.js`).
+Admin pages gate on a Google-login allow-list (`ALLOWED_EMAILS` in
+`adminStats.js` and `builder.js`, mirrored in `firestore.rules`).
 
 ---
 

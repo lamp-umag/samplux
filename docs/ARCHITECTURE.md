@@ -19,8 +19,8 @@ what you read in `js/` is exactly what runs.
                                               (full-screen overlay, returns result)
 
   stats.html       ──▶ js/stats.js       ─┐
-  admin-stats.html ──▶ js/adminStats.js  ─┼─▶ js/statsCore.js ──▶ Firestore (read)
-  admin.html       ──▶ js/admin.js       ─┘   (+ firebaseClient.js everywhere)
+  admin.html       ──▶ js/adminStats.js  ─┴─▶ js/statsCore.js ──▶ Firestore (read)
+  (admin-stats.html just redirects to admin.html)   (+ firebaseClient.js everywhere)
 ```
 
 `js/firebaseClient.js` is imported by every data-touching module and is the only
@@ -54,15 +54,31 @@ participants actually see, instead of a separate reimplementation.
 
 | Category | Types |
 |----------|-------|
-| Display | `info` (sections start their prompt with `SECCIÓN`) |
-| Free input | `text`, `email`, `url`, `number`, `phone`, `date`, `time` |
-| Choice | `single_choice`, `multi_choice`, `likert`, `yes_no` |
+| Display | `info` (section headers: prompt starts with `SECCIÓN`, or `sectionHeader: true`) |
+| Free input | `text`, `email`, `url`, `number` (`min`/`max` validated), `phone`, `date`, `time` |
+| Choice | `single_choice`, `multi_choice`, `likert`, `yes_no`, `ranking` |
 | Scale | `slider`, or any custom type whose name is a key in `optionSets` |
 | Cognitive task | `task_rt`, `task_stroop`, `task_gonogo` |
 
 **`optionSets`** let you define a response scale once and attach it to many items
 by using the set's name as the item `type`. The runner resolves the labels/codes
 from `survey.optionSets[item.type]`.
+
+**Item-level extensions** (ported from perseg, extended for `espacios-telares-1`;
+none of them has builder UI yet, but the builder preserves them on save):
+
+| Field | Applies to | Effect |
+|-------|-----------|--------|
+| `section` | any | Small label above the question (e.g. `"B · Encuentro entre carreras"`). The admin dashboard groups variables by it. |
+| `followUp: { id, whenCode, prompt, long }` | single choice / `yes_no` / `multi_choice` / `ranking` | Text box on the same screen when the answer includes `whenCode` (a code or array of codes). Stored as `answers[followUp.id]`; cleared if the option is deselected. |
+| `showIf: { item, in: [codes] }` or `{ anyOf: [...] }` | any | Item is shown only if an earlier answer matches; otherwise it is skipped and its answer cleared (also re-checked on submit). |
+| `exitOnAnswer: [codes]`, `exitMessage` | single choice / `yes_no` | Ends the survey without saving (declined consent). |
+| `maxSelect` | `multi_choice` | "Elige hasta N". |
+| option `exclusive: true` | `multi_choice` | Selecting it ("Nada", "No ocurre") clears the rest, and vice versa. |
+| `maxRank` (default 3) | `ranking` | Tap options in priority order; stored as an ordered array of codes, most important first. |
+| `settings.thankYou` | survey | HTML that replaces the default thank-you screen. |
+
+`multi_choice` answers keep their original code types (numbers stay numbers).
 
 ---
 
@@ -159,24 +175,43 @@ dependency-free SVG/HTML chart renderers.
 - **`stats.js` / `stats.html`** — public. Aggregates only: KPIs, submissions
   timeline, total response-time distribution, per-variable distributions,
   cognitive-task summaries. No individual rows, no PII.
-- **`adminStats.js` / `admin-stats.html`** — Google-auth gated. Adds per-item
-  timing, quantiles, speeder flags, exclusion-flag awareness, and codebook/CSV
-  export.
+- **`adminStats.js` / `admin.html`** — Google-auth gated admin dashboard
+  (ported from perseg/pausa, see §8).
 
 ---
 
-## 8. Admin & exclusion flags (`js/admin.js`)
+## 8. Admin dashboard & exclusion flags (`admin.html` / `js/adminStats.js`)
 
-Google login gated by `ALLOWED_EMAILS`. Per survey it offers response counts and
-CSV exports (raw / deduplicated / with paradata). **Case review** lets a
-reviewer mark a response as excluded; that flag is written to a *separate*
-collection so the response document stays untouched:
+Google login gated by `ALLOWED_EMAILS`. The old two-page split (`admin.html`
+for exports + case review, `admin-stats.html` for stats) was replaced by
+perseg/pausa's tabbed dashboard, now at `admin.html` (`admin-stats.html`
+redirects there, `?survey=<id>` preselects a survey). Tabs:
+
+- **Resumen** — raw / net / corrected response time, speed buckets, daily
+  timeline, downloads: tidy CSV (follow-up texts as their own columns,
+  rankings split into `<id>_1…<id>_k`, cognitive-task metrics), `metadata.txt`
+  codebook, and a raw JSON dump with the full paradata.
+- **Casos** — exclusion flags + duplicate detection (same algorithm as
+  perseg/pausa).
+- **Ítems** — sortable per-item timing; hover/tap an item id for its question.
+- **Variables** — distributions grouped by `item.section`. Open-ended answers
+  (text items and every `followUp` "Otro, ¿cuál?") show the two latest quotes
+  inline and expand into a searchable list; each answer can be tagged with any
+  single-choice variable (e.g. carrera). Filter: all / closed / with text.
+
+**Per-survey admins.** Besides the global `ALLOWED_EMAILS`, a survey doc can
+carry `adminEmails: [...]` (lowercase; edited in the builder's Detalles tab).
+Those accounts can sign in to `admin.html` and see only the *published*
+surveys that list them — stats, open answers, cases, exports — but can't use
+the builder. `firestore.rules` enforces this server-side (`isSurveyAdmin()`
+reads the survey doc; requires a verified Google email).
+
+Exclusion flags are written to a *separate* collection so the response
+document stays untouched:
 
 ```
-response_export_meta/{surveyId}/flags/{responseId}  →  { excluded: true, reason, ts }
+response_export_meta/{surveyId}/flags/{responseId}  →  { excludedFromExport, excludeReason, excludeNote, reviewedAt, reviewedBy }
 ```
-
-Exports and stats read these flags and can drop excluded cases.
 
 ---
 
@@ -187,8 +222,7 @@ Exports and stats read these flags and can drop excluded cases.
 config is checked into the repo as IaC: `.firebaserc`, `firebase.json`,
 `firestore.rules`, `firestore.indexes.json`. Deploy rule changes with
 `firebase deploy --only firestore:rules`. Admin emails live in
-`ALLOWED_EMAILS` in `admin.js`, `adminStats.js`, and `builder.js` — keep all
-three in sync with the email list inside `firestore.rules`' `isAdmin()`.
+`ALLOWED_EMAILS` in `adminStats.js` and `builder.js` — keep both in sync with the email list inside `firestore.rules`' `isAdmin()`.
 
 ---
 

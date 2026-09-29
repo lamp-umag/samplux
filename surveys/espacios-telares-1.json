@@ -1,0 +1,986 @@
+{
+  "id": "espacios-telares-1",
+  "title": "TELARES · Espacios del edificio (estudiantes)",
+  "description": "Encuesta de participación estudiantil sobre el patio interior, los espacios comunes y las salas de clases. Anónima, ~13 minutos.",
+  "adminEmails": [
+    "panchatorresk@gmail.com"
+  ],
+  "settings": {
+    "randomizeItems": false,
+    "thankYou": "<div class=\"q center\">¡Gracias por participar!</div><div class=\"info-text center\">Tus respuestas orientan directamente el diseño de las mejoras del edificio.\n\nPuedes cerrar esta ventana.</div>"
+  },
+  "optionSets": {
+    "eval_5": [
+      {
+        "code": 1,
+        "label": "1 · Muy deficiente"
+      },
+      {
+        "code": 2,
+        "label": "2"
+      },
+      {
+        "code": 3,
+        "label": "3"
+      },
+      {
+        "code": 4,
+        "label": "4"
+      },
+      {
+        "code": 5,
+        "label": "5 · Muy bueno"
+      }
+    ],
+    "agree_5": [
+      {
+        "code": 1,
+        "label": "1 · Muy en desacuerdo"
+      },
+      {
+        "code": 2,
+        "label": "2"
+      },
+      {
+        "code": 3,
+        "label": "3"
+      },
+      {
+        "code": 4,
+        "label": "4"
+      },
+      {
+        "code": 5,
+        "label": "5 · Muy de acuerdo"
+      }
+    ]
+  },
+  "items": [
+    {
+      "id": "intro",
+      "type": "info",
+      "sectionHeader": true,
+      "prompt": "Encuesta de participación estudiantil\n<img class=\"intro-logo\" src=\"surveys/assets/telares-logo.png\" alt=\"TELARES · Conocimientos 2030 UMAG\"><strong>Patio interior, espacios comunes y salas de clases</strong>\n\nTELARES (Transformación Educativa y Lugares Abiertos para Redes y Encuentros de Saberes) busca que las carreras que conviven en este edificio compartan un lugar común: un espacio de encuentro, comunidad y trabajo interdisciplinario.\n\nEsta encuesta es un instrumento de co-diseño. Recoge tu mirada sobre el patio interior, los espacios comunes y las salas de clases para diseñar las mejoras contigo.\n\nEs anónima y toma alrededor de 13 minutos."
+    },
+    {
+      "id": "bloque_a",
+      "type": "info",
+      "sectionHeader": true,
+      "prompt": "Bloque A\n<div class=\"q\">El patio interior</div>"
+    },
+    {
+      "id": "p01_carrera",
+      "type": "single_choice",
+      "section": "A · El patio interior · Caracterización",
+      "prompt": "¿Qué carrera cursas?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Psicología"
+        },
+        {
+          "code": 2,
+          "label": "Trabajo Social"
+        },
+        {
+          "code": 3,
+          "label": "Derecho"
+        },
+        {
+          "code": 4,
+          "label": "Otra"
+        }
+      ],
+      "followUp": {
+        "id": "p01_carrera_otra",
+        "whenCode": 4,
+        "prompt": "¿Cuál?",
+        "placeholder": "Escribe tu carrera"
+      }
+    },
+    {
+      "id": "p02_anio_ingreso",
+      "type": "number",
+      "section": "A · El patio interior · Caracterización",
+      "prompt": "¿En qué año ingresaste a la carrera?",
+      "placeholder": "ej. 2024",
+      "min": 1980,
+      "max": 2026,
+      "rangeHelp": "Ingresa un año entre 1980 y 2026."
+    },
+    {
+      "id": "p03_frecuencia_patio",
+      "type": "single_choice",
+      "section": "A · El patio interior · Caracterización",
+      "prompt": "¿Con qué frecuencia usas el patio?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Todos los días"
+        },
+        {
+          "code": 2,
+          "label": "Varias veces por semana"
+        },
+        {
+          "code": 3,
+          "label": "Ocasionalmente"
+        },
+        {
+          "code": 4,
+          "label": "Casi nunca"
+        }
+      ]
+    },
+    {
+      "id": "p04_permanencia",
+      "type": "single_choice",
+      "section": "A · El patio interior · Caracterización",
+      "prompt": "¿Cuánto tiempo te quedas en el patio, en promedio, cada vez?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Menos de 15 min"
+        },
+        {
+          "code": 2,
+          "label": "15 a 30 min"
+        },
+        {
+          "code": 3,
+          "label": "30 a 60 min"
+        },
+        {
+          "code": 4,
+          "label": "1 a 2 horas"
+        },
+        {
+          "code": 5,
+          "label": "Más de 2 horas"
+        }
+      ]
+    },
+    {
+      "id": "p05_viene_sin_clases",
+      "type": "yes_no",
+      "section": "A · El patio interior · Caracterización",
+      "prompt": "¿Vienes al patio aunque no tengas clases?",
+      "followUp": {
+        "id": "p05_a_que_viene",
+        "whenCode": "yes",
+        "prompt": "¿A qué vienes?",
+        "long": true,
+        "placeholder": "Cuéntanos brevemente…"
+      }
+    },
+    {
+      "id": "p06_actividades",
+      "type": "multi_choice",
+      "section": "A · El patio interior · Qué haces y qué buscas",
+      "instruction": "Puedes marcar varias.",
+      "prompt": "¿Qué actividades realizas hoy en el patio?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Circular"
+        },
+        {
+          "code": 2,
+          "label": "Esperar entre clases"
+        },
+        {
+          "code": 3,
+          "label": "Estudiar individualmente"
+        },
+        {
+          "code": 4,
+          "label": "Trabajo grupal"
+        },
+        {
+          "code": 5,
+          "label": "Conversar"
+        },
+        {
+          "code": 6,
+          "label": "Comer"
+        },
+        {
+          "code": 7,
+          "label": "Descansar o desconectarme"
+        },
+        {
+          "code": 8,
+          "label": "Usar el celular o computador"
+        },
+        {
+          "code": 9,
+          "label": "Organización estudiantil"
+        },
+        {
+          "code": 10,
+          "label": "Otro"
+        }
+      ],
+      "followUp": {
+        "id": "p06_otro",
+        "whenCode": 10,
+        "prompt": "¿Cuál?",
+        "placeholder": "Escribe aquí…"
+      }
+    },
+    {
+      "id": "p07_disposicion",
+      "type": "multi_choice",
+      "section": "A · El patio interior · Qué haces y qué buscas",
+      "instruction": "Puedes marcar varias.",
+      "prompt": "¿Qué estado o disposición buscas en el patio?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Calma y silencio"
+        },
+        {
+          "code": 2,
+          "label": "Concentración"
+        },
+        {
+          "code": 3,
+          "label": "Estimulación y conversación"
+        },
+        {
+          "code": 4,
+          "label": "Tiempo libre y desconexión"
+        },
+        {
+          "code": 5,
+          "label": "Compañía sin interactuar"
+        },
+        {
+          "code": 6,
+          "label": "Recuperar energía"
+        },
+        {
+          "code": 7,
+          "label": "Pertenencia a este lugar"
+        },
+        {
+          "code": 8,
+          "label": "Otro"
+        }
+      ],
+      "followUp": {
+        "id": "p07_otro",
+        "whenCode": 8,
+        "prompt": "¿Cuál?",
+        "placeholder": "Escribe aquí…"
+      }
+    },
+    {
+      "id": "p08_alimentos",
+      "type": "single_choice",
+      "section": "A · El patio interior · Alimentación",
+      "prompt": "¿Consumes alimentos o bebidas en el patio?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Casi siempre"
+        },
+        {
+          "code": 2,
+          "label": "Ocasionalmente"
+        },
+        {
+          "code": 3,
+          "label": "Voy al casino"
+        },
+        {
+          "code": 4,
+          "label": "Prefiero otro lugar"
+        },
+        {
+          "code": 5,
+          "label": "No consumo"
+        }
+      ]
+    },
+    {
+      "id": "p09_falta_alimentacion",
+      "type": "multi_choice",
+      "section": "A · El patio interior · Alimentación",
+      "instruction": "Puedes marcar varias.",
+      "prompt": "¿Qué te falta para alimentarte cómodamente?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Mesas adecuadas"
+        },
+        {
+          "code": 2,
+          "label": "Microondas"
+        },
+        {
+          "code": 3,
+          "label": "Basureros y reciclaje"
+        },
+        {
+          "code": 4,
+          "label": "Dispensador de agua"
+        },
+        {
+          "code": 5,
+          "label": "Nada",
+          "exclusive": true
+        },
+        {
+          "code": 6,
+          "label": "Otro"
+        }
+      ],
+      "followUp": {
+        "id": "p09_otro",
+        "whenCode": 6,
+        "prompt": "¿Cuál?",
+        "placeholder": "Escribe aquí…"
+      }
+    },
+    {
+      "id": "p10_iluminacion",
+      "type": "eval_5",
+      "scale": "p10_estado_patio",
+      "section": "A · El patio interior · Estado actual",
+      "instruction": "Evalúa de 1 a 5 el estado actual del patio.",
+      "prompt": "Iluminación artificial"
+    },
+    {
+      "id": "p10_acustica",
+      "type": "eval_5",
+      "scale": "p10_estado_patio",
+      "section": "A · El patio interior · Estado actual",
+      "instruction": "Evalúa de 1 a 5 el estado actual del patio.",
+      "prompt": "Acústica"
+    },
+    {
+      "id": "p10_mobiliario",
+      "type": "eval_5",
+      "scale": "p10_estado_patio",
+      "section": "A · El patio interior · Estado actual",
+      "instruction": "Evalúa de 1 a 5 el estado actual del patio.",
+      "prompt": "Mobiliario"
+    },
+    {
+      "id": "p10_estado_general",
+      "type": "eval_5",
+      "scale": "p10_estado_patio",
+      "section": "A · El patio interior · Estado actual",
+      "instruction": "Evalúa de 1 a 5 el estado actual del patio.",
+      "prompt": "Estado general del espacio"
+    },
+    {
+      "id": "p10_1_por_que",
+      "type": "text",
+      "long": true,
+      "section": "A · El patio interior · Estado actual",
+      "prompt": "Evaluaste con 1 o 2 algún aspecto del patio. ¿Por qué?",
+      "showIf": {
+        "anyOf": [
+          {
+            "item": "p10_iluminacion",
+            "in": [
+              1,
+              2
+            ]
+          },
+          {
+            "item": "p10_acustica",
+            "in": [
+              1,
+              2
+            ]
+          },
+          {
+            "item": "p10_mobiliario",
+            "in": [
+              1,
+              2
+            ]
+          },
+          {
+            "item": "p10_estado_general",
+            "in": [
+              1,
+              2
+            ]
+          }
+        ]
+      },
+      "placeholder": "Cuéntanos qué aspecto y qué falla…"
+    },
+    {
+      "id": "p11_invita_quedarse",
+      "type": "agree_5",
+      "section": "A · El patio interior · Estado actual",
+      "instruction": "¿Qué tan de acuerdo estás con esta afirmación?",
+      "prompt": "El patio invita a quedarse más allá del tiempo necesario."
+    },
+    {
+      "id": "p12_permanecer",
+      "type": "multi_choice",
+      "section": "A · El patio interior · Estado actual",
+      "instruction": "Marca todas las que quieras.",
+      "prompt": "¿Qué te haría permanecer más tiempo en el patio?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Mobiliario cómodo para estar largo rato"
+        },
+        {
+          "code": 2,
+          "label": "Rincones tranquilos"
+        },
+        {
+          "code": 3,
+          "label": "Mesas grandes para trabajar en grupo"
+        },
+        {
+          "code": 4,
+          "label": "Poder comer bien"
+        },
+        {
+          "code": 5,
+          "label": "Enchufes y wifi"
+        },
+        {
+          "code": 6,
+          "label": "Plantas y vegetación"
+        },
+        {
+          "code": 7,
+          "label": "Que ocurran cosas: música, muestras, actividades"
+        },
+        {
+          "code": 8,
+          "label": "Que se sienta un lugar propio"
+        },
+        {
+          "code": 9,
+          "label": "Otro"
+        }
+      ],
+      "followUp": {
+        "id": "p12_otro",
+        "whenCode": 9,
+        "prompt": "¿Cuál?",
+        "placeholder": "Escribe aquí…"
+      }
+    },
+    {
+      "id": "p13_barreras",
+      "type": "multi_choice",
+      "maxSelect": 3,
+      "section": "A · El patio interior · Necesidades y visión",
+      "instruction": "Elige hasta 3.",
+      "prompt": "¿Qué te impide o dificulta usar el patio?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Mobiliario"
+        },
+        {
+          "code": 2,
+          "label": "Acústica"
+        },
+        {
+          "code": 3,
+          "label": "Iluminación"
+        },
+        {
+          "code": 4,
+          "label": "Enchufes y wifi"
+        },
+        {
+          "code": 5,
+          "label": "Espacio poco atractivo"
+        },
+        {
+          "code": 6,
+          "label": "Falta de servicios"
+        },
+        {
+          "code": 7,
+          "label": "Falta de privacidad"
+        },
+        {
+          "code": 8,
+          "label": "Otro"
+        }
+      ],
+      "followUp": {
+        "id": "p13_otro",
+        "whenCode": 8,
+        "prompt": "¿Cuál?",
+        "placeholder": "Escribe aquí…"
+      }
+    },
+    {
+      "id": "p14_actividades_deseadas",
+      "type": "multi_choice",
+      "section": "A · El patio interior · Necesidades y visión",
+      "instruction": "Puedes marcar varias.",
+      "prompt": "¿Qué actividades te gustaría poder realizar en el patio?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Estudio individual"
+        },
+        {
+          "code": 2,
+          "label": "Trabajo grupal"
+        },
+        {
+          "code": 3,
+          "label": "Trabajo en equipo con estudiantes de otras carreras"
+        },
+        {
+          "code": 4,
+          "label": "Muestras o ferias de las carreras"
+        },
+        {
+          "code": 5,
+          "label": "Estar y descansar"
+        },
+        {
+          "code": 6,
+          "label": "Comer con comodidad"
+        },
+        {
+          "code": 7,
+          "label": "Eventos y actos institucionales"
+        },
+        {
+          "code": 8,
+          "label": "Exposiciones"
+        },
+        {
+          "code": 9,
+          "label": "Otro"
+        }
+      ],
+      "followUp": {
+        "id": "p14_otro",
+        "whenCode": 9,
+        "prompt": "¿Cuál?",
+        "placeholder": "Escribe aquí…"
+      }
+    },
+    {
+      "id": "p15_prioridades",
+      "type": "ranking",
+      "maxRank": 3,
+      "section": "A · El patio interior · Necesidades y visión",
+      "instruction": "Ya nos dijiste qué falta. Ahora dinos qué va primero: toca las 3 mejoras más importantes en orden (1 = la más importante).",
+      "prompt": "Elige y ordena las 3 mejoras más importantes para el patio.",
+      "options": [
+        {
+          "code": 1,
+          "label": "Mobiliario flexible y cómodo"
+        },
+        {
+          "code": 2,
+          "label": "Mesas grandes para trabajo en grupo"
+        },
+        {
+          "code": 3,
+          "label": "Rincones tranquilos y de descanso"
+        },
+        {
+          "code": 4,
+          "label": "Enchufes y conectividad"
+        },
+        {
+          "code": 5,
+          "label": "Iluminación"
+        },
+        {
+          "code": 6,
+          "label": "Acústica"
+        },
+        {
+          "code": 7,
+          "label": "Equipamiento para alimentarse"
+        },
+        {
+          "code": 8,
+          "label": "Plantas y vegetación"
+        },
+        {
+          "code": 9,
+          "label": "Identidad visual de las carreras: arte, gráfica, muestra de trabajos"
+        },
+        {
+          "code": 10,
+          "label": "Espacio para actividades, muestras y encuentros"
+        },
+        {
+          "code": 11,
+          "label": "Otro"
+        }
+      ],
+      "followUp": {
+        "id": "p15_otro",
+        "whenCode": 11,
+        "prompt": "¿Qué otra mejora?",
+        "placeholder": "Escribe cuál…"
+      }
+    },
+    {
+      "id": "p16_patio_ideal",
+      "type": "text",
+      "long": true,
+      "section": "A · El patio interior · Necesidades y visión",
+      "maxLength": 2000,
+      "prompt": "Si pudieras imaginar el patio interior ideal para este edificio, ¿cómo sería y qué haría que todas las carreras se sintieran acogidas en él?"
+    },
+    {
+      "id": "bloque_b",
+      "type": "info",
+      "sectionHeader": true,
+      "prompt": "Bloque B\n<div class=\"q\">Encuentro entre carreras</div>"
+    },
+    {
+      "id": "p17_frecuencia_otras",
+      "type": "single_choice",
+      "section": "B · Encuentro entre carreras",
+      "prompt": "¿Con qué frecuencia conversas o trabajas con estudiantes de otras carreras del edificio?",
+      "options": [
+        {
+          "code": 1,
+          "label": "A diario"
+        },
+        {
+          "code": 2,
+          "label": "Semanalmente"
+        },
+        {
+          "code": 3,
+          "label": "De vez en cuando"
+        },
+        {
+          "code": 4,
+          "label": "Casi nunca"
+        },
+        {
+          "code": 5,
+          "label": "Nunca"
+        }
+      ]
+    },
+    {
+      "id": "p18_donde_encuentro",
+      "type": "multi_choice",
+      "section": "B · Encuentro entre carreras",
+      "instruction": "Puedes marcar varias.",
+      "prompt": "¿Dónde ocurre hoy ese encuentro?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Patio interior"
+        },
+        {
+          "code": 2,
+          "label": "Pasillos y escaleras"
+        },
+        {
+          "code": 3,
+          "label": "Salas de clases"
+        },
+        {
+          "code": 4,
+          "label": "Casino"
+        },
+        {
+          "code": 5,
+          "label": "Biblioteca"
+        },
+        {
+          "code": 6,
+          "label": "Fuera del edificio"
+        },
+        {
+          "code": 7,
+          "label": "No ocurre",
+          "exclusive": true
+        }
+      ]
+    },
+    {
+      "id": "p19_encuentro",
+      "type": "agree_5",
+      "scale": "p19_encuentro_carreras",
+      "section": "B · Encuentro entre carreras",
+      "instruction": "¿Qué tan de acuerdo estás con esta afirmación?",
+      "prompt": "El patio funciona como espacio de encuentro entre carreras."
+    },
+    {
+      "id": "p19_acoge",
+      "type": "agree_5",
+      "scale": "p19_encuentro_carreras",
+      "section": "B · Encuentro entre carreras",
+      "instruction": "¿Qué tan de acuerdo estás con esta afirmación?",
+      "prompt": "El patio acoge por igual a todas las carreras del edificio."
+    },
+    {
+      "id": "p19_reconozco",
+      "type": "agree_5",
+      "scale": "p19_encuentro_carreras",
+      "section": "B · Encuentro entre carreras",
+      "instruction": "¿Qué tan de acuerdo estás con esta afirmación?",
+      "prompt": "Reconozco qué hacen y qué estudian las otras carreras del edificio."
+    },
+    {
+      "id": "p19_muestra",
+      "type": "agree_5",
+      "scale": "p19_encuentro_carreras",
+      "section": "B · Encuentro entre carreras",
+      "instruction": "¿Qué tan de acuerdo estás con esta afirmación?",
+      "prompt": "El edificio muestra lo que las carreras producen."
+    },
+    {
+      "id": "p20_reconocimiento",
+      "type": "multi_choice",
+      "maxSelect": 4,
+      "section": "B · Encuentro entre carreras",
+      "instruction": "Elige hasta 4.",
+      "prompt": "¿Qué ayudaría a que las carreras se reconozcan en el espacio?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Muestra permanente de trabajos y proyectos"
+        },
+        {
+          "code": 2,
+          "label": "Mural o gráfica de identidad"
+        },
+        {
+          "code": 3,
+          "label": "Panel o vitrina por carrera"
+        },
+        {
+          "code": 4,
+          "label": "Mesas grandes de trabajo mixto"
+        },
+        {
+          "code": 5,
+          "label": "Programación regular de actividades conjuntas"
+        },
+        {
+          "code": 6,
+          "label": "Señalética que nombre el espacio como común"
+        },
+        {
+          "code": 7,
+          "label": "Otro"
+        }
+      ],
+      "followUp": {
+        "id": "p20_otro",
+        "whenCode": 7,
+        "prompt": "¿Cuál?",
+        "placeholder": "Escribe aquí…"
+      }
+    },
+    {
+      "id": "p21_act_interdisciplinarias",
+      "type": "multi_choice",
+      "section": "B · Encuentro entre carreras",
+      "instruction": "Puedes marcar varias.",
+      "prompt": "¿Qué actividades interdisciplinarias te gustaría que ocurrieran en el patio?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Ferias o muestras de carrera"
+        },
+        {
+          "code": 2,
+          "label": "Charlas y conversatorios abiertos"
+        },
+        {
+          "code": 3,
+          "label": "Talleres conjuntos entre carreras"
+        },
+        {
+          "code": 4,
+          "label": "Trabajo en equipos mixtos"
+        },
+        {
+          "code": 5,
+          "label": "Música, arte, ensayos"
+        },
+        {
+          "code": 6,
+          "label": "Otro"
+        }
+      ],
+      "followUp": {
+        "id": "p21_otro",
+        "whenCode": 6,
+        "prompt": "¿Cuál?",
+        "placeholder": "Escribe aquí…"
+      }
+    },
+    {
+      "id": "p22_mejora_encuentro",
+      "type": "text",
+      "long": true,
+      "section": "B · Encuentro entre carreras",
+      "maxLength": 2000,
+      "prompt": "¿Cómo imaginas una mejora del espacio que ayude a que las carreras del edificio se encuentren, se conozcan y trabajen juntas?"
+    },
+    {
+      "id": "bloque_c",
+      "type": "info",
+      "sectionHeader": true,
+      "prompt": "Bloque C\n<div class=\"q\">Otros espacios comunes del edificio</div>"
+    },
+    {
+      "id": "p23_otros_espacios",
+      "type": "text",
+      "long": true,
+      "section": "C · Otros espacios comunes",
+      "prompt": "¿Qué otros espacios comunes del edificio usas y para qué?"
+    },
+    {
+      "id": "p24_espacio_mas_usado",
+      "type": "text",
+      "long": true,
+      "section": "C · Otros espacios comunes",
+      "prompt": "¿Cuál es el espacio común que más usas y por qué?"
+    },
+    {
+      "id": "p25_espacio_falta",
+      "type": "text",
+      "long": true,
+      "section": "C · Otros espacios comunes",
+      "prompt": "¿Qué tipo de espacio falta en el edificio?"
+    },
+    {
+      "id": "bloque_d",
+      "type": "info",
+      "sectionHeader": true,
+      "prompt": "Bloque D\n<div class=\"q\">Salas de clases</div>"
+    },
+    {
+      "id": "p26_mobiliario",
+      "type": "eval_5",
+      "scale": "p26_estado_salas",
+      "section": "D · Salas de clases",
+      "instruction": "Evalúa de 1 a 5 el estado actual de las salas.",
+      "prompt": "Mobiliario"
+    },
+    {
+      "id": "p26_reorganizar",
+      "type": "eval_5",
+      "scale": "p26_estado_salas",
+      "section": "D · Salas de clases",
+      "instruction": "Evalúa de 1 a 5 el estado actual de las salas.",
+      "prompt": "Posibilidad de reorganizar mesas y sillas"
+    },
+    {
+      "id": "p26_acustica",
+      "type": "eval_5",
+      "scale": "p26_estado_salas",
+      "section": "D · Salas de clases",
+      "instruction": "Evalúa de 1 a 5 el estado actual de las salas.",
+      "prompt": "Acústica"
+    },
+    {
+      "id": "p26_iluminacion",
+      "type": "eval_5",
+      "scale": "p26_estado_salas",
+      "section": "D · Salas de clases",
+      "instruction": "Evalúa de 1 a 5 el estado actual de las salas.",
+      "prompt": "Iluminación"
+    },
+    {
+      "id": "p26_tecnologia",
+      "type": "eval_5",
+      "scale": "p26_estado_salas",
+      "section": "D · Salas de clases",
+      "instruction": "Evalúa de 1 a 5 el estado actual de las salas.",
+      "prompt": "Tecnología y conectividad"
+    },
+    {
+      "id": "p27_limita_equipo",
+      "type": "multi_choice",
+      "maxSelect": 3,
+      "section": "D · Salas de clases",
+      "instruction": "Elige hasta 3.",
+      "prompt": "¿Qué limita hoy el trabajo en equipo dentro de la sala?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Mesas fijas o pesadas"
+        },
+        {
+          "code": 2,
+          "label": "Falta de superficies para escribir"
+        },
+        {
+          "code": 3,
+          "label": "Acústica"
+        },
+        {
+          "code": 4,
+          "label": "Falta de enchufes"
+        },
+        {
+          "code": 5,
+          "label": "Tamaño de la sala"
+        },
+        {
+          "code": 6,
+          "label": "Cantidad de estudiantes"
+        },
+        {
+          "code": 7,
+          "label": "Otro"
+        }
+      ],
+      "followUp": {
+        "id": "p27_otro",
+        "whenCode": 7,
+        "prompt": "¿Cuál?",
+        "placeholder": "Escribe aquí…"
+      }
+    },
+    {
+      "id": "p28_posibilita_equipo",
+      "type": "text",
+      "long": true,
+      "section": "D · Salas de clases",
+      "prompt": "¿Qué haría posible el trabajo en equipo durante las clases?"
+    },
+    {
+      "id": "p29_mejor_salas",
+      "type": "text",
+      "long": true,
+      "section": "D · Salas de clases",
+      "prompt": "¿Qué es lo mejor de las salas hoy?"
+    },
+    {
+      "id": "p30_falta_salas",
+      "type": "text",
+      "long": true,
+      "section": "D · Salas de clases",
+      "prompt": "¿Qué es lo que más falta en las salas?"
+    },
+    {
+      "id": "p31_comentario_final",
+      "type": "text",
+      "long": true,
+      "section": "Cierre",
+      "maxLength": 2000,
+      "prompt": "¿Algún comentario final?",
+      "placeholder": "Opcional"
+    }
+  ]
+}

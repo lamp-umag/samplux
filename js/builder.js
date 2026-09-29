@@ -15,7 +15,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js';
 import { createSurveyApp } from './surveyRunner.js';
 
-// Keep in sync with ALLOWED_EMAILS in js/admin.js and js/adminStats.js,
+// Keep in sync with ALLOWED_EMAILS in js/adminStats.js,
 // and with the isAdmin() list in firestore.rules.
 const ALLOWED_EMAILS = new Set([
   'hermanelgueta@gmail.com',
@@ -47,6 +47,7 @@ const fId = el('f-id');
 const fTitle = el('f-title');
 const fDescription = el('f-description');
 const fPublished = el('f-published');
+const fAdmins = el('f-admins');
 const fRandomize = el('f-randomize');
 const fSplashEnabled = el('f-splashEnabled');
 const splashFields = el('splashFields');
@@ -73,6 +74,7 @@ const TYPE_LABELS = {
   time: 'Hora',
   single_choice: 'Opción única',
   multi_choice: 'Opción múltiple',
+  ranking: 'Ranking (ordenar prioridades)',
   slider: 'Escala deslizante (slider)',
   yes_no: 'Sí / No',
   file: 'Archivo (solo nombre, no sube el archivo)',
@@ -81,12 +83,22 @@ const TYPE_LABELS = {
   task_gonogo: 'Tarea cognitiva — Go / No-Go'
 };
 const TYPE_ORDER = ['info', 'text', 'email', 'url', 'phone', 'number', 'date', 'time',
-  'single_choice', 'multi_choice', 'slider', 'yes_no', 'file', 'task_rt', 'task_stroop', 'task_gonogo'];
+  'single_choice', 'multi_choice', 'ranking', 'slider', 'yes_no', 'file', 'task_rt', 'task_stroop', 'task_gonogo'];
 const NO_REQUIRED_TYPES = new Set(['info', 'task_rt', 'task_stroop', 'task_gonogo']);
 const TEXTLIKE_TYPES = new Set(['text', 'email', 'url', 'phone']);
 
 function escapeHtml(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// Survey ids may also keep hyphens (e.g. espacios-telares-1); item ids stay
+// underscore-only so CSV column names remain R/Stata friendly.
+function slugifySurveyId(s) {
+  return String(s || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9-]+/g, '_')
+    .replace(/^[_-]+|[_-]+$/g, '');
 }
 
 function slugify(s) {
@@ -218,6 +230,7 @@ importFile.addEventListener('change', async () => {
       description: parsed.description || '',
       published: false,
       settings: {
+        ...(parsed.settings || {}), // keeps extras such as settings.thankYou
         randomizeItems: (parsed.settings && parsed.settings.randomizeItems) || false,
         splash: {
           enabled: !!(parsed.settings && parsed.settings.splash && parsed.settings.splash.enabled),
@@ -227,6 +240,7 @@ importFile.addEventListener('change', async () => {
       },
       optionSets: parsed.optionSets || {},
       items: parsed.items,
+      adminEmails: parseEmailList((parsed.adminEmails || []).join(',')),
       _isNew: true
     };
     openEditor(draft);
@@ -246,6 +260,7 @@ function openEditor(survey) {
   fTitle.value = survey.title || '';
   fDescription.value = survey.description || '';
   fPublished.checked = !!survey.published;
+  fAdmins.value = (survey.adminEmails || []).join(', ');
   fRandomize.value = String((survey.settings && survey.settings.randomizeItems) || false);
   const splash = (survey.settings && survey.settings.splash) || {};
   fSplashEnabled.checked = !!splash.enabled;
@@ -283,6 +298,12 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 fTitle.addEventListener('input', () => { currentSurvey.title = fTitle.value; syncSaveStatus(); });
 fDescription.addEventListener('input', () => { currentSurvey.description = fDescription.value; syncSaveStatus(); });
 fPublished.addEventListener('change', () => { currentSurvey.published = fPublished.checked; syncSaveStatus(); });
+fAdmins.addEventListener('input', () => { currentSurvey.adminEmails = parseEmailList(fAdmins.value); syncSaveStatus(); });
+
+// Per-survey admins (see firestore.rules isSurveyAdmin): lowercase, deduped.
+function parseEmailList(text) {
+  return [...new Set(String(text || '').split(/[\s,;]+/).map(e => e.trim().toLowerCase()).filter(e => e.includes('@')))];
+}
 fRandomize.addEventListener('change', () => {
   currentSurvey.settings.randomizeItems = fRandomize.value === 'false' ? false : fRandomize.value;
   syncSaveStatus();
@@ -537,8 +558,20 @@ function renderItemBody(item, body, refreshHead) {
       </div>`;
   }
 
-  if (baseType === 'single_choice' || item.type === 'multi_choice') {
-    const sourceSelect = item.type === 'multi_choice' ? '' : `
+  const isListType = item.type === 'multi_choice' || item.type === 'ranking';
+  if (item.type === 'multi_choice') {
+    extra += `
+      <div class="field-group"><label class="field">Máximo de selecciones (vacío = sin límite)</label>
+        <input class="input" type="number" min="1" data-f="maxSelect" value="${item.maxSelect ?? ''}" /></div>`;
+  }
+  if (item.type === 'ranking') {
+    extra += `
+      <div class="field-group"><label class="field">Posiciones a ordenar</label>
+        <input class="input" type="number" min="1" data-f="maxRank" value="${item.maxRank ?? 3}" /></div>`;
+  }
+
+  if (baseType === 'single_choice' || isListType) {
+    const sourceSelect = isListType ? '' : `
       <div class="field-group">
         <label class="field">Origen de las opciones</label>
         <select class="select" data-f="optionSource">
@@ -548,7 +581,7 @@ function renderItemBody(item, body, refreshHead) {
       </div>`;
     extra += sourceSelect;
 
-    if (item.type === 'multi_choice' || !usingSharedScale) {
+    if (isListType || !usingSharedScale) {
       const opts = Array.isArray(item.options) ? item.options : [];
       extra += `
         <div class="field-group" data-role="inline-options">
@@ -576,6 +609,7 @@ function renderItemBody(item, body, refreshHead) {
       </div>
       <div class="field-group"><label class="field">Instrucción (sobre la pregunta)</label><input class="input" data-f="instruction" value="${escapeHtml(item.instruction || '')}" /></div>
       <div class="field-group"><label class="field">Ayuda (bajo la pregunta)</label><input class="input" data-f="help" value="${escapeHtml(item.help || '')}" /></div>
+      ${(item.followUp || item.showIf || item.section) ? `<p class="small mt-8">Este ítem trae lógica definida en el JSON importado (${[item.section && 'sección', item.followUp && 'campo "especifica"', item.showIf && 'condición de visibilidad'].filter(Boolean).join(', ')}). Se conserva al guardar.</p>` : ''}
       <div class="field-group"><label class="field">ID del ítem</label><input class="input" data-f="id" value="${escapeHtml(item.id)}" /><p class="small mt-8">No lo cambies después de recibir respuestas — se perdería la trazabilidad de esa variable.</p></div>
     </div>`;
 
@@ -595,7 +629,7 @@ function wireItemBody(item, body, refreshHead) {
     const newType = e.target.value;
     item.type = newType;
     // reset fields that don't make sense across type switches
-    if (newType !== 'single_choice' && newType !== 'multi_choice') delete item.options;
+    if (!['single_choice', 'multi_choice', 'ranking'].includes(newType)) delete item.options;
     if (!TEXTLIKE_TYPES.has(newType)) { delete item.long; }
     renderItemBody(item, body, refreshHead);
     refreshHead();
@@ -643,6 +677,11 @@ function wireItemBody(item, body, refreshHead) {
   const maxEl = body.querySelector('[data-f="max"]');
   if (maxEl) maxEl.addEventListener('input', e => { item.max = e.target.value === '' ? undefined : Number(e.target.value); });
 
+  const maxSelectEl = body.querySelector('[data-f="maxSelect"]');
+  if (maxSelectEl) maxSelectEl.addEventListener('input', e => { item.maxSelect = e.target.value ? Number(e.target.value) : undefined; });
+  const maxRankEl = body.querySelector('[data-f="maxRank"]');
+  if (maxRankEl) maxRankEl.addEventListener('input', e => { item.maxRank = e.target.value ? Number(e.target.value) : undefined; });
+
   const stepEl = body.querySelector('[data-f="step"]');
   if (stepEl) stepEl.addEventListener('input', e => { item.step = e.target.value === '' ? undefined : Number(e.target.value); });
 
@@ -660,7 +699,13 @@ function wireItemBody(item, body, refreshHead) {
   if (inlineOptsRoot) {
     if (!Array.isArray(item.options)) item.options = [];
     inlineOptsRoot.querySelectorAll('.opt-row').forEach((row, i) => {
-      row.querySelector('[data-f="opt"]').addEventListener('input', e => { item.options[i] = e.target.value; refreshHead(); });
+      row.querySelector('[data-f="opt"]').addEventListener('input', e => {
+        // Keep {code, label, exclusive} objects intact — only the label changes.
+        const o = item.options[i];
+        if (o && typeof o === 'object') o.label = e.target.value;
+        else item.options[i] = e.target.value;
+        refreshHead();
+      });
       row.querySelector('[data-act="del-inline-opt"]').addEventListener('click', () => {
         item.options.splice(i, 1);
         renderItemBody(item, body, refreshHead);
@@ -709,8 +754,8 @@ addItemBtn.addEventListener('click', () => {
 
 // ── Save / delete ────────────────────────────────────────────
 saveSurveyBtn.addEventListener('click', async () => {
-  const id = slugify(fId.value);
-  if (!id) { alert('El ID de la encuesta es obligatorio (minúsculas, números y guiones bajos).'); fId.focus(); return; }
+  const id = slugifySurveyId(fId.value);
+  if (!id) { alert('El ID de la encuesta es obligatorio (minúsculas, números, guiones y guiones bajos).'); fId.focus(); return; }
   if (!fTitle.value.trim()) { alert('El título es obligatorio.'); fTitle.focus(); return; }
   if (currentSurvey._isNew && surveysCache.some(s => s.id === id)) {
     if (!confirm(`Ya existe una encuesta con el ID "${id}". ¿Sobrescribirla?`)) return;
@@ -723,9 +768,12 @@ saveSurveyBtn.addEventListener('click', async () => {
     title: currentSurvey.title,
     description: currentSurvey.description || '',
     published: !!currentSurvey.published,
+    adminEmails: parseEmailList((currentSurvey.adminEmails || []).join(',')),
     settings: currentSurvey.settings,
     optionSets: currentSurvey.optionSets || {},
-    items: currentSurvey.items || [],
+    // JSON round-trip drops `undefined` fields (cleared inputs), which
+    // Firestore would otherwise reject.
+    items: JSON.parse(JSON.stringify(currentSurvey.items || [])),
     updatedAt: serverTimestamp(),
     updatedBy: (auth.currentUser && auth.currentUser.email) || null,
     ...(currentSurvey._isNew && { createdAt: serverTimestamp() })

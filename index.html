@@ -167,7 +167,7 @@
         margin: 0 auto;
         padding: 0;
       }
-      #meta { margin-bottom: 20px; }
+      #meta { margin-bottom: 10px; min-height: 14px; }
       #meta .subtle, #meta .tiny { display: none; }
       .progress {
         margin: 0 0 32px;
@@ -250,6 +250,36 @@
         background: var(--accent);
         border-color: var(--accent);
       }
+      /* Section / topic label above a question (item.section) */
+      .kicker {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      /* Conditional "especifica" box (item.followUp) */
+      .followup {
+        margin: 4px 0 4px;
+        padding-left: 14px;
+        border-left: 2px solid var(--primary);
+      }
+      .followup input[type="text"], .followup textarea { margin-bottom: 0; }
+      .fade-in { animation: fadeIn 0.2s ease both; }
+      /* Ranking: tap in order, numbered badge shows the position */
+      .opt-rank { display: flex; align-items: center; gap: 12px; }
+      .rank-badge {
+        flex: none;
+        width: 26px; height: 26px;
+        border-radius: 999px;
+        border: 1.5px solid var(--border-strong);
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: 13px; font-weight: 800;
+      }
+      .opt-rank.selected .rank-badge { background: var(--primary-foreground); color: var(--primary); border-color: var(--primary-foreground); }
+      @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+      .shake { animation: shake 0.25s ease; }
+      .intro-logo { display: block; width: min(260px, 70%); height: auto; margin: 0 0 20px; }
       .controls {
         display: flex;
         gap: 10px;

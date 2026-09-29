@@ -72,7 +72,7 @@ async function init() {
     document.getElementById('timelineWrap').classList.add('hidden');
     surveyBody.innerHTML = `<div class="notice">
       Las estadísticas públicas no están habilitadas. Las reglas de Firestore restringen la lectura de respuestas
-      a administradores autenticados. Usa el <a href="admin-stats.html" style="color:var(--foreground);">panel avanzado</a>.
+      a administradores autenticados. Usa el <a href="admin.html" style="color:var(--foreground);">panel avanzado</a>.
     </div>`;
     kpis.innerHTML = `<div class="notice" style="grid-column:1/-1;">Sin acceso público a los datos.</div>`;
     return;
@@ -206,12 +206,13 @@ async function renderSurvey(meta) {
       } else {
         block.innerHTML += `<div class="var-numeric-line">Sin respuestas numéricas.</div>`;
       }
-    } else if (dist.kind === 'categorical' || dist.kind === 'multi') {
-      const tag = dist.multi ? ' <span class="small">(selección múltiple)</span>' : '';
+    } else if (dist.kind === 'categorical' || dist.kind === 'multi' || dist.kind === 'ranking') {
+      const tag = dist.multi ? ' <span class="small">(selección múltiple)</span>'
+        : dist.kind === 'ranking' ? ' <span class="small">(ranking · puntaje)</span>' : '';
       block.innerHTML = `<div class="var-prompt">${escapeHtml(dist.prompt || item.id)}${tag}</div>
         <div class="var-numeric-line">${dist.answered}/${dist.total} respondieron</div><div class="vb"></div>`;
       varList.appendChild(block);
-      renderBarRows(block.querySelector('.vb'), dist.rows);
+      renderBarRows(block.querySelector('.vb'), dist.rows, { showPct: dist.kind !== 'ranking' });
       continue;
     } else {
       // text-like: response rate only (no content shown publicly)

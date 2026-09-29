@@ -1,4 +1,4 @@
-// statsCore.js — shared, theme-agnostic helpers for stats.html and admin-stats.html
+// statsCore.js — shared, theme-agnostic helpers for stats.html and admin.html
 // Pure compute + Firestore fetch + dependency-free DOM rendering.
 // No auth here, so it can be imported by both the public and admin pages.
 
@@ -156,14 +156,17 @@ export function summarize(values) {
   const sum = arr.reduce((a, b) => a + b, 0);
   const mean = sum / n;
   const variance = n > 1 ? arr.reduce((a, b) => a + (b - mean) ** 2, 0) / (n - 1) : 0;
+  const q1 = quantile(arr, 0.25);
+  const q3 = quantile(arr, 0.75);
   return {
     n,
     mean,
     sd: Math.sqrt(variance),
     min: arr[0],
-    q1: quantile(arr, 0.25),
+    q1,
     median: quantile(arr, 0.5),
-    q3: quantile(arr, 0.75),
+    q3,
+    iqr: q3 - q1,
     max: arr[n - 1],
     sorted: arr
   };
@@ -225,6 +228,7 @@ export function itemKind(survey, item) {
   if (t === 'task_rt' || t === 'task_stroop' || t === 'task_gonogo') return 'task';
   if (t === 'number' || t === 'slider') return 'numeric';
   if (t === 'multi_choice') return 'multi';
+  if (t === 'ranking') return 'ranking';
   if (t === 'yes_no' || t === 'single_choice') return 'categorical';
   if ((survey && survey.optionSets && survey.optionSets[t]) || Array.isArray(item.options)) return 'categorical';
   return 'text';
@@ -239,6 +243,56 @@ export function answerableItems(survey) {
   });
 }
 
+// Conditional "especifica" answers (item.followUp) stored under their own id.
+// Returned as virtual text items so exports/codebooks/stats can treat them
+// like any other open-ended variable.
+export function followUpItem(survey, item) {
+  const fu = item && item.followUp;
+  if (!fu || !fu.id) return null;
+  const codes = (Array.isArray(fu.whenCode) ? fu.whenCode : [fu.whenCode]).map(String);
+  const labels = resolveItemOptions(survey, item).filter(o => codes.includes(String(o.code))).map(o => o.label);
+  return {
+    id: fu.id,
+    type: 'text',
+    long: !!fu.long,
+    prompt: `${cleanPrompt(item.prompt)} — ${fu.prompt || 'especifica'}`,
+    followUpOf: item.id,
+    whenCodes: codes,
+    whenLabels: labels.length ? labels : codes
+  };
+}
+
+// Every exported variable in document order: answerable items, each followed
+// by its follow-up text item (if any).
+export function exportItems(survey) {
+  const out = [];
+  for (const it of answerableItems(survey)) {
+    out.push(it);
+    const fu = followUpItem(survey, it);
+    if (fu) out.push(fu);
+  }
+  return out;
+}
+
+export function rankingSize(survey, item) {
+  const n = resolveItemOptions(survey, item).length;
+  const k = Number(item && item.maxRank) > 0 ? Number(item.maxRank) : 3;
+  return Math.max(1, Math.min(k, n || k));
+}
+
+// Non-empty free-text answers for one item id, newest first.
+export function textEntries(responses, itemId) {
+  const out = [];
+  for (const r of responses) {
+    const v = (r.data?.answers || {})[itemId];
+    if (v == null) continue;
+    const text = String(v).trim();
+    if (!text) continue;
+    out.push({ id: r.data?.__rawId || r.id, text, ms: getCreatedAtMs(r.data), data: r.data });
+  }
+  return out.sort((a, b) => b.ms - a.ms);
+}
+
 // Build the distribution payload for a single item across all responses.
 export function variableDistribution(survey, item, responses) {
   const kind = itemKind(survey, item);
@@ -250,7 +304,12 @@ export function variableDistribution(survey, item, responses) {
   const base = { id, kind, prompt: cleanPrompt(item.prompt), total: responses.length, answered: answeredCount };
 
   if (kind === 'numeric') {
-    const nums = values.map(v => Number(v)).filter(v => Number.isFinite(v));
+    // Filter unanswered values BEFORE Number(): Number(null) and Number('')
+    // are both 0, which would silently count skipped answers as real zeros.
+    const nums = values
+      .filter(v => v !== null && v !== undefined && String(v).trim() !== '')
+      .map(v => Number(v))
+      .filter(v => Number.isFinite(v));
     return { ...base, summary: summarize(nums), hist: histogram(nums) };
   }
 
@@ -274,6 +333,28 @@ export function variableDistribution(survey, item, responses) {
     });
     if (other > 0) rows.push({ label: '(otro / fuera de escala)', count: other, pct: other / denom });
     return { ...base, rows, multi: kind === 'multi' };
+  }
+
+  if (kind === 'ranking') {
+    // Borda-style score: 1st place = k points, 2nd = k-1, ... (k = maxRank).
+    const opts = resolveItemOptions(survey, item);
+    const k = rankingSize(survey, item);
+    const stats = new Map(opts.map(o => [String(o.code), { label: o.label, points: 0, mentions: 0, byRank: Array(k).fill(0) }]));
+    for (const v of values) {
+      if (!Array.isArray(v)) continue;
+      v.slice(0, k).forEach((code, pos) => {
+        const st = stats.get(String(code));
+        if (!st) return;
+        st.points += k - pos;
+        st.mentions += 1;
+        st.byRank[pos] += 1;
+      });
+    }
+    const denom = Math.max(answeredCount, 1);
+    const rows = [...stats.values()]
+      .map(st => ({ ...st, count: st.points, pct: st.mentions / denom }))
+      .sort((a, b) => b.points - a.points || b.mentions - a.mentions);
+    return { ...base, rows, rankSize: k };
   }
 
   // text-like
@@ -319,9 +400,18 @@ export function fmtDateTime(ms) {
   });
 }
 
-function cleanPrompt(p) {
+export function cleanPrompt(p) {
   if (typeof p !== 'string') return '';
-  return p.split('\n')[0].replace(/^SECCIÓN.*/i, '').trim() || p.split('\n')[0];
+  const first = p.split('\n')[0].replace(/<[^>]+>/g, '').trim();
+  return first.replace(/^SECCIÓN.*/i, '').trim() || first;
+}
+
+// Canonical order for a distribution's summary stats, everywhere in the app:
+// mean, sd, median, iqr, then min/max. `fmt` formats each individual value.
+export function fmtSummaryLine(s, fmt) {
+  if (!s || !s.n) return null;
+  return `n=${s.n} · media ${fmt(s.mean)} · DE ${fmt(s.sd)} · mediana ${fmt(s.median)} `
+    + `· RIC ${fmt(s.iqr)} · min ${fmt(s.min)} · máx ${fmt(s.max)}`;
 }
 
 export function escapeHtml(s) {

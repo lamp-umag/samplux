@@ -2,16 +2,16 @@
 <html lang="es">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>samplux — admin</title>
-    <meta name="description" content="Panel de administración samplux — LAMP UMAG" />
+    <meta name="description" content="samplux · panel de administración: estadísticas, respuestas abiertas, gestión de casos y descargas" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%90%8D</text></svg>" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
       :root {
-        /* Same strict black & white theme as index.html / perseg */
+        /* Mismo tema blanco y negro que index.html */
         --bg: #ffffff;
         --foreground: #000000;
         --muted: #1f2937;
@@ -23,240 +23,197 @@
         --border: #d4d4d4;
         --border-strong: #b5b5b5;
         --danger: #000000;
+        /* variables de gráficos consumidas por statsCore.js */
+        --sc-ink: #000000;
+        --sc-track: #ececec;
+        --sc-fill: #000000;
       }
       * { box-sizing: border-box; }
-      html, body { height: 100%; margin: 0; padding: 0; }
+      html, body { margin: 0; padding: 0; }
       body {
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
         background: var(--bg);
         color: var(--foreground);
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
+        -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
       }
       header {
-        padding: 16px 24px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        background: rgba(255, 255, 255, 0.92);
-        backdrop-filter: blur(12px);
+        padding: 14px 16px; display: flex; align-items: center; justify-content: space-between;
+        position: sticky; top: 0; z-index: 20;
+        background: rgba(255,255,255,0.92); backdrop-filter: blur(10px);
         border-bottom: 1px solid var(--border);
       }
-      .brand {
-        font-weight: 800;
-        font-size: 16px;
-        letter-spacing: -0.3px;
-        color: var(--foreground);
-        text-decoration: none;
-      }
-      .tagline {
-        font-size: 12px;
-        color: var(--muted);
-        margin-top: 2px;
-      }
-      .back-link {
-        font-size: 12px;
-        color: var(--muted);
-        text-decoration: none;
-        padding: 6px 12px;
-        border: 1px solid var(--border-strong);
-        border-radius: 999px;
-        transition: all 0.15s ease;
-      }
-      .back-link:hover { color: var(--foreground); border-color: var(--foreground); }
-      main {
-        max-width: 980px;
-        margin: 0 auto;
-        padding: 24px 16px 40px;
-      }
-      .card {
-        background: var(--surface-soft);
-        border-radius: 14px;
-        padding: 22px;
-        border: 1px solid var(--border);
-      }
-      .card + .card { margin-top: 14px; }
-      .card-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-        margin-bottom: 16px;
-        flex-wrap: wrap;
-      }
-      h1 { font-size: 20px; margin: 0; font-weight: 700; }
-      h2 { font-size: 16px; margin: 0; font-weight: 700; }
+      .brand { font-weight: 800; font-size: 16px; letter-spacing: -0.3px; color: var(--foreground); text-decoration: none; }
+      .tagline { font-size: 11px; color: var(--muted); margin-top: 2px; }
+      .nav-link { font-size: 12px; color: var(--muted); text-decoration: none; padding: 6px 12px; border: 1px solid var(--border-strong); border-radius: 999px; transition: all .15s ease; }
+      .nav-link:hover { color: var(--foreground); border-color: var(--foreground); }
+      main { max-width: 1040px; margin: 0 auto; padding: 16px 12px 56px; }
+      .card { background: var(--surface-soft); border-radius: 14px; padding: 18px; border: 1px solid var(--border); }
+      .card + .card { margin-top: 12px; }
+      .card-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+      h1 { font-size: 19px; margin: 0; font-weight: 700; }
+      h2 { font-size: 15px; margin: 0; font-weight: 700; }
       .muted { color: var(--muted); font-size: 14px; }
       .small { color: var(--muted); font-size: 12px; }
       .danger { color: var(--danger); font-weight: 700; }
-      .danger::before { content: '⚠ '; }
-      .row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        flex-wrap: wrap;
-      }
-      .pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 4px 10px;
-        font-size: 11px;
-        border-radius: 999px;
-        border: 1px solid var(--border-strong);
-        color: var(--muted);
-      }
-      .pill-dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 999px;
-        background: #000000;
-      }
-      .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        padding: 8px 16px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 600;
-        border: 1px solid transparent;
-        cursor: pointer;
-        background: transparent;
-        color: inherit;
-        font-family: inherit;
-        transition: all 0.15s ease;
-      }
-      .btn-primary {
-        background: var(--primary);
-        color: var(--primary-foreground);
-        border-color: var(--primary);
-      }
-      .btn-primary:hover {
-        background: var(--accent);
-        border-color: var(--accent);
-        transform: translateY(-1px);
-      }
-      .btn-outline {
-        border-color: var(--border-strong);
-        color: var(--foreground);
-        background: transparent;
-      }
-      .btn-outline:hover {
-        border-color: var(--foreground);
-        background: var(--surface);
-      }
+      .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+      .pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; font-size: 11px; border-radius: 999px; border: 1px solid var(--border-strong); color: var(--muted); }
+      .pill-dot { width: 7px; height: 7px; border-radius: 999px; background: #000; }
+      .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 11px; border: 1px solid var(--border-strong); background: transparent; }
+      .status-dot { width: 7px; height: 7px; border-radius: 999px; background: #000; }
+      .status-dot.warn { background: #000; box-shadow: 0 0 0 2px #000; }
+      .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; border: 1px solid transparent; cursor: pointer; background: transparent; color: inherit; font-family: inherit; transition: all .15s ease; }
+      .btn-primary { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
+      .btn-primary:hover { background: var(--accent); border-color: var(--accent); }
+      .btn-outline { border-color: var(--border-strong); color: var(--foreground); }
+      .btn-outline:hover { border-color: var(--foreground); background: var(--surface); }
       .btn-sm { padding: 5px 10px; font-size: 12px; }
-      .chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 4px 10px;
-        border-radius: 999px;
-        font-size: 11px;
-        border: 1px solid var(--border-strong);
-        background: transparent;
-      }
-      .status-dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 999px;
-        background: #000000;
-      }
-      .status-dot.warn { background: #000000; box-shadow: 0 0 0 2px #000000; }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 12px;
-        font-size: 13px;
-      }
-      th, td {
-        padding: 9px 10px;
-        text-align: left;
-        border-bottom: 1px solid var(--border);
-      }
-      th {
-        font-size: 10px;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        color: var(--muted);
-        font-weight: 600;
-      }
-      tbody tr:hover { background: var(--surface); }
-      code {
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-        font-size: 11px;
-        padding: 2px 6px;
-        border-radius: 4px;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        color: var(--foreground);
-      }
-      .text-right { text-align: right; }
-      .badge {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 28px;
-        padding: 3px 8px;
-        border-radius: 999px;
-        font-size: 12px;
-        font-weight: 600;
-        background: var(--surface);
-        border: 1px solid var(--border-strong);
-      }
-      .spinner {
-        width: 14px;
-        height: 14px;
-        border-radius: 999px;
-        border: 2px solid var(--border-strong);
-        border-top-color: var(--foreground);
-        animation: spin 0.7s linear infinite;
-      }
-      @keyframes spin { to { transform: rotate(360deg); } }
-      .mt-8 { margin-top: 8px; }
-      .mt-16 { margin-top: 16px; }
       .hidden { display: none; }
-      .input, .select {
-        width: 100%;
-        padding: 6px 8px;
-        border-radius: 6px;
-        border: 1px solid var(--border-strong);
-        background: #ffffff;
-        color: var(--foreground);
-        font-size: 12px;
-        font-family: inherit;
+      .select, .input {
+        padding: 7px 10px; border-radius: 8px; border: 1px solid var(--border-strong);
+        background: #fff; color: var(--foreground); font-size: 13px; font-family: inherit; font-weight: 500;
       }
-      .input::placeholder { color: var(--muted); }
+      .select:disabled, .input:disabled { opacity: .45; }
+      .mt-8 { margin-top: 8px; } .mt-16 { margin-top: 16px; }
+      code { font-family: ui-monospace, Menlo, monospace; font-size: 11px; padding: 2px 6px; border-radius: 4px; background: var(--surface); border: 1px solid var(--border); color: var(--foreground); }
+
+      /* ---- top tabs (mobile-friendly: horizontal scroll, no wrap) ---- */
+      .tabs {
+        display: flex; gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch;
+        padding: 4px 2px 10px; margin-bottom: 4px; scrollbar-width: none;
+      }
+      .tabs::-webkit-scrollbar { display: none; }
+      .tab-btn {
+        flex: 0 0 auto; padding: 9px 16px; border-radius: 999px; border: 1px solid var(--border-strong);
+        background: #fff; color: var(--muted); font-size: 13px; font-weight: 600; font-family: inherit;
+        cursor: pointer; white-space: nowrap; transition: all .15s ease;
+      }
+      .tab-btn.active { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
+      .tab-btn:not(.active):hover { border-color: var(--foreground); color: var(--foreground); }
+      .tab-panel { display: none; }
+      .tab-panel.active { display: block; }
+
+      .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+      .kpi { border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; background: #fff; }
+      .kpi.warn { border-width: 2px; border-color: #000; }
+      .kpi-value { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+      .kpi-label { font-size: 10px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-top: 4px; }
+
+      .subhead { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 18px 0 8px; font-weight: 700; }
+      .var-numeric-line { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+      .time-block { border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-top: 10px; }
+      .time-block h3 { margin: 0 0 4px; font-size: 14px; font-weight: 700; }
+
+      table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
+      th, td { padding: 8px 9px; text-align: left; border-bottom: 1px solid var(--border); }
+      th { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 700; }
+      th.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
+      th.sortable:hover { color: var(--foreground); }
+      th.sortable .arrow { font-size: 9px; margin-left: 3px; opacity: .6; }
+      tbody tr:hover { background: var(--surface); }
+      .text-right { text-align: right; font-variant-numeric: tabular-nums; }
       .table-scroll { overflow-x: auto; }
-      .w-compact { min-width: 100px; }
-      .w-medium { min-width: 160px; }
-      a { color: var(--foreground); text-decoration: none; opacity: 0.7; }
-      a:hover { opacity: 1; }
-      ul { margin: 8px 0 0 0; padding-left: 20px; }
-      li { margin-bottom: 4px; }
-      p { margin: 8px 0 0 0; line-height: 1.5; }
+
+      /* Variable-name tooltip: hover on desktop, tap on mobile (see attachVarTooltips in adminStats.js) */
+      code.var-tip { cursor: help; text-decoration: underline dotted var(--border-strong); text-underline-offset: 3px; }
+      code.var-tip:hover, code.var-tip:focus { background: var(--accent); color: var(--primary-foreground); outline: none; }
+      .var-tooltip {
+        position: fixed; z-index: 60; max-width: 260px; padding: 8px 10px; border-radius: 8px;
+        background: var(--foreground); color: var(--bg); font-size: 12px; line-height: 1.4;
+        box-shadow: 0 6px 18px rgba(0,0,0,.18); pointer-events: none;
+        opacity: 0; transform: translateY(2px); transition: opacity .12s ease, transform .12s ease;
+      }
+      .var-tooltip.open { opacity: 1; transform: translateY(0); }
+
+      .var-block { padding: 12px 0; border-top: 1px solid var(--border); }
+      .var-prompt { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+      .dl-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+      .w-compact { min-width: 100px; } .w-medium { min-width: 160px; }
+
+      /* ---- shared sc-* chart classes consumed by statsCore.js ---- */
+      .sc-bar-row { display: grid; grid-template-columns: 150px 1fr 90px; align-items: center; gap: 10px; margin: 4px 0; }
+      .sc-bar-label { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .sc-bar-track { height: 15px; background: var(--sc-track); border-radius: 4px; overflow: hidden; }
+      .sc-bar-fill { height: 100%; background: var(--sc-fill); border-radius: 4px; min-width: 2px; }
+      .sc-bar-meta { font-size: 11px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+      .sc-hist { display: flex; align-items: flex-end; gap: 3px; height: 120px; padding-top: 14px; }
+      .sc-hist-col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
+      .sc-hist-bar { width: 100%; background: var(--sc-fill); border-radius: 3px 3px 0 0; }
+      .sc-hist-count { font-size: 9px; color: var(--muted); margin-bottom: 2px; font-variant-numeric: tabular-nums; }
+      .sc-hist-axis { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-top: 6px; }
+      .sc-timeline { width: 100%; height: 110px; display: block; }
+      .sc-tl-area { fill: var(--sc-fill); opacity: 0.08; }
+      .sc-tl-line { stroke: var(--sc-ink); stroke-width: 1.5; }
+      .sc-tl-dot { fill: var(--sc-ink); }
+      .sc-empty { font-size: 12px; color: var(--muted); padding: 14px 0; }
+      .rank-break { display: block; font-size: 10px; color: var(--muted); font-variant-numeric: tabular-nums; margin-top: 1px; }
+      .sc-rank-row { margin: 7px 0; }
+      .sc-metric-table { font-size: 12px; }
+      .sc-metric-hist-label { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-top: 12px; font-weight: 700; }
+
+      /* ---- Variables tab: toolbar, sections, open-ended answers ---- */
+      .var-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+      .seg { display: inline-flex; border: 1px solid var(--border-strong); border-radius: 999px; overflow: hidden; }
+      .seg button { border: 0; background: #fff; padding: 6px 12px; font: inherit; font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; }
+      .seg button + button { border-left: 1px solid var(--border-strong); }
+      .seg button.active { background: var(--primary); color: var(--primary-foreground); }
+      .var-section { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; font-weight: 800; margin: 26px 0 2px; padding-top: 12px; border-top: 2px solid var(--foreground); }
+      .var-section + .var-block { border-top: 0; }
+      .tag-cond { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; border: 1px dashed var(--border-strong); border-radius: 999px; padding: 1px 7px; margin-left: 4px; color: var(--muted); }
+      .tx { margin-top: 6px; }
+      .tx-followup { margin-top: 12px; padding-left: 12px; border-left: 2px solid var(--border-strong); }
+      .tx-label { font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+      .tx-empty { font-size: 12px; color: var(--muted); font-style: italic; }
+      .tx-quote {
+        margin: 0 0 6px; padding: 8px 12px; border-left: 3px solid var(--foreground); background: #fff;
+        border-radius: 0 8px 8px 0; font-size: 13px; line-height: 1.45;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+      }
+      .var-block:has(.tx-drawer[open]) .tx-teaser, .tx-followup:has(.tx-drawer[open]) .tx-teaser { display: none; }
+      .tx-drawer > summary {
+        list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; user-select: none;
+        font-size: 12px; font-weight: 700; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--border-strong); background: #fff;
+      }
+      .tx-drawer > summary::-webkit-details-marker { display: none; }
+      .tx-drawer > summary:hover { border-color: var(--foreground); }
+      .tx-drawer .tx-close-label, .tx-drawer[open] .tx-open-label { display: none; }
+      .tx-drawer[open] .tx-close-label { display: inline; }
+      .tx-chevron { transition: transform .15s ease; }
+      .tx-drawer[open] .tx-chevron { transform: rotate(180deg); }
+      .tx-drawer[open] > summary { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
+      .tx-tools { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
+      .tx-tools .input { flex: 1; max-width: 360px; }
+      .tx-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; max-height: 520px; overflow-y: auto; }
+      .tx-list-inline { max-height: none; }
+      .tx-item { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; animation: txIn .18s ease both; }
+      .tx-item p { margin: 0; font-size: 13px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+      .tx-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 6px; font-size: 11px; color: var(--muted); }
+      .tx-tag { font-weight: 700; color: var(--foreground); border: 1px solid var(--border-strong); border-radius: 999px; padding: 1px 8px; }
+      @keyframes txIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+      .spinner { width: 14px; height: 14px; border-radius: 999px; border: 2px solid var(--border-strong); border-top-color: var(--foreground); animation: spin .7s linear infinite; display: inline-block; vertical-align: middle; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      @media (max-width: 560px) {
+        .sc-bar-row { grid-template-columns: 96px 1fr 60px; }
+        main { padding: 12px 8px 48px; }
+        .card { padding: 14px; border-radius: 12px; }
+        .tx-list { max-height: 60vh; }
+        header .nav-link.hide-sm, header .tagline { display: none; }
+        #userEmail { max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        /* stack long option labels above their bar instead of truncating them */
+        .sc-bar-row { grid-template-columns: 1fr 62px; row-gap: 3px; margin: 8px 0; }
+        .sc-bar-label { grid-column: 1 / -1; white-space: normal; overflow: visible; }
+      }
     </style>
   </head>
   <body>
     <header>
       <div>
-        <a class="brand" href=".">🐍 samplux</a>
-        <div class="tagline">Panel de administración · LAMP UMAG</div>
+        <a class="brand" href="index.html">🐍 samplux</a>
+        <div class="tagline">Admin · estadísticas, respuestas y casos</div>
       </div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div id="userChip" class="chip hidden">
-          <span class="status-dot" id="userStatusDot"></span>
-          <span id="userEmail"></span>
-        </div>
-        <a class="back-link" href="builder.html">constructor</a>
-        <a class="back-link" href="admin-stats.html">estadísticas</a>
-        <a class="back-link" href="index.html">← encuestas</a>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div id="userChip" class="chip hidden" title="Cerrar sesión"><span class="status-dot" id="userStatusDot"></span><span id="userEmail"></span></div>
+        <a class="nav-link" href="builder.html" data-global-only>constructor</a>
+        <a class="nav-link hide-sm" href="index.html">← encuestas</a>
       </div>
     </header>
 
@@ -264,131 +221,183 @@
       <section class="card" id="authCard">
         <div class="card-header">
           <h1>Acceso restringido</h1>
-          <span class="pill">
-            <span class="pill-dot"></span>
-            Solo administradores
-          </span>
+          <span class="pill"><span class="pill-dot"></span>Solo administradores</span>
         </div>
-        <p class="muted">
-          Este panel permite revisar el estado de las encuestas y descargar respuestas
-          en formatos listos para análisis estadístico.
-        </p>
-        <div class="mt-16 row">
-          <div>
-            <p class="small">Acceso restringido a cuentas administradoras autenticadas con Google.</p>
-            <p class="small muted" style="margin-top:4px;">Cualquier otra cuenta será bloqueada.</p>
-          </div>
+        <p class="muted">Estadísticas, tiempos de respuesta (bruto / neto / corregido), distribuciones de variables,
+          tiempo por ítem y gestión de casos (exclusión y duplicados) — todo en un solo panel.</p>
+        <div class="mt-16 row" style="justify-content:space-between;">
+          <p class="small">Inicia sesión con una cuenta administradora autorizada (global o de una encuesta).</p>
           <button id="loginBtn" class="btn btn-primary">Entrar con Google</button>
         </div>
         <p id="authError" class="small danger mt-8 hidden"></p>
       </section>
 
-      <section class="card hidden" id="contentCard">
-        <div class="card-header">
-          <h2>Encuestas en Firebase</h2>
-          <div class="row" style="gap:8px;">
-            <span id="surveyCountChip" class="chip hidden">
-              <span class="status-dot"></span>
-              <span id="surveyCountLabel"></span>
-            </span>
-            <button id="refreshBtn" class="btn btn-outline btn-sm">
-              <span class="spinner hidden" id="refreshSpinner"></span>
-              <span>Actualizar</span>
-            </button>
+      <div id="appShell" class="hidden">
+        <section class="card">
+          <div class="card-header">
+            <h2>Encuesta</h2>
+            <button id="refreshBtn" class="btn btn-outline btn-sm"><span class="spinner hidden" id="refreshSpinner"></span><span>Recargar</span></button>
           </div>
-        </div>
-        <p class="muted">
-          Respuestas <strong>incluidas en exportación</strong> (no excluidas en revisión de casos).
-          Accesos directos de descarga:
-        </p>
-        <ul class="small">
-          <li><strong>CSV datos</strong> — solo variables de respuesta, listo para R / Python / SPSS.</li>
-          <li><strong>CSV datos (dedupe)</strong> — ídem con deduplicación automática.</li>
-          <li><strong>CSV + paradata (dedupe)</strong> — incluye tiempos por ítem, orden de presentación y metadatos.</li>
-        </ul>
-
-        <div class="mt-16">
-          <table>
-            <thead>
-              <tr>
-                <th style="width:18%;">Encuesta</th>
-                <th>Título</th>
-                <th style="width:10%;">Incluidas</th>
-                <th>Descargas</th>
-              </tr>
-            </thead>
-            <tbody id="surveyTableBody">
-              <tr>
-                <td colspan="4" class="small muted">Cargando…</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <p class="small mt-8">
-          El conteo excluye respuestas marcadas como excluidas en
-          <code>response_export_meta/&lt;surveyId&gt;/flags</code>.
-        </p>
-      </section>
-
-      <section class="card hidden" id="caseReviewCard">
-        <div class="card-header">
-          <h2>Revisión de casos</h2>
-          <div class="row" style="gap:8px;">
-            <span id="caseSurveyChip" class="chip hidden"></span>
-            <button id="closeCaseReviewBtn" class="btn btn-outline btn-sm">Cerrar</button>
+          <div class="row">
+            <select id="surveySelect" class="select"></select>
+            <label class="small row" style="gap:6px;">
+              <input type="checkbox" id="includeExcluded" /> incluir excluidas
+            </label>
+            <label class="small row" style="gap:6px;">
+              <input type="checkbox" id="includeDuplicates" /> incluir duplicados
+            </label>
           </div>
+          <div class="kpis mt-16" id="kpis"></div>
+          <p class="small mt-8" id="validExplain"></p>
+        </section>
+
+        <div class="tabs" id="tabs">
+          <button class="tab-btn active" data-tab="resumen">Resumen</button>
+          <button class="tab-btn" data-tab="casos">Casos</button>
+          <button class="tab-btn" data-tab="items">Ítems</button>
+          <button class="tab-btn" data-tab="variables">Variables</button>
         </div>
-        <p class="muted">
-          Revisa respuestas individuales y marca exclusiones persistentes para no incluirlas en exportaciones.
-        </p>
-        <div class="row mt-8" style="align-items:flex-end;gap:12px;">
-          <label class="small w-compact">
-            Filtro exclusión
-            <select id="excludeFilterSelect" class="select">
-              <option value="all">Todos</option>
-              <option value="included">Solo incluidos</option>
-              <option value="excluded">Solo excluidos</option>
-            </select>
-          </label>
-          <label class="small w-compact">
-            Filtro dedupe
-            <select id="dedupeFilterSelect" class="select">
-              <option value="all">Todos</option>
-              <option value="high">Duplicado HIGH</option>
-              <option value="medium">Duplicado MEDIUM</option>
-              <option value="low">Sin señal fuerte</option>
-            </select>
-          </label>
-          <button id="refreshCasesBtn" class="btn btn-outline btn-sm">Recargar</button>
+
+        <!-- ===================== TAB: Resumen ===================== -->
+        <div class="tab-panel active" id="tab-resumen">
+          <section class="card">
+            <div class="card-header"><h2>Tiempos de respuesta</h2></div>
+
+            <div class="time-block">
+              <h3>Bruto</h3>
+              <p class="small muted">Desde que se abrió la encuesta hasta que se envió. Incluye cualquier rato en
+                que quedó abierta sin responder antes de entregarse, y cualquier demora entre terminar de
+                responder y presionar "Enviar".</p>
+              <div id="timeSummary" class="var-numeric-line"></div>
+              <div id="timeHist"></div>
+            </div>
+
+            <div class="time-block">
+              <h3>Neto</h3>
+              <p class="small muted" id="netTimeExplain"></p>
+              <div id="netTimeSummary" class="var-numeric-line"></div>
+              <div id="netTimeHist"></div>
+            </div>
+
+            <div class="time-block">
+              <h3>Corregido (estimado)</h3>
+              <p class="small muted" id="corrTimeExplain"></p>
+              <div id="corrTimeSummary" class="var-numeric-line"></div>
+              <div id="corrTimeHist"></div>
+              <div class="subhead">Velocidad de respuesta (sobre tiempo corregido)</div>
+              <div id="speedBuckets"></div>
+            </div>
+
+            <div class="subhead">Respuestas por día</div>
+            <div id="timeline"></div>
+          </section>
+
+          <section class="card">
+            <div class="card-header"><h2>Descargas</h2></div>
+            <div class="dl-row">
+              <button id="dlCsvBtn" class="btn btn-primary btn-sm">⬇ Descargar CSV completo</button>
+              <button id="dlMetaBtn" class="btn btn-outline btn-sm">⬇ metadata.txt (codebook)</button>
+              <button id="dlJsonBtn" class="btn btn-outline btn-sm">⬇ JSON crudo (paradata completa)</button>
+            </div>
+            <p class="small mt-8">Incluye metadatos, los tres tiempos (bruto/neto/corregido), estado de
+              exclusión/duplicado, respuestas (incluidos los textos «Otro, ¿cuál?» y una columna por lugar en los
+              rankings) y tiempo por ítem. Respeta los filtros "incluir excluidas" / "incluir duplicados" de arriba.
+              El codebook describe cada columna. El JSON crudo trae todas las entradas sin filtrar, con toda la
+              paradata (orden de presentación, eventos de cambio, navegador…).</p>
+          </section>
         </div>
-        <div class="table-scroll mt-16">
-          <table>
-            <thead>
-              <tr>
-                <th style="width:12%;">responseId</th>
-                <th style="width:10%;">Fecha</th>
-                <th style="width:9%;">Tiempo</th>
-                <th style="width:6%;">Atrás</th>
-                <th style="width:6%;">Cambios</th>
-                <th style="width:7%;">serverCode</th>
-                <th style="width:7%;">Completitud</th>
-                <th style="width:9%;">Dedupe</th>
-                <th style="width:7%;">Excluir</th>
-                <th style="width:8%;">Motivo</th>
-                <th>Nota</th>
-              </tr>
-            </thead>
-            <tbody id="caseTableBody">
-              <tr>
-                <td colspan="11" class="small muted">Selecciona "Gestionar casos" en una encuesta para comenzar.</td>
-              </tr>
-            </tbody>
-          </table>
+
+        <!-- ===================== TAB: Casos ===================== -->
+        <div class="tab-panel" id="tab-casos">
+          <section class="card">
+            <div class="card-header">
+              <h2>Gestión de casos</h2>
+              <span class="small" id="casosMeta"></span>
+            </div>
+            <p class="muted">Marca exclusiones (piloto, prueba, duplicado, inválido...) y revisa qué casos fueron
+              detectados como probables duplicados. Estos filtros son solo para revisar/editar — no afectan qué
+              cuenta como "válido" en el resto del panel (eso lo controlan los checkboxes de arriba).</p>
+            <div class="row mt-8" style="align-items:flex-end;">
+              <label class="small w-compact">
+                Filtro exclusión
+                <select id="excludeFilterSelect" class="select" style="display:block;width:100%;margin-top:4px;">
+                  <option value="all">Todos</option>
+                  <option value="included">Solo incluidos</option>
+                  <option value="excluded">Solo excluidos</option>
+                </select>
+              </label>
+              <label class="small w-compact">
+                Filtro duplicados
+                <select id="dedupeFilterSelect" class="select" style="display:block;width:100%;margin-top:4px;">
+                  <option value="all">Todos</option>
+                  <option value="high">Duplicado HIGH</option>
+                  <option value="medium">Duplicado MEDIUM</option>
+                  <option value="low">Sin señal fuerte</option>
+                </select>
+              </label>
+              <button id="refreshCasesBtn" class="btn btn-outline btn-sm">Recargar casos</button>
+            </div>
+            <div class="table-scroll mt-16">
+              <table>
+                <thead><tr>
+                  <th>responseId</th><th>Fecha</th><th>Tiempo (bruto/neto/corr.)</th>
+                  <th class="text-right">Ítems lentos</th><th class="text-right">Atrás</th>
+                  <th class="text-right">Cambios</th><th>serverCode</th><th class="text-right">Completitud</th>
+                  <th>Duplicado</th><th>Excluir</th><th>Motivo</th><th class="w-medium">Nota</th>
+                </tr></thead>
+                <tbody id="caseTableBody"><tr><td colspan="12" class="small muted">Selecciona una encuesta.</td></tr></tbody>
+              </table>
+            </div>
+          </section>
         </div>
-      </section>
+
+        <!-- ===================== TAB: Ítems ===================== -->
+        <div class="tab-panel" id="tab-items">
+          <section class="card">
+            <div class="card-header"><h2>Tiempo por ítem</h2><span class="small">clic en una columna para ordenar · mantén el cursor sobre el nombre de un ítem (o tócalo en el celular) para ver la pregunta</span></div>
+            <div class="table-scroll">
+              <table>
+                <thead><tr id="itemTimeHeadRow">
+                  <th class="sortable" data-sort="id">Ítem</th>
+                  <th class="text-right sortable" data-sort="n">n</th>
+                  <th class="text-right sortable" data-sort="mean">Media</th>
+                  <th class="text-right sortable" data-sort="sd">DE</th>
+                  <th class="text-right sortable" data-sort="median">Mediana</th>
+                  <th class="text-right sortable" data-sort="iqr">RIC</th>
+                  <th class="text-right sortable" data-sort="max">Máx</th>
+                  <th class="text-right sortable" data-sort="changes">Cambios</th>
+                </tr></thead>
+                <tbody id="itemTimeBody"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <!-- ===================== TAB: Variables ===================== -->
+        <div class="tab-panel" id="tab-variables">
+          <section class="card">
+            <div class="card-header"><h2>Distribución de variables</h2><span class="small" id="varMeta"></span></div>
+            <div class="var-toolbar">
+              <div class="seg" id="varFilter" role="group" aria-label="Filtrar variables">
+                <button type="button" data-filter="all" class="active">Todas</button>
+                <button type="button" data-filter="closed">Cerradas</button>
+                <button type="button" data-filter="open">Con texto</button>
+              </div>
+              <div class="row">
+                <label class="small row hidden" id="textTagWrap" style="gap:6px;">Etiquetar textos con
+                  <select id="textTagSelect" class="select"></select>
+                </label>
+                <button type="button" id="toggleTextsBtn" class="btn btn-outline btn-sm">Abrir todos los textos</button>
+              </div>
+            </div>
+            <div id="varList"></div>
+          </section>
+        </div>
+      </div>
     </main>
 
-    <script type="module" src="./js/admin.js"></script>
+    <div class="var-tooltip" id="varTooltip" role="tooltip"></div>
+
+    <script type="module" src="./js/adminStats.js"></script>
   </body>
 </html>

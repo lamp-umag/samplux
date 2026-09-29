@@ -177,6 +177,12 @@
       #previewOverlay #pv-options { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
       #previewOverlay .opt { padding: 14px 16px; border-radius: 10px; border: 1px solid #d4d4d4; background: #ffffff; text-align: left; font-size: 14px; cursor: pointer; font-family: inherit; }
       #previewOverlay .opt.selected { border-color: #000000; background: #000000; color: #ffffff; }
+      #previewOverlay .kicker { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #1f2937; margin-bottom: 8px; }
+      #previewOverlay .followup { margin-top: 4px; padding-left: 14px; border-left: 2px solid #000000; }
+      #previewOverlay .opt-rank { display: flex; align-items: center; gap: 12px; }
+      #previewOverlay .rank-badge { flex: none; width: 26px; height: 26px; border-radius: 999px; border: 1.5px solid #b5b5b5; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; }
+      #previewOverlay .opt-rank.selected .rank-badge { background: #ffffff; color: #000000; border-color: #ffffff; }
+      #previewOverlay .intro-logo { display: block; width: min(260px, 70%); height: auto; margin: 0 0 16px; }
       #previewOverlay input, #previewOverlay textarea { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid #d4d4d4; font-size: 15px; font-family: inherit; }
       #previewOverlay #pv-controls { display: flex; gap: 10px; margin-top: 22px; }
       #previewOverlay .btn.primary, #previewOverlay .btn.secondary {
@@ -200,7 +206,6 @@
       </div>
       <div class="header-actions">
         <a class="back-link" href="admin.html">admin</a>
-        <a class="back-link" href="admin-stats.html">estadísticas</a>
         <a class="back-link" href="index.html">← encuestas</a>
       </div>
     </header>
@@ -269,6 +274,11 @@
             <div class="field-group">
               <label class="field">Descripción</label>
               <textarea id="f-description" class="input" rows="2" placeholder="Se muestra en la lista de encuestas disponibles"></textarea>
+            </div>
+            <div class="field-group">
+              <label class="field">Administradores de esta encuesta</label>
+              <input id="f-admins" class="input" placeholder="correo@gmail.com, otra@umag.cl" />
+              <p class="small mt-8">Cuentas de Google que pueden ver estadísticas, respuestas y casos de <em>esta</em> encuesta en admin.html (no pueden editarla ni ver otras). Separa con comas.</p>
             </div>
             <div class="switch-row field-group">
               <div>

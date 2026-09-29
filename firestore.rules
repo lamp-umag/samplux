@@ -15,11 +15,11 @@ rules_version = '2';
 //   a hardcoded id list — new surveys work the moment they're published, no
 //   rules redeploy needed.
 // - response_export_meta/<surveyId>/flags/<responseId>: exclusion-flag
-//   metadata for CSV export, read/written by admin.html and admin-stats.html
+//   metadata for CSV export, read/written by admin.html
 //   (both Google-auth gated).
 //
 // IMPORTANT: keep the email list below in sync with ALLOWED_EMAILS in
-// js/admin.js, js/adminStats.js, and js/builder.js.
+// js/adminStats.js and js/builder.js.
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -32,8 +32,23 @@ service cloud.firestore {
         ];
     }
 
+    // Per-survey admins: surveys/<id>.adminEmails (lowercase), edited in
+    // builder.html. They can read that survey's responses and manage its
+    // exclusion flags in admin.html — nothing else (no builder, no other surveys).
+    function signedInEmailIn(list) {
+      return request.auth != null &&
+        request.auth.token.email_verified == true &&
+        request.auth.token.email.lower() in list;
+    }
+
+    function isSurveyAdmin(surveyId) {
+      return signedInEmailIn(
+        get(/databases/$(database)/documents/surveys/$(surveyId)).data.get('adminEmails', []));
+    }
+
     match /surveys/{surveyId} {
-      allow read: if resource.data.published == true || isAdmin();
+      allow read: if resource.data.published == true || isAdmin() ||
+        signedInEmailIn(resource.data.get('adminEmails', []));
       allow create, update, delete: if isAdmin();
     }
 
@@ -48,15 +63,15 @@ service cloud.firestore {
         request.resource.data.surveyId == surveyId &&
         request.resource.data.answers is map;
 
-      // Only admins (Google login) can read responses — admin.html and
-      // admin-stats.html need this for counts/exports. Nobody can edit or
+      // Only admins (Google login) can read responses — admin.html needs
+      // this for stats/exports. Nobody can edit or
       // delete a response once submitted (immutable by design).
-      allow read: if isAdmin();
+      allow read: if isAdmin() || isSurveyAdmin(surveyId);
       allow update, delete: if false;
     }
 
     match /response_export_meta/{surveyId}/flags/{responseId} {
-      allow read, write: if isAdmin();
+      allow read, write: if isAdmin() || isSurveyAdmin(surveyId);
     }
   }
 }
