@@ -1,6 +1,12 @@
 {
   "surveys": [
     {
+      "id": "audio_test",
+      "title": "Prueba rápida (audio)",
+      "description": "Encuesta corta de prueba con opción de respuesta por audio.",
+      "file": "audio_test.json"
+    },
+    {
       "id": "samplux_demo",
       "title": "Encuesta de demostración",
       "description": "Ejemplo que muestra todos los tipos de ítem disponibles: secciones, escalas Likert, opciones, texto, sliders, tareas cognitivas y más.",

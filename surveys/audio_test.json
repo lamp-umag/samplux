@@ -1,0 +1,47 @@
+{
+  "id": "audio_test",
+  "title": "Prueba rápida (audio)",
+  "description": "Encuesta corta de prueba: Likert, sí/no, texto corto y texto largo con opción de responder por audio.",
+  "settings": {
+    "randomizeItems": false,
+    "thankYou": "<div class=\"q center\">¡Gracias!</div><div class=\"info-text center\">Esto era solo una prueba.</div>"
+  },
+  "optionSets": {
+    "acuerdo_5": [
+      { "code": 1, "label": "Totalmente en desacuerdo" },
+      { "code": 2, "label": "En desacuerdo" },
+      { "code": 3, "label": "Ni de acuerdo ni en desacuerdo" },
+      { "code": 4, "label": "De acuerdo" },
+      { "code": 5, "label": "Totalmente de acuerdo" }
+    ]
+  },
+  "items": [
+    {
+      "id": "intro",
+      "type": "info",
+      "prompt": "Prueba rápida\n\nSon 6 preguntas, menos de 2 minutos. La última se puede responder escribiendo o con tu voz."
+    },
+    { "id": "l1", "type": "acuerdo_5", "prompt": "Me siento a gusto en mi universidad.", "required": true },
+    { "id": "l2", "type": "acuerdo_5", "prompt": "Puedo concentrarme bien cuando estudio.", "required": true },
+    { "id": "l3", "type": "acuerdo_5", "prompt": "Siento que tengo apoyo de mis compañeros/as.", "required": true },
+    { "id": "yn", "type": "yes_no", "prompt": "¿Usas el transporte público para llegar a clases?", "required": true },
+    {
+      "id": "corto",
+      "type": "text",
+      "prompt": "¿Qué carrera estudias?",
+      "placeholder": "Tu carrera…",
+      "maxLength": 100,
+      "required": false
+    },
+    {
+      "id": "largo_voz",
+      "type": "text",
+      "prompt": "Cuéntanos con tus palabras: ¿qué es lo mejor y lo peor de tu semana típica?",
+      "response": "either",
+      "maxSeconds": 60,
+      "long": true,
+      "maxLength": 600,
+      "required": false
+    }
+  ]
+}
