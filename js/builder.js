@@ -532,6 +532,21 @@ function renderItemBody(item, body, refreshHead) {
         <label for="long-${item.id}">Texto largo (textarea) ${item.type === 'text' ? '' : '— solo aplica a "Texto corto o largo"'}</label>
       </div>
       ${item.type === 'text' ? `
+      <div class="field-grid field-group">
+        <div>
+          <label class="field">Modo de respuesta</label>
+          <select class="input" data-f="response">
+            <option value="text" ${(!item.response || item.response === 'text') ? 'selected' : ''}>Solo texto</option>
+            <option value="either" ${item.response === 'either' ? 'selected' : ''}>Texto o audio (elige quien responde)</option>
+            <option value="audio" ${item.response === 'audio' ? 'selected' : ''}>Solo audio (micrófono)</option>
+          </select>
+        </div>
+        <div>
+          <label class="field">Máx. segundos de audio</label>
+          <input class="input" type="number" min="10" max="180" data-f="maxSeconds" value="${item.maxSeconds ?? ''}" placeholder="90" />
+        </div>
+      </div>
+      <p class="small">El audio se guarda en Firestore (≤ ~700 KB por clip). Máximo 180 s; por defecto 90 s. Si el dispositivo no puede grabar, se muestra el campo de texto.</p>
       <div class="field-group">
         <label class="field">Caracteres permitidos (opcional)</label>
         <input class="input" data-f="allowedChars" value="${escapeHtml(item.allowedChars || '')}" placeholder="ej. 0123456789.-" />
@@ -631,6 +646,7 @@ function wireItemBody(item, body, refreshHead) {
     // reset fields that don't make sense across type switches
     if (!['single_choice', 'multi_choice', 'ranking'].includes(newType)) delete item.options;
     if (!TEXTLIKE_TYPES.has(newType)) { delete item.long; }
+    if (newType !== 'text') { delete item.response; delete item.maxSeconds; }
     renderItemBody(item, body, refreshHead);
     refreshHead();
   });
@@ -667,6 +683,11 @@ function wireItemBody(item, body, refreshHead) {
 
   const longEl = body.querySelector('[data-f="long"]');
   if (longEl) longEl.addEventListener('change', e => { item.long = e.target.checked; });
+
+  const responseEl = body.querySelector('[data-f="response"]');
+  if (responseEl) responseEl.addEventListener('change', e => { item.response = e.target.value === 'text' ? undefined : e.target.value; });
+  const maxSecondsEl = body.querySelector('[data-f="maxSeconds"]');
+  if (maxSecondsEl) maxSecondsEl.addEventListener('input', e => { item.maxSeconds = e.target.value ? Math.min(180, Number(e.target.value)) : undefined; });
 
   const allowedCharsEl = body.querySelector('[data-f="allowedChars"]');
   if (allowedCharsEl) allowedCharsEl.addEventListener('input', e => { item.allowedChars = e.target.value || undefined; });

@@ -256,6 +256,7 @@
           <button class="tab-btn" data-tab="casos">Casos</button>
           <button class="tab-btn" data-tab="items">Ítems</button>
           <button class="tab-btn" data-tab="variables">Variables</button>
+          <button class="tab-btn" data-tab="audios">Audios</button>
         </div>
 
         <!-- ===================== TAB: Resumen ===================== -->
@@ -391,6 +392,25 @@
               </div>
             </div>
             <div id="varList"></div>
+          </section>
+        </div>
+
+        <!-- ===================== TAB: Audios ===================== -->
+        <div class="tab-panel" id="tab-audios">
+          <section class="card">
+            <div class="card-header"><h2>Respuestas en audio</h2><span class="small" id="audioMeta"></span></div>
+            <p class="small">Los audios se cargan bajo demanda (pesan más que el resto de los datos). El .zip trae los archivos como
+              <code>encuesta__respuestaId__itemId.ext</code> y un <code>manifest.csv</code> con serverCode, duración y exclusiones.</p>
+            <div class="row" style="gap:8px;margin:12px 0;">
+              <button type="button" id="loadAudiosBtn" class="btn btn-outline btn-sm">Cargar audios</button>
+              <button type="button" id="dlAudiosBtn" class="btn btn-outline btn-sm" disabled>⬇ Descargar todo (.zip)</button>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>Respuesta</th><th>Ítem</th><th class="text-right">Dur.</th><th class="text-right">KB</th><th>Excluida</th><th>Audio</th></tr></thead>
+                <tbody id="audioBody"><tr><td colspan="6" class="small muted">Pulsa «Cargar audios».</td></tr></tbody>
+              </table>
+            </div>
           </section>
         </div>
       </div>

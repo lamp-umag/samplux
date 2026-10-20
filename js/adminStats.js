@@ -291,6 +291,8 @@ async function boot() {
     el('toggleTextsBtn').textContent = open ? 'Cerrar todos los textos' : 'Abrir todos los textos';
   });
   el('dlJsonBtn').addEventListener('click', downloadRawJson);
+  el('loadAudiosBtn').addEventListener('click', loadAudios);
+  el('dlAudiosBtn').addEventListener('click', downloadAudiosZip);
   includeExcluded.addEventListener('change', () => render());
   includeDuplicates.addEventListener('change', () => render());
   refreshBtn.addEventListener('click', () => render(true));
@@ -1217,4 +1219,91 @@ function downloadMetadata() {
   if (!lastDef) { alert('Selecciona una encuesta primero.'); return; }
   const text = buildMetadataText(lastDef, lastResponses, lastMeta.id);
   downloadBlob(`${lastMeta.id}_metadata.txt`, text, 'text/plain');
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Audios tab: voice answers (responses/<survey>/audio/<resp>__<item>) */
+/* ------------------------------------------------------------------ */
+
+let audioClips = [];   // { id, data, bytes:Uint8Array }
+
+function audioExt(mime) {
+  const m = (mime || '').toLowerCase();
+  if (m.includes('mp4') || m.includes('aac')) return 'm4a';
+  if (m.includes('ogg')) return 'ogg';
+  return 'webm';
+}
+
+async function loadAudios() {
+  if (!lastMeta) { alert('Selecciona una encuesta primero.'); return; }
+  const body = el('audioBody');
+  body.innerHTML = '<tr><td colspan="6" class="small muted">Cargando…</td></tr>';
+  try {
+    const snap = await getDocs(collection(db, `responses/${lastMeta.id}/audio`));
+    audioClips = snap.docs
+      .map(d => ({ id: d.id, data: d.data(), bytes: d.data().audio.toUint8Array() }))
+      .sort((a, b) => a.id.localeCompare(b.id));
+  } catch (e) {
+    console.error(e);
+    body.innerHTML = '<tr><td colspan="6" class="small muted">No se pudieron cargar los audios (¿permisos?).</td></tr>';
+    return;
+  }
+  const flagsById = new Map(lastAllDocs.map(r => [r.id, r.data]));
+  const totalKb = audioClips.reduce((n, c) => n + c.bytes.length, 0) / 1024;
+  el('audioMeta').textContent = `${audioClips.length} audios · ${(totalKb / 1024).toFixed(1)} MB`;
+  el('dlAudiosBtn').disabled = !audioClips.length;
+  if (!audioClips.length) {
+    body.innerHTML = '<tr><td colspan="6" class="small muted">Sin audios en esta encuesta.</td></tr>';
+    return;
+  }
+  body.innerHTML = audioClips.map((c, i) => {
+    const r = flagsById.get(c.data.responseId);
+    return `<tr>
+      <td class="small">${escapeHtml(c.data.responseId)}</td>
+      <td>${escapeHtml(c.data.itemId)}</td>
+      <td class="text-right">${fmtDuration(c.data.durationMs)}</td>
+      <td class="text-right">${Math.round(c.bytes.length / 1024)}</td>
+      <td>${r?.excludedFromExport ? 'sí' : ''}</td>
+      <td><button type="button" class="btn btn-outline btn-sm" data-play="${i}">▶</button></td>
+    </tr>`;
+  }).join('');
+  body.querySelectorAll('[data-play]').forEach(btn => btn.addEventListener('click', () => {
+    const c = audioClips[Number(btn.dataset.play)];
+    const url = URL.createObjectURL(new Blob([c.bytes], { type: c.data.mime }));
+    const a = new Audio(url);
+    a.onended = () => URL.revokeObjectURL(url);
+    a.play();
+  }));
+}
+
+async function downloadAudiosZip() {
+  if (!audioClips.length) return;
+  const btn = el('dlAudiosBtn');
+  btn.disabled = true; btn.textContent = 'Preparando .zip…';
+  try {
+    const { default: JSZip } = await import('https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm');
+    const zip = new JSZip();
+    const flagsById = new Map(lastAllDocs.map(r => [r.id, r.data]));
+    const rows = [['filename', 'surveyId', 'responseId', 'itemId', 'mime', 'bytes', 'durationMs', 'serverCode', 'excludedFromExport']];
+    for (const c of audioClips) {
+      const filename = `${lastMeta.id}__${c.id}.${audioExt(c.data.mime)}`;
+      zip.file(filename, c.bytes);
+      const r = flagsById.get(c.data.responseId);
+      rows.push([filename, lastMeta.id, c.data.responseId, c.data.itemId, c.data.mime, c.bytes.length,
+        c.data.durationMs, r?.serverCode ?? '', r?.excludedFromExport ? 1 : 0]);
+    }
+    zip.file('manifest.csv', rowsToCsv(rows));
+    const blob = await zip.generateAsync({ type: 'blob', compression: 'STORE' });   // audio is already compressed
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `${lastMeta.id}_audios_${new Date().toISOString().slice(0, 10)}.zip`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    console.error(e);
+    alert('No se pudo crear el .zip.');
+  } finally {
+    btn.disabled = false; btn.textContent = '⬇ Descargar todo (.zip)';
+  }
 }

@@ -1,4 +1,5 @@
-import { collection, addDoc, serverTimestamp, getDocs, query, where, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { collection, serverTimestamp, getDocs, query, where, doc, getDoc, setDoc, Bytes } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { audioSupported, mountAudioWidget, clampMaxSeconds, extensionForMime } from './audioRecorder.js';
 import { run as runRT }     from './tasks/rt.js';
 import { run as runStroop } from './tasks/stroop.js';
 import { run as runGoNoGo } from './tasks/gonogo.js';
@@ -18,6 +19,11 @@ import { run as runGoNoGo } from './tasks/gonogo.js';
 //   (e.g. "Nada", "No ocurre" — deselects everything else).
 // - `ranking`: tap options in order of priority; `maxRank` (default 3). Stored
 //   as an ordered array of codes, most important first.
+// - `text` item `response`: "text" (default) | "audio" | "either" — lets the
+//   respondent answer by recording their voice (`maxSeconds`, default 90, max 180).
+//   Clips are stored as Firestore Bytes in responses/<surveyId>/audio/<responseId>__<itemId>;
+//   the response doc gets `audio: { itemId: { docId, mime, bytes, durationMs, reRecords } }`.
+//   Typed text (if any) still goes to answers[itemId]. See docs/ARCHITECTURE.md.
 // - survey.settings.thankYou: HTML that replaces the default thank-you message.
 export const APP_CONFIG = {
   enableParadata: true,
@@ -60,6 +66,9 @@ export function createSurveyApp({ db, elements }) {
   let answerChangeEvents = [];
   let answerChangeEventsTruncated = false;
   let itemAnswerChangeCount = {};
+  let audioClips = {};          // itemId -> { blob, mime, durationMs, reRecords }
+  let audioCleanup = null;      // stops an in-flight recording when the step changes
+  let submission = null;        // { responseId, uploaded:Set } — stable across submit retries
 
   function cloneAnswerValue(v) {
     if (v === undefined) return undefined;
@@ -241,6 +250,7 @@ export function createSurveyApp({ db, elements }) {
 
   function clearItemAnswers(item) {
     delete answers[item.id];
+    delete audioClips[item.id];
     if (item.followUp && item.followUp.id) delete answers[item.followUp.id];
   }
 
@@ -473,6 +483,8 @@ export function createSurveyApp({ db, elements }) {
     answerChangeEvents = [];
     answerChangeEventsTruncated = false;
     itemAnswerChangeCount = {};
+    audioClips = {};
+    submission = null;
     presentationOrder = Array.isArray(survey._presentationOrder)
       ? survey._presentationOrder
       : survey.items.map(it => it.id);
@@ -532,6 +544,7 @@ export function createSurveyApp({ db, elements }) {
       return;
     }
 
+    if (audioCleanup) { audioCleanup(); audioCleanup = null; }
     const item = survey.items[currentIndex];
     const isLastItem = nextVisibleIndex(currentIndex) >= survey.items.length;
     itemStartTime = Date.now();
@@ -812,12 +825,55 @@ export function createSurveyApp({ db, elements }) {
           footnoteContainer.innerText = '';
         }
       });
-      optionsContainer.appendChild(input);
+      // Audio mode: "audio" (voice only) or "either" (respondent picks). Falls back to
+      // text when the browser can't record (e.g. in-app webviews, no HTTPS).
+      const wanted = item.response === 'audio' || item.response === 'either';
+      const canRecord = wanted && audioSupported();
+      if (canRecord) {
+        const maxSeconds = clampMaxSeconds(item.maxSeconds);
+        const audioArea = document.createElement('div');
+        let mounted = false;
+        const mountAudio = () => {
+          if (mounted) return;
+          mounted = true;
+          audioCleanup = mountAudioWidget(audioArea, {
+            maxSeconds,
+            clip: audioClips[item.id] || null,
+            onChange: clip => { if (clip) audioClips[item.id] = clip; else delete audioClips[item.id]; }
+          });
+        };
+        if (item.response === 'either') {
+          const tabs = document.createElement('div');
+          tabs.style.cssText = 'display:flex;gap:8px;margin-bottom:12px;';
+          const tText = button('✍️ Escribir', 'secondary');
+          const tAudio = button('🎙️ Hablar', 'secondary');
+          const setMode = mode => {
+            const audioMode = mode === 'audio';
+            input.style.display = audioMode ? 'none' : '';
+            audioArea.style.display = audioMode ? '' : 'none';
+            tText.classList.toggle('primary', !audioMode); tText.classList.toggle('secondary', audioMode);
+            tAudio.classList.toggle('primary', audioMode); tAudio.classList.toggle('secondary', !audioMode);
+            if (audioMode) mountAudio();
+          };
+          tText.onclick = () => setMode('text');
+          tAudio.onclick = () => setMode('audio');
+          tabs.append(tText, tAudio);
+          optionsContainer.append(tabs, input, audioArea);
+          setMode(audioClips[item.id] && !answers[item.id] ? 'audio' : 'text');
+        } else {
+          input.style.display = 'none';
+          optionsContainer.append(audioArea);
+          mountAudio();
+        }
+      } else {
+        optionsContainer.appendChild(input);
+      }
       const back = button('← Atrás', 'secondary');
       back.onclick = goPrev;
       const next = button(isLastItem ? 'Enviar →' : 'Siguiente →', 'primary');
       next.onclick = () => {
-        if (item.required && (!answers[item.id] || String(answers[item.id]).trim() === '')) return;
+        const hasText = answers[item.id] && String(answers[item.id]).trim() !== '';
+        if (item.required && !hasText && !audioClips[item.id]) return;
         goNext();
       };
       controlsContainer.append(back, next);
@@ -1130,9 +1186,43 @@ export function createSurveyApp({ db, elements }) {
       url: location.href
     };
 
+    // Audio: each clip becomes its own doc (Bytes), named <responseId>__<itemId>, so the
+    // response doc stays small. Uploaded BEFORE the response doc; audio docs are immutable,
+    // so `submission` remembers what already went up and a retry only sends what's missing.
+    if (audioCleanup) { audioCleanup(); audioCleanup = null; }
+    const entriesCol = collection(db, `responses/${survey.id}/entries`);
+    if (!submission) submission = { responseId: doc(entriesCol).id, uploaded: {} };
+    const audioMeta = {};
+    const clipItems = Object.keys(audioClips).filter(id => survey.items.some(it => it.id === id));
+    try {
+      for (const itemId of clipItems) {
+        const clip = audioClips[itemId];
+        const docId = `${submission.responseId}__${itemId}`;
+        const meta = {
+          docId, mime: clip.mime, ext: extensionForMime(clip.mime), bytes: clip.blob.size,
+          durationMs: clip.durationMs, reRecords: clip.reRecords || 0
+        };
+        if (!submission.uploaded[itemId]) {
+          const buf = new Uint8Array(await clip.blob.arrayBuffer());
+          await setDoc(doc(db, `responses/${survey.id}/audio`, docId), {
+            surveyId: survey.id, responseId: submission.responseId, itemId,
+            mime: meta.mime, durationMs: meta.durationMs, size: meta.bytes,
+            audio: Bytes.fromUint8Array(buf), createdAt: serverTimestamp()
+          });
+          submission.uploaded[itemId] = true;
+        }
+        audioMeta[itemId] = meta;
+      }
+    } catch (e) {
+      alert('Error al subir el audio. Intenta de nuevo.');
+      console.error(e);
+      return;
+    }
+
     const payload = {
       surveyId: survey.id,
       answers,
+      ...(Object.keys(audioMeta).length > 0 && { audio: audioMeta }),
       serverCode,
       totalTime,
       itemTimes,
@@ -1152,8 +1242,7 @@ export function createSurveyApp({ db, elements }) {
     };
 
     try {
-      const col = collection(db, `responses/${survey.id}/entries`);
-      await addDoc(col, payload);
+      await setDoc(doc(entriesCol, submission.responseId), payload);
       const customThanks = survey.settings && survey.settings.thankYou;
       questionContainer.innerHTML = customThanks || APP_CONFIG.messages.thankYou;
       metaContainer.innerHTML = '';

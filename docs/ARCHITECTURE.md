@@ -226,6 +226,27 @@ config is checked into the repo as IaC: `.firebaserc`, `firebase.json`,
 
 ---
 
+## 10. Audio responses (`js/audioRecorder.js`)
+
+A `text` item can accept a voice answer: `"response": "text" | "audio" | "either"`
+(default `text`) plus optional `"maxSeconds"` (default 90, max 180).
+
+- **Capture**: `MediaRecorder` (Opus/WebM on Chrome/Android, AAC/MP4 on iOS Safari), mono,
+  ~24 kbps requested. Recording auto-stops at `maxSeconds` or at ~650 KB, because iOS
+  Safari ignores the bitrate hint. If the browser can't record or the mic is denied, the
+  item falls back to the normal text box.
+- **Storage**: Firestore only (no Cloud Storage, which needs the Blaze plan). Each clip is
+  its own doc `responses/<surveyId>/audio/<responseId>__<itemId>` with the raw audio in a
+  `Bytes` field (cap 700000 bytes, enforced in `firestore.rules`). The response doc stays
+  small and gains `audio: { <itemId>: { docId, mime, ext, bytes, durationMs, reRecords } }`.
+  Typed text, if any, still lives in `answers[<itemId>]` ("either" keeps both if both exist).
+- **Submit order**: audio docs first, then the response doc. Audio docs are immutable, so
+  the runner keeps one `responseId` per session and a retry only uploads missing clips.
+- **Admin**: the *Audios* tab loads clips on demand and downloads a `.zip` of
+  `<surveyId>__<responseId>__<itemId>.<ext>` files plus `manifest.csv` (serverCode,
+  duration, exclusion flag). Transcription (Whisper) is intentionally out of scope for now.
+- **Capacity**: ~180 KB per minute of speech; Firestore's free tier is 1 GiB.
+
 ## 11. Survey authoring (`builder.html` / `js/builder.js`)
 
 Survey definitions live in Firestore (`surveys/{surveyId}` docs), authored

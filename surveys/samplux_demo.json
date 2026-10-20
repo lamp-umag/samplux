@@ -182,6 +182,15 @@
       "required": true
     },
     {
+      "id": "comentarios_voz",
+      "type": "text",
+      "prompt": "Cuéntanos con tu voz o por escrito: ¿qué te pareció esta encuesta?",
+      "response": "either",
+      "maxSeconds": 60,
+      "long": true,
+      "required": false
+    },
+    {
       "id": "comentarios",
       "type": "text",
       "prompt": "¿Tienes algún comentario o sugerencia?",

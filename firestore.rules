@@ -14,6 +14,7 @@ rules_version = '2';
 //   matching surveys/<surveyId> doc (must exist and be published) instead of
 //   a hardcoded id list — new surveys work the moment they're published, no
 //   rules redeploy needed.
+// - responses/<surveyId>/audio/<responseId>__<itemId>: voice answers (Bytes), see below.
 // - response_export_meta/<surveyId>/flags/<responseId>: exclusion-flag
 //   metadata for CSV export, read/written by admin.html
 //   (both Google-auth gated).
@@ -66,6 +67,27 @@ service cloud.firestore {
       // Only admins (Google login) can read responses — admin.html needs
       // this for stats/exports. Nobody can edit or
       // delete a response once submitted (immutable by design).
+      allow read: if isAdmin() || isSurveyAdmin(surveyId);
+      allow update, delete: if false;
+    }
+
+    // Audio answers (open-ended items with response: "audio" | "either"): one doc per
+    // clip, id = <responseId>__<itemId>, raw audio in `audio` (Bytes). Same posture as
+    // entries: public create (published survey only), admin read, immutable.
+    // Size cap 700000 bytes keeps us under Firestore's 1 MiB doc limit — keep in sync
+    // with MAX_AUDIO_BYTES in js/audioRecorder.js.
+    match /responses/{surveyId}/audio/{clipId} {
+      allow create: if
+        exists(/databases/$(database)/documents/surveys/$(surveyId)) &&
+        get(/databases/$(database)/documents/surveys/$(surveyId)).data.published == true &&
+        request.resource.data.keys().hasOnly(['surveyId', 'responseId', 'itemId', 'mime', 'durationMs', 'size', 'audio', 'createdAt']) &&
+        request.resource.data.surveyId == surveyId &&
+        clipId == request.resource.data.responseId + '__' + request.resource.data.itemId &&
+        request.resource.data.audio is bytes &&
+        request.resource.data.audio.size() > 0 &&
+        request.resource.data.audio.size() <= 700000 &&
+        request.resource.data.mime is string &&
+        request.resource.data.mime.matches('audio/.*');
       allow read: if isAdmin() || isSurveyAdmin(surveyId);
       allow update, delete: if false;
     }
