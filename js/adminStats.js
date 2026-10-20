@@ -859,11 +859,25 @@ function renderVariables(container, def, answerable, responses) {
       else renderBarRows(block.querySelector('.vb'), dist.rows);
     } else {
       const entries = textEntries(responses, item.id);
-      block.innerHTML = head(' <span class="small">(texto libre)</span>') + `<div class="tx">${textDrawerHtml(def, entries)}</div>`;
+      const clips = audioMetaEntries(responses, item.id);
+      const modeTag = clips.length || item.response === 'audio' || item.response === 'either' ? ' (texto libre / audio)' : ' (texto libre)';
+      block.innerHTML = head(` <span class="small">${modeTag}</span>`) + `<div class="tx">${textDrawerHtml(def, entries)}</div>`;
+      if (clips.length || item.response === 'audio' || item.response === 'either') {
+        block.dataset.open = '1';
+        const kb = Math.round(clips.reduce((n, c) => n + (c.meta.bytes || 0), 0) / 1024);
+        block.insertAdjacentHTML('beforeend', `<div class="tx tx-audio">
+          <div class="tx-label">🎙️ ${clips.length} ${clips.length === 1 ? 'audio' : 'audios'} · ${kb} KB</div>
+          ${clips.length ? `<div class="row" style="gap:8px;margin:8px 0;">
+              <button type="button" class="btn btn-outline btn-sm" data-au-load="${escapeHtml(item.id)}">Cargar para escuchar</button>
+              <button type="button" class="btn btn-outline btn-sm" data-au-zip="${escapeHtml(item.id)}" disabled>⬇ .zip de este ítem</button>
+            </div><div class="au-list"></div>` : '<div class="tx-empty">Nadie ha grabado aún.</div>'}
+        </div>`);
+      }
       container.appendChild(block);
     }
   }
   wireTextDrawers(container);
+  wireItemAudio(container, responses);
   applyVarFilter();
   el('toggleTextsBtn').textContent = 'Abrir todos los textos';
 }
@@ -1265,9 +1279,11 @@ async function loadAudios() {
       <td class="text-right">${fmtDuration(c.data.durationMs)}</td>
       <td class="text-right">${Math.round(c.bytes.length / 1024)}</td>
       <td>${r?.excludedFromExport ? 'sí' : ''}</td>
-      <td><button type="button" class="btn btn-outline btn-sm" data-play="${i}">▶</button></td>
+      <td><button type="button" class="btn btn-outline btn-sm" data-play="${i}">▶</button>
+          <button type="button" class="btn btn-outline btn-sm" data-dl="${i}">⬇</button></td>
     </tr>`;
   }).join('');
+  body.querySelectorAll('[data-dl]').forEach(b => b.addEventListener('click', () => downloadClip(audioClips[Number(b.dataset.dl)])));
   body.querySelectorAll('[data-play]').forEach(btn => btn.addEventListener('click', () => {
     const c = audioClips[Number(btn.dataset.play)];
     const url = URL.createObjectURL(new Blob([c.bytes], { type: c.data.mime }));
@@ -1278,15 +1294,24 @@ async function loadAudios() {
 }
 
 async function downloadAudiosZip() {
-  if (!audioClips.length) return;
   const btn = el('dlAudiosBtn');
   btn.disabled = true; btn.textContent = 'Preparando .zip…';
+  try {
+    await zipAudioClips(audioClips, `${lastMeta.id}_audios`);
+  } finally {
+    btn.disabled = false; btn.textContent = '⬇ Descargar todo (.zip)';
+  }
+}
+
+// Build + save a .zip of clips ({id, data, bytes}) with a manifest.csv.
+async function zipAudioClips(clips, baseName) {
+  if (!clips.length) return;
   try {
     const { default: JSZip } = await import('https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm');
     const zip = new JSZip();
     const flagsById = new Map(lastAllDocs.map(r => [r.id, r.data]));
     const rows = [['filename', 'surveyId', 'responseId', 'itemId', 'mime', 'bytes', 'durationMs', 'serverCode', 'excludedFromExport']];
-    for (const c of audioClips) {
+    for (const c of clips) {
       const filename = `${lastMeta.id}__${c.id}.${audioExt(c.data.mime)}`;
       zip.file(filename, c.bytes);
       const r = flagsById.get(c.data.responseId);
@@ -1297,13 +1322,79 @@ async function downloadAudiosZip() {
     const blob = await zip.generateAsync({ type: 'blob', compression: 'STORE' });   // audio is already compressed
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = `${lastMeta.id}_audios_${new Date().toISOString().slice(0, 10)}.zip`;
+    a.href = url; a.download = `${baseName}_${new Date().toISOString().slice(0, 10)}.zip`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     URL.revokeObjectURL(url);
   } catch (e) {
     console.error(e);
     alert('No se pudo crear el .zip.');
-  } finally {
-    btn.disabled = false; btn.textContent = '⬇ Descargar todo (.zip)';
   }
+}
+
+// Audio metadata recorded on the response docs (no bytes) for one item.
+function audioMetaEntries(responses, itemId) {
+  const out = [];
+  for (const r of responses) {
+    const meta = (r.data?.audio || {})[itemId];
+    if (meta) out.push({ id: r.id, meta, data: r.data });
+  }
+  return out;
+}
+
+function downloadClip(c) {
+  const url = URL.createObjectURL(new Blob([c.bytes], { type: c.data.mime }));
+  const a = document.createElement('a');
+  a.href = url; a.download = `${lastMeta.id}__${c.id}.${audioExt(c.data.mime)}`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// Variables tab: "Cargar para escuchar" fetches this item's clips on demand and
+// renders a player + download button per clip, next to any typed text.
+function wireItemAudio(container, responses) {
+  const included = new Map(responses.map(r => [r.id, r]));
+  container.querySelectorAll('[data-au-load]').forEach(btn => {
+    const itemId = btn.dataset.auLoad;
+    const block = btn.closest('.tx-audio');
+    const list = block.querySelector('.au-list');
+    const zipBtn = block.querySelector('[data-au-zip]');
+    let loaded = [];
+    btn.addEventListener('click', async () => {
+      btn.disabled = true; btn.textContent = 'Cargando…';
+      try {
+        const snap = await getDocs(query(collection(db, `responses/${lastMeta.id}/audio`), where('itemId', '==', itemId)));
+        loaded = snap.docs
+          .map(d => ({ id: d.id, data: d.data(), bytes: d.data().audio.toUint8Array() }))
+          .filter(c => included.has(c.data.responseId))
+          .sort((a, b) => (included.get(b.data.responseId) ? getCreatedAtMs(included.get(b.data.responseId).data) : 0) -
+                          (included.get(a.data.responseId) ? getCreatedAtMs(included.get(a.data.responseId).data) : 0));
+      } catch (e) {
+        console.error(e);
+        btn.disabled = false; btn.textContent = 'Reintentar (error al cargar)';
+        return;
+      }
+      btn.textContent = `${loaded.length} cargados`;
+      zipBtn.disabled = !loaded.length;
+      list.innerHTML = loaded.map((c, i) => {
+        const typed = String((included.get(c.data.responseId)?.data?.answers || {})[itemId] || '').trim();
+        return `<div class="au-row" style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--border,#ddd);">
+          <code>${escapeHtml(c.data.responseId.slice(0, 8))}</code>
+          <span class="small">${fmtDuration(c.data.durationMs)} · ${Math.round(c.bytes.length / 1024)} KB</span>
+          <audio controls preload="none" data-au-i="${i}" style="flex:1;min-width:200px;max-width:100%;"></audio>
+          <button type="button" class="btn btn-outline btn-sm" data-au-dl="${i}">⬇</button>
+          ${typed ? `<div class="small" style="flex-basis:100%;">Texto: ${escapeHtml(typed)}</div>` : ''}
+        </div>`;
+      }).join('');
+      list.querySelectorAll('audio').forEach(a => {
+        const c = loaded[Number(a.dataset.auI)];
+        a.src = URL.createObjectURL(new Blob([c.bytes], { type: c.data.mime }));
+      });
+      list.querySelectorAll('[data-au-dl]').forEach(b => b.addEventListener('click', () => downloadClip(loaded[Number(b.dataset.auDl)])));
+    });
+    zipBtn.addEventListener('click', async () => {
+      zipBtn.disabled = true;
+      await zipAudioClips(loaded, `${lastMeta.id}_${itemId}_audios`);
+      zipBtn.disabled = false;
+    });
+  });
 }
