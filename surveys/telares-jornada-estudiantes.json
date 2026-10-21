@@ -19,15 +19,15 @@
       },
       {
         "code": 2,
-        "label": "2"
+        "label": "2 · En desacuerdo"
       },
       {
         "code": 3,
-        "label": "3"
+        "label": "3 · Ni de acuerdo ni en desacuerdo"
       },
       {
         "code": 4,
-        "label": "4"
+        "label": "4 · De acuerdo"
       },
       {
         "code": 5,
@@ -65,6 +65,12 @@
       "exitMessage": "<div class=\"q center\">Gracias por tu tiempo.</div><div class=\"info-text center\">No se ha guardado ninguna respuesta.\n\nPuedes cerrar esta ventana.</div>"
     },
     {
+      "id": "bloque_datos",
+      "type": "info",
+      "sectionHeader": true,
+      "prompt": "Un par de datos\nPrimero, dos datos generales para ubicar tu respuesta. Son rápidos."
+    },
+    {
       "id": "p01_carrera",
       "type": "single_choice",
       "section": "1 · Datos generales",
@@ -97,21 +103,31 @@
         {
           "code": 2,
           "label": "3° año"
+        },
+        {
+          "code": 3,
+          "label": "Otro"
         }
-      ]
+      ],
+      "followUp": {
+        "id": "p02_anio_otro",
+        "whenCode": 3,
+        "prompt": "¿Cuál?",
+        "placeholder": "Escribe aquí…"
+      }
     },
     {
       "id": "bloque_estructura",
       "type": "info",
       "sectionHeader": true,
-      "prompt": "Valoración de la jornada\n<div class=\"q\">Estructura y organización</div>"
+      "prompt": "Estructura y organización\nEmpezamos por cómo viste la organización de la jornada: los objetivos, los tiempos y el acta de trabajo. Indica qué tan de acuerdo estás con cada frase."
     },
     {
       "id": "v_est_objetivos",
       "type": "agree_5",
       "scale": "v_est",
       "section": "2 · Valoración de la jornada · Estructura y organización",
-      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "instruction": "Indica qué tan de acuerdo estás con la frase.",
       "prompt": "Los objetivos de la jornada fueron explicados con claridad al inicio."
     },
     {
@@ -119,7 +135,7 @@
       "type": "agree_5",
       "scale": "v_est",
       "section": "2 · Valoración de la jornada · Estructura y organización",
-      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "instruction": "Indica qué tan de acuerdo estás con la frase.",
       "prompt": "La organización del tiempo permitió trabajar el caso sin apuro ni tiempos muertos."
     },
     {
@@ -127,7 +143,7 @@
       "type": "agree_5",
       "scale": "v_est",
       "section": "2 · Valoración de la jornada · Estructura y organización",
-      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "instruction": "Indica qué tan de acuerdo estás con la frase.",
       "prompt": "La actividad introductoria en el grupo ayudó a generar un ambiente de trabajo cómodo."
     },
     {
@@ -135,21 +151,21 @@
       "type": "agree_5",
       "scale": "v_est",
       "section": "2 · Valoración de la jornada · Estructura y organización",
-      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "instruction": "Indica qué tan de acuerdo estás con la frase.",
       "prompt": "El acta de trabajo del monitor fue una guía útil para ordenar la discusión."
     },
     {
       "id": "bloque_contenido",
       "type": "info",
       "sectionHeader": true,
-      "prompt": "Valoración de la jornada\n<div class=\"q\">Contenido y caso</div>"
+      "prompt": "Contenido y caso\nAhora, sobre el caso que trabajaste: qué tan relevante e interesante te pareció."
     },
     {
       "id": "v_cont_relevancia",
       "type": "agree_5",
       "scale": "v_cont",
       "section": "2 · Valoración de la jornada · Contenido y caso",
-      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "instruction": "Indica qué tan de acuerdo estás con la frase.",
       "prompt": "El caso asignado me pareció relevante para mi futura práctica profesional."
     },
     {
@@ -157,7 +173,7 @@
       "type": "agree_5",
       "scale": "v_cont",
       "section": "2 · Valoración de la jornada · Contenido y caso",
-      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "instruction": "Indica qué tan de acuerdo estás con la frase.",
       "prompt": "El tema de los derechos de las personas mayores me resultó nuevo o me generó interés por conocer más."
     },
     {
@@ -165,7 +181,7 @@
       "type": "agree_5",
       "scale": "v_cont",
       "section": "2 · Valoración de la jornada · Contenido y caso",
-      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "instruction": "Indica qué tan de acuerdo estás con la frase.",
       "prompt": "Las preguntas orientadoras del caso me ayudaron a pensar desde mi disciplina."
     },
     {
@@ -173,21 +189,21 @@
       "type": "agree_5",
       "scale": "v_cont",
       "section": "2 · Valoración de la jornada · Contenido y caso",
-      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "instruction": "Indica qué tan de acuerdo estás con la frase.",
       "prompt": "La conexión entre el caso y la realidad de la Región de Magallanes me resultó significativa."
     },
     {
       "id": "bloque_interdisciplinario",
       "type": "info",
       "sectionHeader": true,
-      "prompt": "Valoración de la jornada\n<div class=\"q\">Trabajo interdisciplinario</div>"
+      "prompt": "Trabajo interdisciplinario\nSeguimos con lo que significó trabajar con estudiantes de otras carreras."
     },
     {
       "id": "v_inter_perspectivas",
       "type": "agree_5",
       "scale": "v_inter",
       "section": "2 · Valoración de la jornada · Trabajo interdisciplinario",
-      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "instruction": "Indica qué tan de acuerdo estás con la frase.",
       "prompt": "Trabajar con estudiantes de otras carreras me aportó perspectivas que no habría tenido trabajando solo/a."
     },
     {
@@ -195,7 +211,7 @@
       "type": "agree_5",
       "scale": "v_inter",
       "section": "2 · Valoración de la jornada · Trabajo interdisciplinario",
-      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "instruction": "Indica qué tan de acuerdo estás con la frase.",
       "prompt": "En el grupo, cada carrera logró contribuir desde su propio enfoque disciplinar."
     },
     {
@@ -203,7 +219,7 @@
       "type": "agree_5",
       "scale": "v_inter",
       "section": "2 · Valoración de la jornada · Trabajo interdisciplinario",
-      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "instruction": "Indica qué tan de acuerdo estás con la frase.",
       "prompt": "La discusión grupal me generó preguntas que no tenía antes de la jornada."
     },
     {
@@ -211,21 +227,21 @@
       "type": "agree_5",
       "scale": "v_inter",
       "section": "2 · Valoración de la jornada · Trabajo interdisciplinario",
-      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "instruction": "Indica qué tan de acuerdo estás con la frase.",
       "prompt": "Siento que la jornada me preparó mejor para trabajar en equipos profesionales interdisciplinarios."
     },
     {
       "id": "bloque_presentaciones",
       "type": "info",
       "sectionHeader": true,
-      "prompt": "Valoración de la jornada\n<div class=\"q\">Presentaciones de las profesionales invitadas</div>"
+      "prompt": "Presentaciones invitadas\nCasi terminando esta parte: las presentaciones de las profesionales invitadas."
     },
     {
       "id": "v_pres_contexto",
       "type": "agree_5",
       "scale": "v_pres",
       "section": "2 · Valoración de la jornada · Presentaciones de las profesionales invitadas",
-      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "instruction": "Indica qué tan de acuerdo estás con la frase.",
       "prompt": "Las presentaciones de las profesionales invitadas fueron un aporte para contextualizar el tema."
     },
     {
@@ -233,14 +249,14 @@
       "type": "agree_5",
       "scale": "v_pres",
       "section": "2 · Valoración de la jornada · Presentaciones de las profesionales invitadas",
-      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "instruction": "Indica qué tan de acuerdo estás con la frase.",
       "prompt": "Lo que escuché de las profesionales invitadas influyó en cómo analicé el caso posteriormente."
     },
     {
       "id": "bloque_preguntas_abiertas",
       "type": "info",
       "sectionHeader": true,
-      "prompt": "Preguntas abiertas\n<div class=\"q\">Cuéntanos con tus palabras</div>"
+      "prompt": "Con tus palabras\nPara cerrar, tres preguntas abiertas. Cuéntanos lo que quieras: puedes escribir o grabar tu voz."
     },
     {
       "id": "o1_valioso",
@@ -274,6 +290,12 @@
       "maxLength": 2000,
       "response": "either",
       "maxSeconds": 90
+    },
+    {
+      "id": "bloque_cierre",
+      "type": "info",
+      "sectionHeader": true,
+      "prompt": "Para terminar\nDos últimas preguntas: cómo valoras la jornada en general y si te gustaría repetirla."
     },
     {
       "id": "g1_global",

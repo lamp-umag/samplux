@@ -42,10 +42,10 @@
       "exitMessage": "<div class=\"q center\">Gracias por tu tiempo.</div><div class=\"info-text center\">No se ha guardado ninguna respuesta.\n\nPuedes cerrar esta ventana.</div>"
     },
     {
-      "id": "bloque_parte_1",
+      "id": "bloque_identificacion",
       "type": "info",
       "sectionHeader": true,
-      "prompt": "Parte 1\n<div class=\"q\">Identificación</div>"
+      "prompt": "Identificación\nPrimero, algunos datos para ubicar a tu grupo."
     },
     {
       "id": "id1_nombre",
@@ -79,10 +79,10 @@
       "rangeHelp": "Ingresa un número entre 0 y 100."
     },
     {
-      "id": "bloque_parte_2",
+      "id": "bloque_impresiones",
       "type": "info",
       "sectionHeader": true,
-      "prompt": "Parte 2\n<div class=\"q\">Impresiones sobre el taller</div>"
+      "prompt": "Impresiones sobre el taller\nAhora cuéntanos cómo fue facilitar el taller: cinco preguntas abiertas. No hay respuestas correctas; puedes escribir o grabar tu voz."
     },
     {
       "id": "o1_trabajo_interdisciplinario",
@@ -138,6 +138,12 @@
       "maxLength": 2000,
       "response": "either",
       "maxSeconds": 90
+    },
+    {
+      "id": "bloque_cierre",
+      "type": "info",
+      "sectionHeader": true,
+      "prompt": "Para terminar\nDos últimas preguntas: una valoración general de la experiencia y si te gustaría participar de nuevo."
     },
     {
       "id": "g1_global",
