@@ -625,7 +625,8 @@
       "long": true,
       "maxLength": 2000,
       "response": "either",
-      "maxSeconds": 90
+      "maxSeconds": 90,
+      "instruction": "Puede escribir su respuesta o grabarla con su voz. Si graba, el audio se transcribirá para el análisis."
     }
   ]
 }
