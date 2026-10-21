@@ -1,7 +1,7 @@
 {
   "id": "espacios-telares-2",
   "title": "TELARES · Espacios del edificio (docentes)",
-  "description": "Encuesta docente sobre el patio techado y las salas de clases del edificio de Humanidades. Anónima, ~8 minutos.",
+  "description": "Encuesta docente sobre el patio techado y las salas de clases del edificio de Humanidades. ~8 minutos.",
   "adminEmails": [
     "hermanelgueta@gmail.com",
     "panchatorresk@gmail.com"
@@ -19,19 +19,19 @@
       },
       {
         "code": 2,
-        "label": "2"
+        "label": "2 · Algo deficiente"
       },
       {
         "code": 3,
-        "label": "3"
+        "label": "3 · Aceptable"
       },
       {
         "code": 4,
-        "label": "4"
+        "label": "4 · Adecuado"
       },
       {
         "code": 5,
-        "label": "5 · Muy bueno"
+        "label": "5 · Muy adecuado"
       }
     ]
   },
@@ -40,20 +40,13 @@
       "id": "intro",
       "type": "info",
       "sectionHeader": true,
-      "prompt": "Encuesta docente\n<img class=\"intro-logo\" src=\"surveys/assets/telares-logo.png\" alt=\"TELARES · Conocimientos 2030 UMAG\"><strong>Espacios del edificio de Humanidades</strong>\n\nEsta encuesta recoge la mirada del cuerpo docente sobre los espacios del edificio, como insumo para su mejora en el marco del proyecto TELARES — Conocimientos 2030.\n\nLas respuestas son anónimas y se usan con fines de diseño. Tiempo estimado: 7 a 8 minutos."
+      "prompt": "Encuesta docente\n<img class=\"intro-logo\" src=\"surveys/assets/telares-logo.png\" alt=\"TELARES · Conocimientos 2030 UMAG\"><strong>Espacios del edificio de Humanidades</strong>\n\nEsta encuesta recoge la mirada del cuerpo docente sobre los espacios del edificio, como insumo para su mejora en el marco del proyecto TELARES — Conocimientos 2030.\n\nLas respuestas se analizarán en conjunto y con fines de diseño. Tiempo estimado: 7 a 8 minutos."
     },
     {
-      "id": "bloque_0",
-      "type": "info",
-      "sectionHeader": true,
-      "prompt": "Bloque 0\n<div class=\"q\">Perfil</div>"
-    },
-    {
-      "id": "p01_carreras",
-      "type": "multi_choice",
-      "section": "Perfil",
-      "instruction": "Puedes marcar varias.",
-      "prompt": "Carrera(s) en que hace clases en el edificio",
+      "id": "p01_carrera",
+      "type": "single_choice",
+      "section": "Sobre usted",
+      "prompt": "¿En qué carrera hace clases principalmente en el edificio?",
       "options": [
         {
           "code": 1,
@@ -83,7 +76,7 @@
       "id": "bloque_a",
       "type": "info",
       "sectionHeader": true,
-      "prompt": "Bloque A\n<div class=\"q\">Patio techado</div>"
+      "prompt": "Patio techado\nLas siguientes preguntas son sobre el patio techado del edificio de Humanidades: cómo lo usan hoy los estudiantes y qué le gustaría que ocurriera ahí."
     },
     {
       "id": "p02_usos_estudiantes",
@@ -232,7 +225,7 @@
       "id": "bloque_b",
       "type": "info",
       "sectionHeader": true,
-      "prompt": "Bloque B\n<div class=\"q\">Salas de clases</div>"
+      "prompt": "Salas de clases\nAhora queremos conocer su visión sobre las salas que ocupa: cómo están hoy y qué necesitaría para trabajar mejor en ellas."
     },
     {
       "id": "p06_salas_usadas",
@@ -246,7 +239,7 @@
       "type": "eval_5",
       "scale": "p07_condiciones_salas",
       "section": "B · Salas de clases",
-      "instruction": "Evalúe de 1 a 5 las condiciones de las salas (1 = muy deficiente, 5 = muy bueno).",
+      "instruction": "Evalúe cada aspecto según su experiencia.",
       "prompt": "Iluminación natural"
     },
     {
@@ -254,7 +247,7 @@
       "type": "eval_5",
       "scale": "p07_condiciones_salas",
       "section": "B · Salas de clases",
-      "instruction": "Evalúe de 1 a 5 las condiciones de las salas (1 = muy deficiente, 5 = muy bueno).",
+      "instruction": "Evalúe cada aspecto según su experiencia.",
       "prompt": "Iluminación artificial"
     },
     {
@@ -262,7 +255,7 @@
       "type": "eval_5",
       "scale": "p07_condiciones_salas",
       "section": "B · Salas de clases",
-      "instruction": "Evalúe de 1 a 5 las condiciones de las salas (1 = muy deficiente, 5 = muy bueno).",
+      "instruction": "Evalúe cada aspecto según su experiencia.",
       "prompt": "Acústica"
     },
     {
@@ -270,7 +263,7 @@
       "type": "eval_5",
       "scale": "p07_condiciones_salas",
       "section": "B · Salas de clases",
-      "instruction": "Evalúe de 1 a 5 las condiciones de las salas (1 = muy deficiente, 5 = muy bueno).",
+      "instruction": "Evalúe cada aspecto según su experiencia.",
       "prompt": "Ventilación"
     },
     {
@@ -278,7 +271,7 @@
       "type": "eval_5",
       "scale": "p07_condiciones_salas",
       "section": "B · Salas de clases",
-      "instruction": "Evalúe de 1 a 5 las condiciones de las salas (1 = muy deficiente, 5 = muy bueno).",
+      "instruction": "Evalúe cada aspecto según su experiencia.",
       "prompt": "Capacidad respecto del curso"
     },
     {
@@ -286,7 +279,7 @@
       "type": "eval_5",
       "scale": "p07_condiciones_salas",
       "section": "B · Salas de clases",
-      "instruction": "Evalúe de 1 a 5 las condiciones de las salas (1 = muy deficiente, 5 = muy bueno).",
+      "instruction": "Evalúe cada aspecto según su experiencia.",
       "prompt": "Estado del mobiliario"
     },
     {
@@ -294,7 +287,7 @@
       "type": "eval_5",
       "scale": "p07_condiciones_salas",
       "section": "B · Salas de clases",
-      "instruction": "Evalúe de 1 a 5 las condiciones de las salas (1 = muy deficiente, 5 = muy bueno).",
+      "instruction": "Evalúe cada aspecto según su experiencia.",
       "prompt": "Conectividad (wifi y enchufes)"
     },
     {
@@ -523,7 +516,7 @@
       "type": "eval_5",
       "scale": "p15_audiovisual",
       "section": "B · Salas de clases",
-      "instruction": "Evalúe de 1 a 5 el equipamiento audiovisual actual (1 = muy deficiente, 5 = muy bueno).",
+      "instruction": "Evalúe cada aspecto según su experiencia.",
       "prompt": "Proyector"
     },
     {
@@ -531,7 +524,7 @@
       "type": "eval_5",
       "scale": "p15_audiovisual",
       "section": "B · Salas de clases",
-      "instruction": "Evalúe de 1 a 5 el equipamiento audiovisual actual (1 = muy deficiente, 5 = muy bueno).",
+      "instruction": "Evalúe cada aspecto según su experiencia.",
       "prompt": "Audio"
     },
     {
@@ -539,7 +532,7 @@
       "type": "eval_5",
       "scale": "p15_audiovisual",
       "section": "B · Salas de clases",
-      "instruction": "Evalúe de 1 a 5 el equipamiento audiovisual actual (1 = muy deficiente, 5 = muy bueno).",
+      "instruction": "Evalúe cada aspecto según su experiencia.",
       "prompt": "Conexión de notebook"
     },
     {
@@ -547,7 +540,7 @@
       "type": "eval_5",
       "scale": "p15_audiovisual",
       "section": "B · Salas de clases",
-      "instruction": "Evalúe de 1 a 5 el equipamiento audiovisual actual (1 = muy deficiente, 5 = muy bueno).",
+      "instruction": "Evalúe cada aspecto según su experiencia.",
       "prompt": "Pizarra"
     },
     {
@@ -556,7 +549,7 @@
       "maxRank": 3,
       "section": "B · Salas de clases",
       "instruction": "Toca las 3 más importantes en orden (1 = la más importante).",
-      "prompt": "Equipamiento audiovisual que priorizaría",
+      "prompt": "Equipamiento audiovisual que priorizaría: elija y ordene los 3 más importantes",
       "options": [
         {
           "code": 1,
@@ -577,8 +570,18 @@
         {
           "code": 5,
           "label": "Conexión inalámbrica"
+        },
+        {
+          "code": 6,
+          "label": "Otro"
         }
-      ]
+      ],
+      "followUp": {
+        "id": "p16_otro",
+        "whenCode": 6,
+        "prompt": "¿Cuál?",
+        "placeholder": "Escribe aquí…"
+      }
     },
     {
       "id": "p17_carencias",
@@ -602,7 +605,7 @@
       "id": "bloque_c",
       "type": "info",
       "sectionHeader": true,
-      "prompt": "Bloque C\n<div class=\"q\">Identidad y cierre</div>"
+      "prompt": "Identidad y cierre\nPara terminar, dos preguntas abiertas: cómo podría el espacio físico reflejar el espíritu de TELARES y cualquier comentario que quiera dejarnos."
     },
     {
       "id": "p19_espiritu_telares",
