@@ -623,7 +623,9 @@
       "prompt": "Comentarios finales",
       "placeholder": "Escribe aquí…",
       "long": true,
-      "maxLength": 2000
+      "maxLength": 2000,
+      "response": "either",
+      "maxSeconds": 90
     }
   ]
 }
