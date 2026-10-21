@@ -474,6 +474,11 @@ export function createSurveyApp({ db, elements }) {
 
   function startSurvey(data) {
     survey = data;
+    // Optional per-survey look (settings.theme, e.g. "telares"); CSS is scoped to #runner.
+    if (runnerSection && runnerSection.dataset) {
+      const theme = survey.settings && survey.settings.theme;
+      if (theme) runnerSection.dataset.theme = theme; else delete runnerSection.dataset.theme;
+    }
     currentIndex = 0;
     answers = {};
     startTime = Date.now();

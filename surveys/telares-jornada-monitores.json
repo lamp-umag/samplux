@@ -3,11 +3,13 @@
   "title": "TELARES · Jornada «Derechos en Acción» (monitores/as)",
   "description": "Autoevaluación de monitores/as de la jornada del 16 de octubre de 2026. Preguntas abiertas con opción de audio.",
   "adminEmails": [
+    "hermanelgueta@gmail.com",
     "mariajose.sandoval@umag.cl"
   ],
   "settings": {
     "randomizeItems": false,
-    "thankYou": "<div class=\"q center\">¡Gracias por tus impresiones!</div><div class=\"info-text center\">Son un insumo clave para el equipo docente.\n\nPuedes cerrar esta ventana.</div>"
+    "thankYou": "<div class=\"q center\">¡Gracias por tus impresiones!</div><div class=\"info-text center\">Son un insumo clave para el equipo docente.\n\nPuedes cerrar esta ventana.</div>",
+    "theme": "telares"
   },
   "optionSets": {},
   "items": [
@@ -15,7 +17,29 @@
       "id": "intro",
       "type": "info",
       "sectionHeader": true,
-      "prompt": "Impresiones del monitor / monitora\n<img class=\"intro-logo\" src=\"surveys/assets/telares-logo.png\" alt=\"TELARES · Conocimientos 2030 UMAG\"><strong>Jornada «Derechos en Acción» · 16 de octubre de 2026</strong>\n\nEje A · Actualización Curricular · Proyecto TELARES (Conocimiento 2030 · ANID CON24E20017 · Facultad de Educación, Universidad de Magallanes).\n\nTus respuestas son el insumo principal para el equipo docente. No hay respuestas correctas: interesa tu lectura honesta de lo que ocurrió. Ninguna pregunta es obligatoria.\n\nLas preguntas abiertas puedes responderlas escribiendo o grabando tu voz (si grabas, el audio se transcribirá para el análisis del proyecto)."
+      "prompt": "Impresiones del monitor / monitora\n<img class=\"intro-logo\" src=\"surveys/assets/telares-logo.png\" alt=\"TELARES · Conocimientos 2030 UMAG\"><strong>Jornada «Derechos en Acción» · 16 de octubre de 2026</strong>\n\n¡Hola! Participaste como monitor/a en la jornada interdisciplinaria y queremos conocer tu opinión: interesa tu lectura honesta de lo que ocurrió, no hay respuestas correctas."
+    },
+    {
+      "id": "consentimiento",
+      "type": "single_choice",
+      "required": true,
+      "section": "Antes de comenzar",
+      "instruction": "Tus respuestas, junto con tu nombre, serán analizadas por el equipo del proyecto TELARES para evaluar y mejorar las próximas jornadas. Participar es voluntario y puedes omitir cualquier pregunta. En las preguntas abiertas puedes escribir o grabar tu voz (el audio se transcribe para el análisis).",
+      "prompt": "¿Aceptas participar?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Acepto participar"
+        },
+        {
+          "code": 2,
+          "label": "No deseo participar"
+        }
+      ],
+      "exitOnAnswer": [
+        2
+      ],
+      "exitMessage": "<div class=\"q center\">Gracias por tu tiempo.</div><div class=\"info-text center\">No se ha guardado ninguna respuesta.\n\nPuedes cerrar esta ventana.</div>"
     },
     {
       "id": "bloque_parte_1",

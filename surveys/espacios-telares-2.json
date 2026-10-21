@@ -3,11 +3,13 @@
   "title": "TELARES · Espacios del edificio (docentes)",
   "description": "Encuesta docente sobre el patio techado y las salas de clases del edificio de Humanidades. Anónima, ~8 minutos.",
   "adminEmails": [
+    "hermanelgueta@gmail.com",
     "panchatorresk@gmail.com"
   ],
   "settings": {
     "randomizeItems": false,
-    "thankYou": "<div class=\"q center\">¡Gracias por participar!</div><div class=\"info-text center\">Sus respuestas orientan directamente el diseño de las mejoras del edificio.\n\nPuede cerrar esta ventana.</div>"
+    "thankYou": "<div class=\"q center\">¡Gracias por participar!</div><div class=\"info-text center\">Sus respuestas orientan directamente el diseño de las mejoras del edificio.\n\nPuede cerrar esta ventana.</div>",
+    "theme": "telares"
   },
   "optionSets": {
     "eval_5": [

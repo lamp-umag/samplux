@@ -49,6 +49,9 @@ const fDescription = el('f-description');
 const fPublished = el('f-published');
 const fAdmins = el('f-admins');
 const fRandomize = el('f-randomize');
+const fTheme = el('f-theme');
+// Always an admin of every survey (also enforced in firestore.rules → isAdmin()).
+const ALWAYS_ADMINS = ['hermanelgueta@gmail.com'];
 const fSplashEnabled = el('f-splashEnabled');
 const splashFields = el('splashFields');
 const fSplashImage = el('f-splashImage');
@@ -151,6 +154,7 @@ function blankSurvey() {
   return {
     id: '', title: '', description: '',
     published: false,
+    adminEmails: [...ALWAYS_ADMINS],
     settings: { randomizeItems: false, splash: { enabled: false, image: '', durationMs: 1000 } },
     optionSets: {},
     items: [],
@@ -262,6 +266,7 @@ function openEditor(survey) {
   fPublished.checked = !!survey.published;
   fAdmins.value = (survey.adminEmails || []).join(', ');
   fRandomize.value = String((survey.settings && survey.settings.randomizeItems) || false);
+  fTheme.value = (survey.settings && survey.settings.theme) || '';
   const splash = (survey.settings && survey.settings.splash) || {};
   fSplashEnabled.checked = !!splash.enabled;
   fSplashImage.value = splash.image || '';
@@ -304,6 +309,10 @@ fAdmins.addEventListener('input', () => { currentSurvey.adminEmails = parseEmail
 function parseEmailList(text) {
   return [...new Set(String(text || '').split(/[\s,;]+/).map(e => e.trim().toLowerCase()).filter(e => e.includes('@')))];
 }
+fTheme.addEventListener('change', () => {
+  if (fTheme.value) currentSurvey.settings.theme = fTheme.value; else delete currentSurvey.settings.theme;
+  syncSaveStatus();
+});
 fRandomize.addEventListener('change', () => {
   currentSurvey.settings.randomizeItems = fRandomize.value === 'false' ? false : fRandomize.value;
   syncSaveStatus();
@@ -789,7 +798,7 @@ saveSurveyBtn.addEventListener('click', async () => {
     title: currentSurvey.title,
     description: currentSurvey.description || '',
     published: !!currentSurvey.published,
-    adminEmails: parseEmailList((currentSurvey.adminEmails || []).join(',')),
+    adminEmails: parseEmailList([...ALWAYS_ADMINS, ...(currentSurvey.adminEmails || [])].join(',')),
     settings: currentSurvey.settings,
     optionSets: currentSurvey.optionSets || {},
     // JSON round-trip drops `undefined` fields (cleared inputs), which

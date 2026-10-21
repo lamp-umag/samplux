@@ -3,11 +3,13 @@
   "title": "TELARES · Jornada «Derechos en Acción» (estudiantes)",
   "description": "Evaluación anónima de la jornada del 16 de octubre de 2026 para estudiantes de Psicología, Trabajo Social y Derecho. Preguntas abiertas con opción de audio.",
   "adminEmails": [
+    "hermanelgueta@gmail.com",
     "mariajose.sandoval@umag.cl"
   ],
   "settings": {
     "randomizeItems": false,
-    "thankYou": "<div class=\"q center\">¡Gracias por tu evaluación!</div><div class=\"info-text center\">Tus respuestas nos ayudan a mejorar las próximas jornadas.\n\nPuedes cerrar esta ventana.</div>"
+    "thankYou": "<div class=\"q center\">¡Gracias por tu evaluación!</div><div class=\"info-text center\">Tus respuestas nos ayudan a mejorar las próximas jornadas.\n\nPuedes cerrar esta ventana.</div>",
+    "theme": "telares"
   },
   "optionSets": {
     "agree_5": [
@@ -38,7 +40,29 @@
       "id": "intro",
       "type": "info",
       "sectionHeader": true,
-      "prompt": "Evaluación de la jornada — estudiantes\n<img class=\"intro-logo\" src=\"surveys/assets/telares-logo.png\" alt=\"TELARES · Conocimientos 2030 UMAG\"><strong>Jornada «Derechos en Acción» · 16 de octubre de 2026</strong>\n\nPsicología · Trabajo Social · Derecho\n\nEsta evaluación es anónima. Su propósito es mejorar futuras versiones de la jornada. Responde con honestidad. Ninguna pregunta es obligatoria.\n\nLas preguntas abiertas puedes responderlas escribiendo o grabando tu voz (si grabas, el audio se transcribirá para el análisis del proyecto)."
+      "prompt": "Evaluación de la jornada\n<img class=\"intro-logo\" src=\"surveys/assets/telares-logo.png\" alt=\"TELARES · Conocimientos 2030 UMAG\"><strong>Jornada «Derechos en Acción» · 16 de octubre de 2026</strong>\n\n¡Hola! Participaste en la jornada interdisciplinaria y queremos conocer tu opinión.\n\nTe tomará unos 5 minutos."
+    },
+    {
+      "id": "consentimiento",
+      "type": "single_choice",
+      "required": true,
+      "section": "Antes de comenzar",
+      "instruction": "Tus respuestas serán analizadas por el equipo del proyecto TELARES para evaluar y mejorar las próximas jornadas. Participar es voluntario y anónimo, y puedes omitir cualquier pregunta. En las preguntas abiertas puedes escribir o grabar tu voz (el audio se transcribe para el análisis).",
+      "prompt": "¿Aceptas participar?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Acepto participar"
+        },
+        {
+          "code": 2,
+          "label": "No deseo participar"
+        }
+      ],
+      "exitOnAnswer": [
+        2
+      ],
+      "exitMessage": "<div class=\"q center\">Gracias por tu tiempo.</div><div class=\"info-text center\">No se ha guardado ninguna respuesta.\n\nPuedes cerrar esta ventana.</div>"
     },
     {
       "id": "p01_carrera",

@@ -250,6 +250,34 @@
         background: var(--accent);
         border-color: var(--accent);
       }
+      /* Per-survey theme: settings.theme = "telares" (palette taken from the TELARES logo:
+         dark green + mustard / olive / terracotta). Scoped to #runner so it never leaks
+         into the survey list or the builder preview. */
+      #runner[data-theme="telares"] {
+        --foreground: #1e261a;
+        --muted: #4b5644;
+        --primary: #2f3a29;
+        --primary-foreground: #ffffff;
+        --accent: #44523b;
+        --surface: #f1f2ea;
+        --surface-soft: #f7f8f3;
+        --border: #d8dccb;
+        --border-strong: #b9bfa6;
+      }
+      #runner[data-theme="telares"]::before {
+        content: "";
+        display: block;
+        height: 5px;
+        margin-bottom: 18px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #e09838 0 33.3%, #807018 33.3% 66.6%, #b86838 66.6% 100%);
+      }
+      #runner[data-theme="telares"] .progress { height: 4px; }
+      #runner[data-theme="telares"] .bar { background: #e09838; }
+      #runner[data-theme="telares"] .kicker { color: #9a5428; }
+      #runner[data-theme="telares"] .followup { border-left-color: #e09838; }
+      #runner[data-theme="telares"] .opt:hover { border-color: var(--primary); }
+
       /* Section / topic label above a question (item.section) */
       .kicker {
         font-size: 11px;
