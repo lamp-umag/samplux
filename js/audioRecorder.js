@@ -51,8 +51,13 @@ function fmtClock(ms) {
 // Low-level: start a recording, returns { stop(), done: Promise<{blob, mime, durationMs, stoppedBy}> }.
 async function startRecording({ maxSeconds, onTick }) {
   const stream = await navigator.mediaDevices.getUserMedia({
-    audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true }
+    audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true }
   });
+  const track = stream.getAudioTracks()[0];
+  const mic = track ? {
+    label: track.label || null,
+    settings: (() => { try { return track.getSettings(); } catch { return null; } })()
+  } : null;
   const mime = pickMime();
   const rec = new MediaRecorder(stream, {
     ...(mime && { mimeType: mime }),
@@ -78,7 +83,7 @@ async function startRecording({ maxSeconds, onTick }) {
       clearInterval(timer);
       stream.getTracks().forEach(t => t.stop());   // release the mic
       const type = rec.mimeType || mime || 'audio/webm';
-      resolve({ blob: new Blob(chunks, { type }), mime: type, durationMs: Date.now() - t0, stoppedBy });
+      resolve({ blob: new Blob(chunks, { type }), mime: type, durationMs: Date.now() - t0, stoppedBy, mic });
     };
   });
 
@@ -191,7 +196,7 @@ export function mountAudioWidget(container, { maxSeconds, clip, onChange }) {
         return;
       }
       current = {
-        blob: res.blob, mime: res.mime, durationMs: res.durationMs,
+        blob: res.blob, mime: res.mime, durationMs: res.durationMs, mic: res.mic,
         reRecords: current ? (current.reRecords || 0) + 1 : 0
       };
       onChange(current);

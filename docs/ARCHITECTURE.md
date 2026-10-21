@@ -145,6 +145,20 @@ and **speeder detection**.
 
 ---
 
+### 5b. Device & technical paradata (`js/deviceInfo.js`)
+
+Besides `browserData`, each response stores `deviceInfo` (everything a browser exposes
+without prompting: viewport/screen/pixel ratio/orientation, CPU cores, device memory,
+touch points, WebGL renderer, network type/RTT, languages, timezone offset, colour-scheme /
+reduced-motion / standalone prefs, API support, page-load timing, and Chromium UA Client Hints
+such as device model) plus `tabHiddenCount` / `tabHiddenMs` (survey sent to the background).
+Audio answers also record the microphone's applied settings (`audio.<item>.mic`: label, sample
+rate, AGC / noise suppression / echo cancellation as actually applied). **IP address is not
+collected**: a static site can't see it, and calling a third-party service would leak it.
+`admin.html → ⬇ CSV dispositivos` exports one row per response (parsed OS / browser / device
+type / in-app browser + all of the above flattened; new fields appear as new columns).
+The main CSV is unchanged. Safari/Firefox omit some APIs, so empty cells are normal.
+
 ## 6. Cognitive tasks (`js/tasks/`)
 
 Each task exports `async run(container)` and is launched by the runner into a

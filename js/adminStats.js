@@ -291,6 +291,7 @@ async function boot() {
     el('toggleTextsBtn').textContent = open ? 'Cerrar todos los textos' : 'Abrir todos los textos';
   });
   el('dlJsonBtn').addEventListener('click', downloadRawJson);
+  el('dlDeviceBtn').addEventListener('click', downloadDeviceCsv);
   el('loadAudiosBtn').addEventListener('click', loadAudios);
   el('dlAudiosBtn').addEventListener('click', downloadAudiosZip);
   includeExcluded.addEventListener('change', () => render());
@@ -1397,4 +1398,80 @@ function wireItemAudio(container, responses) {
       zipBtn.disabled = false;
     });
   });
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Device / technical info CSV ("bonus" paradata, one row per response) */
+/* ------------------------------------------------------------------ */
+
+// Best-effort User-Agent parsing. UAs are frozen/reduced by modern browsers
+// (e.g. iOS always says 'iPhone OS 18_x', desktop Safari says 10_15_7), so treat
+// OS versions as approximate; the raw userAgent column is always included.
+function parseUserAgent(ua = '') {
+  const m = (re) => { const r = ua.match(re); return r ? r[1] : ''; };
+  let os = '', osVersion = '', device = 'desktop';
+  if (/iPhone|iPod/.test(ua)) { os = 'iOS'; device = 'phone'; osVersion = m(/OS (\d+[_\d]*)/).replace(/_/g, '.'); }
+  else if (/iPad/.test(ua)) { os = 'iPadOS'; device = 'tablet'; osVersion = m(/OS (\d+[_\d]*)/).replace(/_/g, '.'); }
+  else if (/Android/.test(ua)) { os = 'Android'; device = /Mobile/.test(ua) ? 'phone' : 'tablet'; osVersion = m(/Android (\d+[.\d]*)/); }
+  else if (/Windows/.test(ua)) { os = 'Windows'; osVersion = m(/Windows NT (\d+[.\d]*)/); }
+  else if (/Mac OS X/.test(ua)) { os = 'macOS'; osVersion = m(/Mac OS X (\d+[_.\d]*)/).replace(/_/g, '.'); }
+  else if (/CrOS/.test(ua)) { os = 'ChromeOS'; }
+  else if (/Linux/.test(ua)) { os = 'Linux'; }
+
+  let browser = '', browserVersion = '';
+  if (/EdgA?\/|Edg\//.test(ua)) { browser = 'Edge'; browserVersion = m(/Edg[A]?\/(\d+[.\d]*)/); }
+  else if (/OPR\/|Opera/.test(ua)) { browser = 'Opera'; browserVersion = m(/OPR\/(\d+[.\d]*)/); }
+  else if (/SamsungBrowser/.test(ua)) { browser = 'Samsung Internet'; browserVersion = m(/SamsungBrowser\/(\d+[.\d]*)/); }
+  else if (/FxiOS|Firefox/.test(ua)) { browser = 'Firefox'; browserVersion = m(/(?:FxiOS|Firefox)\/(\d+[.\d]*)/); }
+  else if (/CriOS|Chrome/.test(ua)) { browser = 'Chrome'; browserVersion = m(/(?:CriOS|Chrome)\/(\d+[.\d]*)/); }
+  else if (/Safari/.test(ua)) { browser = 'Safari'; browserVersion = m(/Version\/(\d+[.\d]*)/); }
+
+  // In-app browsers (webviews) often restrict the mic and behave differently.
+  const inApp = /FBAN|FBAV|Instagram|Line\/|MicroMessenger|Snapchat|TikTok|; wv\)|WhatsApp|Telegram/i.test(ua)
+    ? (ua.match(/FBAN|FBAV|Instagram|Line\/|MicroMessenger|Snapchat|TikTok|WhatsApp|Telegram|; wv\)/i) || [''])[0].replace(/[;)\s/]/g, '') : '';
+  return { device, os, osVersion, browser, browserVersion, inApp };
+}
+
+// { a: { b: 1 }, c: [1, 2] } -> { 'a.b': 1, c: '1; 2' }
+function flattenObject(obj, prefix = '', out = {}) {
+  if (obj == null) return out;
+  for (const [k, v] of Object.entries(obj)) {
+    const key = prefix ? `${prefix}.${k}` : k;
+    if (v == null) out[key] = '';
+    else if (Array.isArray(v)) out[key] = v.join('; ');
+    else if (typeof v === 'object' && !v.toDate) flattenObject(v, key, out);
+    else out[key] = v;
+  }
+  return out;
+}
+
+function downloadDeviceCsv() {
+  if (!lastMeta || !lastAllDocs.length) { alert('No hay datos cargados para exportar.'); return; }
+  const ordered = lastResponses.slice().sort((a, b) => getCreatedAtMs(b.data) - getCreatedAtMs(a.data));
+  const fixed = ['responseId', 'surveyId', 'createdAt', 'serverCode', 'isExcluded', 'totalTime_s',
+    'device', 'os', 'osVersion', 'browser', 'browserVersion', 'inAppBrowser'];
+  const dynamicCols = [];
+  const seen = new Set(fixed);
+  const records = ordered.map(({ id, data: d }) => {
+    const ua = parseUserAgent(d.browserData?.userAgent || d.ua || '');
+    const flat = {
+      ...flattenObject(d.browserData, 'browser'),
+      ...flattenObject(d.deviceInfo, 'device_info'),
+      ...flattenObject({ tabHiddenCount: d.tabHiddenCount, tabHiddenMs: d.tabHiddenMs, navBackCount: d.navBackCount, answerChangeCount: d.answerChangeCount }, 'paradata'),
+      ...flattenObject(d.audio, 'audio'),
+      path: d.path ?? ''
+    };
+    for (const k of Object.keys(flat)) if (!seen.has(k)) { seen.add(k); dynamicCols.push(k); }
+    const tt = Number(d.totalTime);
+    return {
+      responseId: id, surveyId: lastMeta.id, createdAt: isoOf(d), serverCode: d.serverCode ?? '',
+      isExcluded: d.excludedFromExport ? 1 : 0, totalTime_s: Number.isFinite(tt) ? (tt / 1000).toFixed(1) : '',
+      device: ua.device, os: ua.os, osVersion: ua.osVersion, browser: ua.browser, browserVersion: ua.browserVersion,
+      inAppBrowser: ua.inApp, ...flat
+    };
+  });
+  const header = [...fixed, ...dynamicCols];
+  const rows = [header, ...records.map(r => header.map(h => r[h] ?? ''))];
+  downloadBlob(`${lastMeta.id}_dispositivos_${new Date().toISOString().slice(0, 10)}.csv`, rowsToCsv(rows), 'text/csv');
 }

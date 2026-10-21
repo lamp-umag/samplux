@@ -1,4 +1,5 @@
 import { collection, serverTimestamp, getDocs, query, where, doc, getDoc, setDoc, Bytes } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { collectDeviceInfo, watchVisibility } from './deviceInfo.js';
 import { audioSupported, mountAudioWidget, clampMaxSeconds, extensionForMime } from './audioRecorder.js';
 import { run as runRT }     from './tasks/rt.js';
 import { run as runStroop } from './tasks/stroop.js';
@@ -68,6 +69,7 @@ export function createSurveyApp({ db, elements }) {
   let itemAnswerChangeCount = {};
   let audioClips = {};          // itemId -> { blob, mime, durationMs, reRecords }
   let audioCleanup = null;      // stops an in-flight recording when the step changes
+  let visibilityWatch = null;   // tab-hidden paradata (see deviceInfo.js)
   let submission = null;        // { responseId, uploaded:Set } — stable across submit retries
 
   function cloneAnswerValue(v) {
@@ -485,6 +487,8 @@ export function createSurveyApp({ db, elements }) {
     itemAnswerChangeCount = {};
     audioClips = {};
     submission = null;
+    if (visibilityWatch) visibilityWatch.stop();
+    visibilityWatch = watchVisibility();
     presentationOrder = Array.isArray(survey._presentationOrder)
       ? survey._presentationOrder
       : survey.items.map(it => it.id);
@@ -1200,7 +1204,8 @@ export function createSurveyApp({ db, elements }) {
         const docId = `${submission.responseId}__${itemId}`;
         const meta = {
           docId, mime: clip.mime, ext: extensionForMime(clip.mime), bytes: clip.blob.size,
-          durationMs: clip.durationMs, reRecords: clip.reRecords || 0
+          durationMs: clip.durationMs, reRecords: clip.reRecords || 0,
+          ...(clip.mic && { mic: clip.mic })
         };
         if (!submission.uploaded[itemId]) {
           const buf = new Uint8Array(await clip.blob.arrayBuffer());
@@ -1219,6 +1224,9 @@ export function createSurveyApp({ db, elements }) {
       return;
     }
 
+    const deviceInfo = await collectDeviceInfo();
+    const visibility = visibilityWatch ? visibilityWatch.snapshot() : null;
+
     const payload = {
       surveyId: survey.id,
       answers,
@@ -1236,6 +1244,8 @@ export function createSurveyApp({ db, elements }) {
         ...(answerChangeEventsTruncated && { answerChangeEventsTruncated: true })
       }),
       browserData,
+      deviceInfo,
+      ...(visibility && { tabHiddenCount: visibility.hiddenCount, tabHiddenMs: visibility.hiddenMs }),
       createdAt: serverTimestamp(),
       ua: navigator.userAgent,
       path: location.pathname + location.search
