@@ -1,0 +1,163 @@
+{
+  "id": "telares-jornada-monitores",
+  "title": "TELARES · Jornada «Derechos en Acción» (monitores/as)",
+  "description": "Autoevaluación de monitores/as de la jornada del 16 de octubre de 2026. Preguntas abiertas con opción de audio.",
+  "adminEmails": [
+    "mariajose.sandoval@umag.cl"
+  ],
+  "settings": {
+    "randomizeItems": false,
+    "thankYou": "<div class=\"q center\">¡Gracias por tus impresiones!</div><div class=\"info-text center\">Son un insumo clave para el equipo docente.\n\nPuedes cerrar esta ventana.</div>"
+  },
+  "optionSets": {},
+  "items": [
+    {
+      "id": "intro",
+      "type": "info",
+      "sectionHeader": true,
+      "prompt": "Impresiones del monitor / monitora\n<img class=\"intro-logo\" src=\"surveys/assets/telares-logo.png\" alt=\"TELARES · Conocimientos 2030 UMAG\"><strong>Jornada «Derechos en Acción» · 16 de octubre de 2026</strong>\n\nEje A · Actualización Curricular · Proyecto TELARES (Conocimiento 2030 · ANID CON24E20017 · Facultad de Educación, Universidad de Magallanes).\n\nTus respuestas son el insumo principal para el equipo docente. No hay respuestas correctas: interesa tu lectura honesta de lo que ocurrió. Ninguna pregunta es obligatoria.\n\nLas preguntas abiertas puedes responderlas escribiendo o grabando tu voz (si grabas, el audio se transcribirá para el análisis del proyecto)."
+    },
+    {
+      "id": "bloque_parte_1",
+      "type": "info",
+      "sectionHeader": true,
+      "prompt": "Parte 1\n<div class=\"q\">Identificación</div>"
+    },
+    {
+      "id": "id1_nombre",
+      "type": "text",
+      "section": "1 · Identificación",
+      "prompt": "Nombre del monitor/a",
+      "placeholder": "Tu nombre"
+    },
+    {
+      "id": "id2_carrera",
+      "type": "text",
+      "section": "1 · Identificación",
+      "prompt": "Carrera",
+      "placeholder": "Tu carrera"
+    },
+    {
+      "id": "id3_caso",
+      "type": "text",
+      "section": "1 · Identificación",
+      "prompt": "Caso asignado",
+      "placeholder": "Caso del grupo"
+    },
+    {
+      "id": "id4_n_estudiantes",
+      "type": "number",
+      "section": "1 · Identificación",
+      "prompt": "N° de estudiantes en el grupo",
+      "placeholder": "ej. 8",
+      "min": 0,
+      "max": 100,
+      "rangeHelp": "Ingresa un número entre 0 y 100."
+    },
+    {
+      "id": "bloque_parte_2",
+      "type": "info",
+      "sectionHeader": true,
+      "prompt": "Parte 2\n<div class=\"q\">Impresiones sobre el taller</div>"
+    },
+    {
+      "id": "o1_trabajo_interdisciplinario",
+      "type": "text",
+      "section": "2 · Impresiones sobre el taller",
+      "prompt": "¿Qué aspectos del trabajo interdisciplinario funcionaron mejor en tu grupo? ¿Hubo momentos en que las distintas miradas disciplinares se integraron con fluidez?",
+      "placeholder": "Escribe aquí…",
+      "long": true,
+      "maxLength": 2000,
+      "response": "either",
+      "maxSeconds": 90
+    },
+    {
+      "id": "o2_dificultades",
+      "type": "text",
+      "section": "2 · Impresiones sobre el taller",
+      "prompt": "¿Qué dificultades encontraste al facilitar el grupo? ¿Hubo estudiantes que no participaron, tensiones entre carreras, o preguntas del acta que generaron confusión?",
+      "placeholder": "Escribe aquí…",
+      "long": true,
+      "maxLength": 2000,
+      "response": "either",
+      "maxSeconds": 90
+    },
+    {
+      "id": "o3_pregunta_dificil",
+      "type": "text",
+      "section": "2 · Impresiones sobre el taller",
+      "prompt": "¿Hubo alguna pregunta orientadora del acta que resultara difícil de trabajar o que generara poca discusión? ¿Cuál y por qué crees que ocurrió?",
+      "placeholder": "Escribe aquí…",
+      "long": true,
+      "maxLength": 2000,
+      "response": "either",
+      "maxSeconds": 90
+    },
+    {
+      "id": "o4_cambios",
+      "type": "text",
+      "section": "2 · Impresiones sobre el taller",
+      "prompt": "¿Qué cambiarías del acta o de la estructura del trabajo grupal para una próxima jornada?",
+      "placeholder": "Escribe aquí…",
+      "long": true,
+      "maxLength": 2000,
+      "response": "either",
+      "maxSeconds": 90
+    },
+    {
+      "id": "o5_sorpresa",
+      "type": "text",
+      "section": "2 · Impresiones sobre el taller",
+      "prompt": "¿Hubo algo que te sorprendió —positiva o negativamente— del comportamiento del grupo o de cómo respondieron los estudiantes?",
+      "placeholder": "Escribe aquí…",
+      "long": true,
+      "maxLength": 2000,
+      "response": "either",
+      "maxSeconds": 90
+    },
+    {
+      "id": "g1_global",
+      "type": "single_choice",
+      "section": "3 · Valoración global",
+      "prompt": "¿Cómo evalúas globalmente la experiencia de facilitar esta jornada?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Muy positiva"
+        },
+        {
+          "code": 2,
+          "label": "Positiva"
+        },
+        {
+          "code": 3,
+          "label": "Regular"
+        },
+        {
+          "code": 4,
+          "label": "Negativa"
+        }
+      ]
+    },
+    {
+      "id": "g2_proxima",
+      "type": "single_choice",
+      "section": "3 · Valoración global",
+      "prompt": "¿Te gustaría participar en una próxima jornada?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Sí"
+        },
+        {
+          "code": 2,
+          "label": "No"
+        },
+        {
+          "code": 3,
+          "label": "Depende de las condiciones"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,624 @@
+{
+  "id": "espacios-telares-2",
+  "title": "TELARES · Espacios del edificio (docentes)",
+  "description": "Encuesta docente sobre el patio techado y las salas de clases del edificio de Humanidades. Anónima, ~8 minutos.",
+  "adminEmails": [
+    "panchatorresk@gmail.com"
+  ],
+  "settings": {
+    "randomizeItems": false,
+    "thankYou": "<div class=\"q center\">¡Gracias por participar!</div><div class=\"info-text center\">Sus respuestas orientan directamente el diseño de las mejoras del edificio.\n\nPuede cerrar esta ventana.</div>"
+  },
+  "optionSets": {
+    "eval_5": [
+      {
+        "code": 1,
+        "label": "1 · Muy deficiente"
+      },
+      {
+        "code": 2,
+        "label": "2"
+      },
+      {
+        "code": 3,
+        "label": "3"
+      },
+      {
+        "code": 4,
+        "label": "4"
+      },
+      {
+        "code": 5,
+        "label": "5 · Muy bueno"
+      }
+    ]
+  },
+  "items": [
+    {
+      "id": "intro",
+      "type": "info",
+      "sectionHeader": true,
+      "prompt": "Encuesta docente\n<img class=\"intro-logo\" src=\"surveys/assets/telares-logo.png\" alt=\"TELARES · Conocimientos 2030 UMAG\"><strong>Espacios del edificio de Humanidades</strong>\n\nEsta encuesta recoge la mirada del cuerpo docente sobre los espacios del edificio, como insumo para su mejora en el marco del proyecto TELARES — Conocimientos 2030.\n\nLas respuestas son anónimas y se usan con fines de diseño. Tiempo estimado: 7 a 8 minutos."
+    },
+    {
+      "id": "bloque_0",
+      "type": "info",
+      "sectionHeader": true,
+      "prompt": "Bloque 0\n<div class=\"q\">Perfil</div>"
+    },
+    {
+      "id": "p01_carreras",
+      "type": "multi_choice",
+      "section": "Perfil",
+      "instruction": "Puedes marcar varias.",
+      "prompt": "Carrera(s) en que hace clases en el edificio",
+      "options": [
+        {
+          "code": 1,
+          "label": "Psicología"
+        },
+        {
+          "code": 2,
+          "label": "Trabajo Social"
+        },
+        {
+          "code": 3,
+          "label": "Derecho"
+        },
+        {
+          "code": 4,
+          "label": "Otra"
+        }
+      ],
+      "followUp": {
+        "id": "p01_otra",
+        "whenCode": 4,
+        "prompt": "¿Cuál?",
+        "placeholder": "Escribe aquí…"
+      }
+    },
+    {
+      "id": "bloque_a",
+      "type": "info",
+      "sectionHeader": true,
+      "prompt": "Bloque A\n<div class=\"q\">Patio techado</div>"
+    },
+    {
+      "id": "p02_usos_estudiantes",
+      "type": "multi_choice",
+      "section": "A · Patio techado",
+      "instruction": "Puedes marcar varias.",
+      "prompt": "Según lo que observa, ¿para qué usan los estudiantes el patio?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Tránsito"
+        },
+        {
+          "code": 2,
+          "label": "Encuentro y conversación"
+        },
+        {
+          "code": 3,
+          "label": "Alimentación"
+        },
+        {
+          "code": 4,
+          "label": "Estudio o trabajo en grupo"
+        },
+        {
+          "code": 5,
+          "label": "Descanso"
+        },
+        {
+          "code": 6,
+          "label": "Otro"
+        }
+      ],
+      "followUp": {
+        "id": "p02_otro",
+        "whenCode": 6,
+        "prompt": "¿Cuál?",
+        "placeholder": "Escribe aquí…"
+      }
+    },
+    {
+      "id": "p03_actividades_habilitado",
+      "type": "multi_choice",
+      "section": "A · Patio techado",
+      "instruction": "Puedes marcar varias.",
+      "prompt": "Actividades que realizaría en el patio si estuviera habilitado",
+      "options": [
+        {
+          "code": 1,
+          "label": "Trabajo grupal"
+        },
+        {
+          "code": 2,
+          "label": "Muestras o exposiciones de trabajos"
+        },
+        {
+          "code": 3,
+          "label": "Presentaciones abiertas"
+        },
+        {
+          "code": 4,
+          "label": "Actividades entre carreras"
+        },
+        {
+          "code": 5,
+          "label": "Eventos de extensión"
+        },
+        {
+          "code": 6,
+          "label": "Clase fuera de sala"
+        },
+        {
+          "code": 7,
+          "label": "Otra"
+        }
+      ],
+      "followUp": {
+        "id": "p03_otra",
+        "whenCode": 7,
+        "prompt": "¿Cuál?",
+        "placeholder": "Escribe aquí…"
+      }
+    },
+    {
+      "id": "p04_requerimientos",
+      "type": "ranking",
+      "maxRank": 3,
+      "section": "A · Patio techado",
+      "instruction": "Toca las 3 más importantes en orden (1 = la más importante).",
+      "prompt": "Requerimientos para que esas actividades ocurran: elige y ordena los 3 más importantes",
+      "options": [
+        {
+          "code": 1,
+          "label": "Mobiliario flexible"
+        },
+        {
+          "code": 2,
+          "label": "Superficies para exponer"
+        },
+        {
+          "code": 3,
+          "label": "Tarima o escenario"
+        },
+        {
+          "code": 4,
+          "label": "Proyector"
+        },
+        {
+          "code": 5,
+          "label": "Enchufes y conexión"
+        },
+        {
+          "code": 6,
+          "label": "Audio"
+        },
+        {
+          "code": 7,
+          "label": "Iluminación"
+        },
+        {
+          "code": 8,
+          "label": "Almacenamiento de material"
+        },
+        {
+          "code": 9,
+          "label": "Otros"
+        }
+      ],
+      "followUp": {
+        "id": "p04_otros",
+        "whenCode": 9,
+        "prompt": "¿Cuál?",
+        "placeholder": "Escribe aquí…"
+      }
+    },
+    {
+      "id": "p05_encuentro_carreras",
+      "type": "text",
+      "section": "A · Patio techado",
+      "prompt": "¿Qué haría del patio un lugar de encuentro entre carreras?",
+      "placeholder": "Escribe aquí…",
+      "long": true,
+      "maxLength": 2000
+    },
+    {
+      "id": "bloque_b",
+      "type": "info",
+      "sectionHeader": true,
+      "prompt": "Bloque B\n<div class=\"q\">Salas de clases</div>"
+    },
+    {
+      "id": "p06_salas_usadas",
+      "type": "text",
+      "section": "B · Salas de clases",
+      "prompt": "¿Qué salas utiliza habitualmente?",
+      "placeholder": "Escribe aquí…"
+    },
+    {
+      "id": "p07_iluminacion_natural",
+      "type": "eval_5",
+      "scale": "p07_condiciones_salas",
+      "section": "B · Salas de clases",
+      "instruction": "Evalúe de 1 a 5 las condiciones de las salas (1 = muy deficiente, 5 = muy bueno).",
+      "prompt": "Iluminación natural"
+    },
+    {
+      "id": "p07_iluminacion_artificial",
+      "type": "eval_5",
+      "scale": "p07_condiciones_salas",
+      "section": "B · Salas de clases",
+      "instruction": "Evalúe de 1 a 5 las condiciones de las salas (1 = muy deficiente, 5 = muy bueno).",
+      "prompt": "Iluminación artificial"
+    },
+    {
+      "id": "p07_acustica",
+      "type": "eval_5",
+      "scale": "p07_condiciones_salas",
+      "section": "B · Salas de clases",
+      "instruction": "Evalúe de 1 a 5 las condiciones de las salas (1 = muy deficiente, 5 = muy bueno).",
+      "prompt": "Acústica"
+    },
+    {
+      "id": "p07_ventilacion",
+      "type": "eval_5",
+      "scale": "p07_condiciones_salas",
+      "section": "B · Salas de clases",
+      "instruction": "Evalúe de 1 a 5 las condiciones de las salas (1 = muy deficiente, 5 = muy bueno).",
+      "prompt": "Ventilación"
+    },
+    {
+      "id": "p07_capacidad",
+      "type": "eval_5",
+      "scale": "p07_condiciones_salas",
+      "section": "B · Salas de clases",
+      "instruction": "Evalúe de 1 a 5 las condiciones de las salas (1 = muy deficiente, 5 = muy bueno).",
+      "prompt": "Capacidad respecto del curso"
+    },
+    {
+      "id": "p07_mobiliario",
+      "type": "eval_5",
+      "scale": "p07_condiciones_salas",
+      "section": "B · Salas de clases",
+      "instruction": "Evalúe de 1 a 5 las condiciones de las salas (1 = muy deficiente, 5 = muy bueno).",
+      "prompt": "Estado del mobiliario"
+    },
+    {
+      "id": "p07_conectividad",
+      "type": "eval_5",
+      "scale": "p07_condiciones_salas",
+      "section": "B · Salas de clases",
+      "instruction": "Evalúe de 1 a 5 las condiciones de las salas (1 = muy deficiente, 5 = muy bueno).",
+      "prompt": "Conectividad (wifi y enchufes)"
+    },
+    {
+      "id": "p08_metodologias",
+      "type": "multi_choice",
+      "section": "B · Salas de clases",
+      "instruction": "Puedes marcar varias.",
+      "prompt": "Metodologías que aplica o quisiera aplicar",
+      "options": [
+        {
+          "code": 1,
+          "label": "Clase expositiva"
+        },
+        {
+          "code": 2,
+          "label": "Trabajo en equipo"
+        },
+        {
+          "code": 3,
+          "label": "Aprendizaje basado en problemas o proyectos"
+        },
+        {
+          "code": 4,
+          "label": "Estudio de casos"
+        },
+        {
+          "code": 5,
+          "label": "Taller práctico"
+        },
+        {
+          "code": 6,
+          "label": "Actividades con otras carreras"
+        },
+        {
+          "code": 7,
+          "label": "Otra"
+        }
+      ],
+      "followUp": {
+        "id": "p08_otra",
+        "whenCode": 7,
+        "prompt": "¿Cuál?",
+        "placeholder": "Escribe aquí…"
+      }
+    },
+    {
+      "id": "p09_frecuencia_alternativas",
+      "type": "single_choice",
+      "section": "B · Salas de clases",
+      "prompt": "¿Con qué frecuencia realiza clases con metodologías alternativas a la expositiva?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Todas las clases"
+        },
+        {
+          "code": 2,
+          "label": "Semanalmente"
+        },
+        {
+          "code": 3,
+          "label": "Mensualmente"
+        },
+        {
+          "code": 4,
+          "label": "Algunas veces al semestre"
+        },
+        {
+          "code": 5,
+          "label": "Nunca"
+        }
+      ]
+    },
+    {
+      "id": "p10_sala_permite",
+      "type": "single_choice",
+      "section": "B · Salas de clases",
+      "prompt": "¿La configuración actual de la sala permite esas metodologías?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Siempre"
+        },
+        {
+          "code": 2,
+          "label": "A veces"
+        },
+        {
+          "code": 3,
+          "label": "Rara vez"
+        },
+        {
+          "code": 4,
+          "label": "Nunca"
+        }
+      ]
+    },
+    {
+      "id": "p11_configuracion",
+      "type": "multi_choice",
+      "section": "B · Salas de clases",
+      "instruction": "Puedes marcar varias.",
+      "prompt": "¿Qué configuración de sala le acomoda para este tipo de trabajos?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Filas"
+        },
+        {
+          "code": 2,
+          "label": "Herradura"
+        },
+        {
+          "code": 3,
+          "label": "Islas de trabajo"
+        },
+        {
+          "code": 4,
+          "label": "Mesa redonda"
+        },
+        {
+          "code": 5,
+          "label": "Otra"
+        }
+      ],
+      "followUp": {
+        "id": "p11_otra",
+        "whenCode": 5,
+        "prompt": "¿Cuál?",
+        "placeholder": "Escribe aquí…"
+      }
+    },
+    {
+      "id": "p12_variacion",
+      "type": "single_choice",
+      "section": "B · Salas de clases",
+      "prompt": "¿Necesita siempre esa configuración o puede variar según la actividad?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Siempre la misma"
+        },
+        {
+          "code": 2,
+          "label": "Varía entre clases"
+        },
+        {
+          "code": 3,
+          "label": "Varía dentro de una misma clase"
+        }
+      ]
+    },
+    {
+      "id": "p13_elementos_faltan",
+      "type": "multi_choice",
+      "section": "B · Salas de clases",
+      "instruction": "Puedes marcar varias.",
+      "prompt": "¿Qué elementos le hacen falta en la sala para realizar estas actividades?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Mesas modulares y móviles"
+        },
+        {
+          "code": 2,
+          "label": "Sillas livianas"
+        },
+        {
+          "code": 3,
+          "label": "Pizarras móviles"
+        },
+        {
+          "code": 4,
+          "label": "Muros para fijar o exponer trabajos"
+        },
+        {
+          "code": 5,
+          "label": "Enchufes accesibles"
+        },
+        {
+          "code": 6,
+          "label": "Espacio libre para desplazarse"
+        },
+        {
+          "code": 7,
+          "label": "Almacenamiento de material"
+        },
+        {
+          "code": 8,
+          "label": "Otro"
+        }
+      ],
+      "followUp": {
+        "id": "p13_otro",
+        "whenCode": 8,
+        "prompt": "¿Cuál?",
+        "placeholder": "Escribe aquí…"
+      }
+    },
+    {
+      "id": "p14_tiempo_reordenar",
+      "type": "single_choice",
+      "section": "B · Salas de clases",
+      "prompt": "Tiempo que destina a reordenar la sala por clase",
+      "options": [
+        {
+          "code": 1,
+          "label": "Ninguno"
+        },
+        {
+          "code": 2,
+          "label": "Menos de 5 min"
+        },
+        {
+          "code": 3,
+          "label": "5 a 10 min"
+        },
+        {
+          "code": 4,
+          "label": "Más de 10 min"
+        }
+      ]
+    },
+    {
+      "id": "p15_proyector",
+      "type": "eval_5",
+      "scale": "p15_audiovisual",
+      "section": "B · Salas de clases",
+      "instruction": "Evalúe de 1 a 5 el equipamiento audiovisual actual (1 = muy deficiente, 5 = muy bueno).",
+      "prompt": "Proyector"
+    },
+    {
+      "id": "p15_audio",
+      "type": "eval_5",
+      "scale": "p15_audiovisual",
+      "section": "B · Salas de clases",
+      "instruction": "Evalúe de 1 a 5 el equipamiento audiovisual actual (1 = muy deficiente, 5 = muy bueno).",
+      "prompt": "Audio"
+    },
+    {
+      "id": "p15_notebook",
+      "type": "eval_5",
+      "scale": "p15_audiovisual",
+      "section": "B · Salas de clases",
+      "instruction": "Evalúe de 1 a 5 el equipamiento audiovisual actual (1 = muy deficiente, 5 = muy bueno).",
+      "prompt": "Conexión de notebook"
+    },
+    {
+      "id": "p15_pizarra",
+      "type": "eval_5",
+      "scale": "p15_audiovisual",
+      "section": "B · Salas de clases",
+      "instruction": "Evalúe de 1 a 5 el equipamiento audiovisual actual (1 = muy deficiente, 5 = muy bueno).",
+      "prompt": "Pizarra"
+    },
+    {
+      "id": "p16_prioridad_audiovisual",
+      "type": "ranking",
+      "maxRank": 3,
+      "section": "B · Salas de clases",
+      "instruction": "Toca las 3 más importantes en orden (1 = la más importante).",
+      "prompt": "Equipamiento audiovisual que priorizaría",
+      "options": [
+        {
+          "code": 1,
+          "label": "Pantalla interactiva"
+        },
+        {
+          "code": 2,
+          "label": "Proyector"
+        },
+        {
+          "code": 3,
+          "label": "Sistema de audio"
+        },
+        {
+          "code": 4,
+          "label": "Cámara y micrófono para clases híbridas"
+        },
+        {
+          "code": 5,
+          "label": "Conexión inalámbrica"
+        }
+      ]
+    },
+    {
+      "id": "p17_carencias",
+      "type": "text",
+      "section": "B · Salas de clases",
+      "prompt": "Principales carencias de las salas",
+      "placeholder": "Escribe aquí…",
+      "long": true,
+      "maxLength": 2000
+    },
+    {
+      "id": "p18_positivos",
+      "type": "text",
+      "section": "B · Salas de clases",
+      "prompt": "Aspectos positivos que conviene conservar",
+      "placeholder": "Escribe aquí…",
+      "long": true,
+      "maxLength": 2000
+    },
+    {
+      "id": "bloque_c",
+      "type": "info",
+      "sectionHeader": true,
+      "prompt": "Bloque C\n<div class=\"q\">Identidad y cierre</div>"
+    },
+    {
+      "id": "p19_espiritu_telares",
+      "type": "text",
+      "section": "C · Identidad y cierre",
+      "prompt": "¿Cómo podría el espacio físico expresar el espíritu de TELARES, el tejido entre disciplinas?",
+      "placeholder": "Escribe aquí…",
+      "long": true,
+      "maxLength": 2000
+    },
+    {
+      "id": "p20_comentarios",
+      "type": "text",
+      "section": "C · Identidad y cierre",
+      "prompt": "Comentarios finales",
+      "placeholder": "Escribe aquí…",
+      "long": true,
+      "maxLength": 2000
+    }
+  ]
+}

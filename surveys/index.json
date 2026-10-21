@@ -11,6 +11,24 @@
       "title": "Encuesta de demostración",
       "description": "Ejemplo que muestra todos los tipos de ítem disponibles: secciones, escalas Likert, opciones, texto, sliders, tareas cognitivas y más.",
       "file": "samplux_demo.json"
+    },
+    {
+      "id": "espacios-telares-2",
+      "title": "TELARES · Espacios del edificio (docentes)",
+      "description": "",
+      "file": "espacios-telares-2.json"
+    },
+    {
+      "id": "telares-jornada-estudiantes",
+      "title": "TELARES · Jornada «Derechos en Acción» (estudiantes)",
+      "description": "",
+      "file": "telares-jornada-estudiantes.json"
+    },
+    {
+      "id": "telares-jornada-monitores",
+      "title": "TELARES · Jornada «Derechos en Acción» (monitores/as)",
+      "description": "",
+      "file": "telares-jornada-monitores.json"
     }
   ]
 }

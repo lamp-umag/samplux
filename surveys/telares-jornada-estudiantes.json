@@ -1,0 +1,299 @@
+{
+  "id": "telares-jornada-estudiantes",
+  "title": "TELARES · Jornada «Derechos en Acción» (estudiantes)",
+  "description": "Evaluación anónima de la jornada del 16 de octubre de 2026 para estudiantes de Psicología, Trabajo Social y Derecho. Preguntas abiertas con opción de audio.",
+  "adminEmails": [
+    "mariajose.sandoval@umag.cl"
+  ],
+  "settings": {
+    "randomizeItems": false,
+    "thankYou": "<div class=\"q center\">¡Gracias por tu evaluación!</div><div class=\"info-text center\">Tus respuestas nos ayudan a mejorar las próximas jornadas.\n\nPuedes cerrar esta ventana.</div>"
+  },
+  "optionSets": {
+    "agree_5": [
+      {
+        "code": 1,
+        "label": "1 · Muy en desacuerdo"
+      },
+      {
+        "code": 2,
+        "label": "2"
+      },
+      {
+        "code": 3,
+        "label": "3"
+      },
+      {
+        "code": 4,
+        "label": "4"
+      },
+      {
+        "code": 5,
+        "label": "5 · Muy de acuerdo"
+      }
+    ]
+  },
+  "items": [
+    {
+      "id": "intro",
+      "type": "info",
+      "sectionHeader": true,
+      "prompt": "Evaluación de la jornada — estudiantes\n<img class=\"intro-logo\" src=\"surveys/assets/telares-logo.png\" alt=\"TELARES · Conocimientos 2030 UMAG\"><strong>Jornada «Derechos en Acción» · 16 de octubre de 2026</strong>\n\nPsicología · Trabajo Social · Derecho\n\nEsta evaluación es anónima. Su propósito es mejorar futuras versiones de la jornada. Responde con honestidad. Ninguna pregunta es obligatoria.\n\nLas preguntas abiertas puedes responderlas escribiendo o grabando tu voz (si grabas, el audio se transcribirá para el análisis del proyecto)."
+    },
+    {
+      "id": "p01_carrera",
+      "type": "single_choice",
+      "section": "1 · Datos generales",
+      "prompt": "Carrera",
+      "options": [
+        {
+          "code": 1,
+          "label": "Psicología"
+        },
+        {
+          "code": 2,
+          "label": "Trabajo Social"
+        },
+        {
+          "code": 3,
+          "label": "Derecho"
+        }
+      ]
+    },
+    {
+      "id": "p02_anio",
+      "type": "single_choice",
+      "section": "1 · Datos generales",
+      "prompt": "Año que cursas actualmente",
+      "options": [
+        {
+          "code": 1,
+          "label": "2° año"
+        },
+        {
+          "code": 2,
+          "label": "3° año"
+        }
+      ]
+    },
+    {
+      "id": "bloque_estructura",
+      "type": "info",
+      "sectionHeader": true,
+      "prompt": "Valoración de la jornada\n<div class=\"q\">Estructura y organización</div>"
+    },
+    {
+      "id": "v_est_objetivos",
+      "type": "agree_5",
+      "scale": "v_est",
+      "section": "2 · Valoración de la jornada · Estructura y organización",
+      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "prompt": "Los objetivos de la jornada fueron explicados con claridad al inicio."
+    },
+    {
+      "id": "v_est_tiempo",
+      "type": "agree_5",
+      "scale": "v_est",
+      "section": "2 · Valoración de la jornada · Estructura y organización",
+      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "prompt": "La organización del tiempo permitió trabajar el caso sin apuro ni tiempos muertos."
+    },
+    {
+      "id": "v_est_actividad_intro",
+      "type": "agree_5",
+      "scale": "v_est",
+      "section": "2 · Valoración de la jornada · Estructura y organización",
+      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "prompt": "La actividad introductoria en el grupo ayudó a generar un ambiente de trabajo cómodo."
+    },
+    {
+      "id": "v_est_acta",
+      "type": "agree_5",
+      "scale": "v_est",
+      "section": "2 · Valoración de la jornada · Estructura y organización",
+      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "prompt": "El acta de trabajo del monitor fue una guía útil para ordenar la discusión."
+    },
+    {
+      "id": "bloque_contenido",
+      "type": "info",
+      "sectionHeader": true,
+      "prompt": "Valoración de la jornada\n<div class=\"q\">Contenido y caso</div>"
+    },
+    {
+      "id": "v_cont_relevancia",
+      "type": "agree_5",
+      "scale": "v_cont",
+      "section": "2 · Valoración de la jornada · Contenido y caso",
+      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "prompt": "El caso asignado me pareció relevante para mi futura práctica profesional."
+    },
+    {
+      "id": "v_cont_tema",
+      "type": "agree_5",
+      "scale": "v_cont",
+      "section": "2 · Valoración de la jornada · Contenido y caso",
+      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "prompt": "El tema de los derechos de las personas mayores me resultó nuevo o me generó interés por conocer más."
+    },
+    {
+      "id": "v_cont_preguntas",
+      "type": "agree_5",
+      "scale": "v_cont",
+      "section": "2 · Valoración de la jornada · Contenido y caso",
+      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "prompt": "Las preguntas orientadoras del caso me ayudaron a pensar desde mi disciplina."
+    },
+    {
+      "id": "v_cont_magallanes",
+      "type": "agree_5",
+      "scale": "v_cont",
+      "section": "2 · Valoración de la jornada · Contenido y caso",
+      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "prompt": "La conexión entre el caso y la realidad de la Región de Magallanes me resultó significativa."
+    },
+    {
+      "id": "bloque_interdisciplinario",
+      "type": "info",
+      "sectionHeader": true,
+      "prompt": "Valoración de la jornada\n<div class=\"q\">Trabajo interdisciplinario</div>"
+    },
+    {
+      "id": "v_inter_perspectivas",
+      "type": "agree_5",
+      "scale": "v_inter",
+      "section": "2 · Valoración de la jornada · Trabajo interdisciplinario",
+      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "prompt": "Trabajar con estudiantes de otras carreras me aportó perspectivas que no habría tenido trabajando solo/a."
+    },
+    {
+      "id": "v_inter_aporte_carrera",
+      "type": "agree_5",
+      "scale": "v_inter",
+      "section": "2 · Valoración de la jornada · Trabajo interdisciplinario",
+      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "prompt": "En el grupo, cada carrera logró contribuir desde su propio enfoque disciplinar."
+    },
+    {
+      "id": "v_inter_preguntas_nuevas",
+      "type": "agree_5",
+      "scale": "v_inter",
+      "section": "2 · Valoración de la jornada · Trabajo interdisciplinario",
+      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "prompt": "La discusión grupal me generó preguntas que no tenía antes de la jornada."
+    },
+    {
+      "id": "v_inter_preparacion",
+      "type": "agree_5",
+      "scale": "v_inter",
+      "section": "2 · Valoración de la jornada · Trabajo interdisciplinario",
+      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "prompt": "Siento que la jornada me preparó mejor para trabajar en equipos profesionales interdisciplinarios."
+    },
+    {
+      "id": "bloque_presentaciones",
+      "type": "info",
+      "sectionHeader": true,
+      "prompt": "Valoración de la jornada\n<div class=\"q\">Presentaciones de las profesionales invitadas</div>"
+    },
+    {
+      "id": "v_pres_contexto",
+      "type": "agree_5",
+      "scale": "v_pres",
+      "section": "2 · Valoración de la jornada · Presentaciones de las profesionales invitadas",
+      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "prompt": "Las presentaciones de las profesionales invitadas fueron un aporte para contextualizar el tema."
+    },
+    {
+      "id": "v_pres_influencia",
+      "type": "agree_5",
+      "scale": "v_pres",
+      "section": "2 · Valoración de la jornada · Presentaciones de las profesionales invitadas",
+      "instruction": "Indica qué tan de acuerdo estás con cada afirmación.",
+      "prompt": "Lo que escuché de las profesionales invitadas influyó en cómo analicé el caso posteriormente."
+    },
+    {
+      "id": "bloque_preguntas_abiertas",
+      "type": "info",
+      "sectionHeader": true,
+      "prompt": "Preguntas abiertas\n<div class=\"q\">Cuéntanos con tus palabras</div>"
+    },
+    {
+      "id": "o1_valioso",
+      "type": "text",
+      "section": "3 · Preguntas abiertas",
+      "prompt": "¿Qué fue lo más valioso de la jornada para ti? Puede ser algo que aprendiste, una perspectiva nueva, una duda que se te abrió, o cualquier otra cosa.",
+      "placeholder": "Escribe aquí…",
+      "long": true,
+      "maxLength": 2000,
+      "response": "either",
+      "maxSeconds": 90
+    },
+    {
+      "id": "o2_mejorar",
+      "type": "text",
+      "section": "3 · Preguntas abiertas",
+      "prompt": "¿Qué mejorarías de la jornada? Puede ser algo del caso, de la estructura, del tiempo, del trabajo en grupo, o de cualquier otro aspecto.",
+      "placeholder": "Escribe aquí…",
+      "long": true,
+      "maxLength": 2000,
+      "response": "either",
+      "maxSeconds": 90
+    },
+    {
+      "id": "o3_pregunta_sin_respuesta",
+      "type": "text",
+      "section": "3 · Preguntas abiertas",
+      "prompt": "¿Qué pregunta te quedó sin respuesta después de la jornada?",
+      "placeholder": "Escribe aquí…",
+      "long": true,
+      "maxLength": 2000,
+      "response": "either",
+      "maxSeconds": 90
+    },
+    {
+      "id": "g1_global",
+      "type": "single_choice",
+      "section": "4 · Valoración global",
+      "prompt": "Evaluación global de la jornada",
+      "options": [
+        {
+          "code": 1,
+          "label": "Muy buena"
+        },
+        {
+          "code": 2,
+          "label": "Buena"
+        },
+        {
+          "code": 3,
+          "label": "Regular"
+        },
+        {
+          "code": 4,
+          "label": "Mala"
+        }
+      ]
+    },
+    {
+      "id": "g2_proximo_anio",
+      "type": "single_choice",
+      "section": "4 · Valoración global",
+      "prompt": "¿Te gustaría participar en una actividad similar el próximo año?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Sí"
+        },
+        {
+          "code": 2,
+          "label": "No"
+        },
+        {
+          "code": 3,
+          "label": "No sé"
+        }
+      ]
+    }
+  ]
+}
