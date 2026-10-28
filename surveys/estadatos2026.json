@@ -1766,7 +1766,7 @@
     {
       "id": "cierre_intro",
       "type": "info",
-      "prompt": "Para finalizar\nTres preguntas abiertas, todas opcionales. Puedes escribir o, si prefieres, grabar un audio de hasta 30 segundos.",
+      "prompt": "Para finalizar\nTres preguntas abiertas, todas opcionales.",
       "sectionHeader": true,
       "section": "Cierre"
     },
@@ -1775,22 +1775,16 @@
       "prompt": "¿Cómo definirías tu orientación política? Con una palabra o con una breve frase puedes mencionar una tendencia, un partido, un movimiento o una figura pública con la que te sientas identificado/a",
       "maxLength": 150,
       "type": "text",
-      "response": "either",
-      "maxSeconds": 30,
       "required": false,
-      "section": "Cierre",
-      "audioNote": "Si grabas tu respuesta, el audio se transcribirá para el análisis y luego se eliminará."
+      "section": "Cierre"
     },
     {
       "id": "orientacion_religiosa_abierta",
       "prompt": "¿Cómo definirías tu orientación religiosa? Con una palabra o con una breve frase puedes mencionar tu religión, o tu postura o visión sobre temas religiosos o trascendentes",
       "maxLength": 150,
       "type": "text",
-      "response": "either",
-      "maxSeconds": 30,
       "required": false,
-      "section": "Cierre",
-      "audioNote": "Si grabas tu respuesta, el audio se transcribirá para el análisis y luego se eliminará."
+      "section": "Cierre"
     },
     {
       "id": "comentario_final",
@@ -1798,11 +1792,8 @@
       "long": true,
       "maxLength": 600,
       "type": "text",
-      "response": "either",
-      "maxSeconds": 30,
       "required": false,
-      "section": "Cierre",
-      "audioNote": "Si grabas tu respuesta, el audio se transcribirá para el análisis y luego se eliminará."
+      "section": "Cierre"
     }
   ]
 }
