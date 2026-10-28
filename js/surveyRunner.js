@@ -25,6 +25,11 @@ import { run as runGoNoGo } from './tasks/gonogo.js';
 //   Clips are stored as Firestore Bytes in responses/<surveyId>/audio/<responseId>__<itemId>;
 //   the response doc gets `audio: { itemId: { docId, mime, bytes, durationMs, reRecords } }`.
 //   Typed text (if any) still goes to answers[itemId]. See docs/ARCHITECTURE.md.
+// - `text` item `audioNote`: small note shown under the recorder while voice mode is active
+//   (e.g. "el audio se elimina tras la transcripción").
+// - settings.randomizeItems "blocks": block → instrument → item randomization; see shuffleByBlocks.
+// - `number` item `decimal: true`: decimal keypad (e.g. hours).
+// - `task_rt` item: `title`, `desc`, `prompt` (launch-screen explanation), `taskConfig: { nPractice, nTest }`.
 // - survey.settings.thankYou: HTML that replaces the default thank-you message.
 export const APP_CONFIG = {
   enableParadata: true,
@@ -273,6 +278,55 @@ export function createSurveyApp({ db, elements }) {
     return Math.max(0, i);
   }
 
+  // randomizeItems: "blocks" — three-level randomization for long, multi-instrument surveys.
+  //   item.block  : big section id. Runs of consecutive items sharing a block form a block;
+  //                 items WITHOUT `block` are fixed anchors (consent, tasks, sensitive sections)
+  //                 and split the survey into independent segments.
+  //   item.scale  : instrument id inside a block.
+  // Per segment: block order is shuffled (settings.shuffleBlocks, default true); inside a block
+  // the instrument order is shuffled (settings.shuffleScales, default true); inside an
+  // instrument the items are shuffled (settings.shuffleItems, default true) — except that leading
+  // `info` items (the instrument's instructions) stay first, and an instrument where any item has
+  // `noShuffle: true` keeps its authored order (gating questions, mixed response formats).
+  function shuffleByBlocks(items, settings = {}) {
+    const on = key => settings[key] !== false;
+    const groupRuns = (arr, keyFn) => {
+      const runs = [];
+      for (const it of arr) {
+        const k = keyFn(it);
+        const last = runs[runs.length - 1];
+        if (last && last.key === k) last.items.push(it); else runs.push({ key: k, items: [it] });
+      }
+      return runs;
+    };
+    const shuffleScale = unit => {
+      let lead = 0;
+      while (lead < unit.length && unit[lead].type === 'info') lead++;
+      if (!on('shuffleItems') || unit.some(it => it.noShuffle)) return unit;
+      return [...unit.slice(0, lead), ...shuffle(unit.slice(lead))];
+    };
+    const shuffleBlock = blockItems => {
+      let units = groupRuns(blockItems, it => it.scale || it.id).map(r => shuffleScale(r.items));
+      if (on('shuffleScales')) units = shuffle(units);
+      return units.flat();
+    };
+    const out = [];
+    let segment = [];
+    const flush = () => {
+      if (!segment.length) return;
+      let blocks = groupRuns(segment, it => it.block).map(r => shuffleBlock(r.items));
+      if (on('shuffleBlocks')) blocks = shuffle(blocks);
+      out.push(...blocks.flat());
+      segment = [];
+    };
+    for (const it of items) {
+      if (it.block) segment.push(it);
+      else { flush(); out.push(it); }
+    }
+    flush();
+    return out;
+  }
+
   function applyRandomization(surveyCopy) {
     const mode = surveyCopy.settings && surveyCopy.settings.randomizeItems;
     if (!mode || mode === false) {
@@ -343,6 +397,8 @@ export function createSurveyApp({ db, elements }) {
         scaleBlocks.push(block);
       }
       surveyCopy.items = noScaleItems.concat(...shuffle(scaleBlocks));
+    } else if (mode === 'blocks') {
+      surveyCopy.items = shuffleByBlocks(items, surveyCopy.settings);
     } else if (mode === 'between_dimensions') {
       const dimBlocks = [];
       const noDimItems = [];
@@ -772,7 +828,8 @@ export function createSurveyApp({ db, elements }) {
     if (item.type === 'number') {
       const input = document.createElement('input');
       input.type = 'number';
-      input.inputMode = 'numeric';
+      input.inputMode = item.decimal ? 'decimal' : 'numeric';
+      if (item.decimal) input.step = 'any';
       input.placeholder = item.placeholder || '';
       if (typeof item.min === 'number') input.min = String(item.min);
       if (typeof item.max === 'number') input.max = String(item.max);
@@ -841,6 +898,9 @@ export function createSurveyApp({ db, elements }) {
       if (canRecord) {
         const maxSeconds = clampMaxSeconds(item.maxSeconds);
         const audioArea = document.createElement('div');
+        // `audioNote`: small privacy/usage note shown only while the voice option is active.
+        const audioNote = item.audioNote ? document.createElement('div') : null;
+        if (audioNote) { audioNote.className = 'tiny'; audioNote.style.marginTop = '8px'; audioNote.textContent = item.audioNote; }
         let mounted = false;
         const mountAudio = () => {
           if (mounted) return;
@@ -860,6 +920,7 @@ export function createSurveyApp({ db, elements }) {
             const audioMode = mode === 'audio';
             input.style.display = audioMode ? 'none' : '';
             audioArea.style.display = audioMode ? '' : 'none';
+            if (audioNote) audioNote.style.display = audioMode ? '' : 'none';
             tText.classList.toggle('primary', !audioMode); tText.classList.toggle('secondary', audioMode);
             tAudio.classList.toggle('primary', audioMode); tAudio.classList.toggle('secondary', !audioMode);
             if (audioMode) mountAudio();
@@ -867,11 +928,11 @@ export function createSurveyApp({ db, elements }) {
           tText.onclick = () => setMode('text');
           tAudio.onclick = () => setMode('audio');
           tabs.append(tText, tAudio);
-          optionsContainer.append(tabs, input, audioArea);
+          optionsContainer.append(tabs, input, audioArea, ...(audioNote ? [audioNote] : []));
           setMode(audioClips[item.id] && !answers[item.id] ? 'audio' : 'text');
         } else {
           input.style.display = 'none';
-          optionsContainer.append(audioArea);
+          optionsContainer.append(audioArea, ...(audioNote ? [audioNote] : []));
           mountAudio();
         }
       } else {
@@ -1043,12 +1104,15 @@ export function createSurveyApp({ db, elements }) {
         task_stroop: { icon: '🎨', title: 'Test de Stroop',     desc: '~3 min · Identifica el color de la tinta',   color: '#000000' },
         task_gonogo: { icon: '🚦', title: 'Go / No-Go',          desc: '~2 min · Toca el círculo verde, no la X roja', color: '#000000' },
       };
-      const info = TASK_INFO[item.type];
+      // Per-item overrides: `title`, `desc`, `prompt` (explanatory text shown on the launch
+      // screen) and `taskConfig` ({ nPractice, nTest } for task_rt).
+      const info = { ...TASK_INFO[item.type], ...(item.title && { title: item.title }), ...(item.desc && { desc: item.desc }) };
       questionContainer.innerHTML = `
         <div class="task-launch-wrap">
           <div class="task-launch-icon" style="background:${info.color}20;color:${info.color}">${info.icon}</div>
           <div class="task-launch-title">${info.title}</div>
           <div class="task-launch-desc">${info.desc}</div>
+          ${item.prompt ? `<div class="info-text">${item.prompt}</div>` : ''}
         </div>`;
       optionsContainer.innerHTML = '';
 
@@ -1063,7 +1127,7 @@ export function createSurveyApp({ db, elements }) {
         document.body.appendChild(overlay);
         try {
           let result;
-          if (item.type === 'task_rt')     result = await runRT(overlay);
+          if (item.type === 'task_rt')     result = await runRT(overlay, item.taskConfig);
           if (item.type === 'task_stroop') result = await runStroop(overlay);
           if (item.type === 'task_gonogo') result = await runGoNoGo(overlay);
           if (result) answers[item.id] = result;

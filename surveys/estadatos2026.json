@@ -1,0 +1,1808 @@
+{
+  "id": "estadatos2026",
+  "title": "EstaDatos 2026",
+  "description": "Cuestionario colaborativo de la asignatura Análisis de Datos (Psicología, Universidad de Magallanes). ~15–20 minutos.",
+  "settings": {
+    "randomizeItems": "blocks",
+    "thankYou": "<div class=\"q center\">¡Muchas gracias por participar!</div><div class=\"info-text center\">Tus respuestas fueron registradas de forma anónima y se usarán solo con fines académicos.\n\nPuedes cerrar esta ventana.</div>"
+  },
+  "optionSets": {
+    "esc_frec5": [
+      {
+        "code": 1,
+        "label": "Nunca"
+      },
+      {
+        "code": 2,
+        "label": "Rara vez"
+      },
+      {
+        "code": 3,
+        "label": "A veces"
+      },
+      {
+        "code": 4,
+        "label": "Frecuentemente"
+      },
+      {
+        "code": 5,
+        "label": "Siempre"
+      }
+    ],
+    "esc_pss5": [
+      {
+        "code": 1,
+        "label": "Nunca"
+      },
+      {
+        "code": 2,
+        "label": "Casi nunca"
+      },
+      {
+        "code": 3,
+        "label": "A veces"
+      },
+      {
+        "code": 4,
+        "label": "A menudo"
+      },
+      {
+        "code": 5,
+        "label": "Muy a menudo"
+      }
+    ],
+    "esc_acuerdo4": [
+      {
+        "code": 1,
+        "label": "Totalmente en desacuerdo"
+      },
+      {
+        "code": 2,
+        "label": "En desacuerdo"
+      },
+      {
+        "code": 3,
+        "label": "De acuerdo"
+      },
+      {
+        "code": 4,
+        "label": "Totalmente de acuerdo"
+      }
+    ],
+    "esc_acuerdo5": [
+      {
+        "code": 1,
+        "label": "Totalmente en desacuerdo"
+      },
+      {
+        "code": 2,
+        "label": "En desacuerdo"
+      },
+      {
+        "code": 3,
+        "label": "Ni de acuerdo ni en desacuerdo"
+      },
+      {
+        "code": 4,
+        "label": "De acuerdo"
+      },
+      {
+        "code": 5,
+        "label": "Totalmente de acuerdo"
+      }
+    ],
+    "esc_acuerdo6": [
+      {
+        "code": 1,
+        "label": "Totalmente en desacuerdo"
+      },
+      {
+        "code": 2,
+        "label": "En desacuerdo"
+      },
+      {
+        "code": 3,
+        "label": "Algo en desacuerdo"
+      },
+      {
+        "code": 4,
+        "label": "Algo de acuerdo"
+      },
+      {
+        "code": 5,
+        "label": "De acuerdo"
+      },
+      {
+        "code": 6,
+        "label": "Totalmente de acuerdo"
+      }
+    ],
+    "esc_cantidad5": [
+      {
+        "code": 1,
+        "label": "Nada"
+      },
+      {
+        "code": 2,
+        "label": "Poco"
+      },
+      {
+        "code": 3,
+        "label": "Algo"
+      },
+      {
+        "code": 4,
+        "label": "Bastante"
+      },
+      {
+        "code": 5,
+        "label": "Mucho"
+      }
+    ],
+    "esc_concentra5": [
+      {
+        "code": 1,
+        "label": "Mala"
+      },
+      {
+        "code": 2,
+        "label": "Regular"
+      },
+      {
+        "code": 3,
+        "label": "Promedio"
+      },
+      {
+        "code": 4,
+        "label": "Buena"
+      },
+      {
+        "code": 5,
+        "label": "Muy buena"
+      }
+    ],
+    "esc_calidad5": [
+      {
+        "code": 1,
+        "label": "Muy mala"
+      },
+      {
+        "code": 2,
+        "label": "Mala"
+      },
+      {
+        "code": 3,
+        "label": "Regular"
+      },
+      {
+        "code": 4,
+        "label": "Buena"
+      },
+      {
+        "code": 5,
+        "label": "Muy buena"
+      }
+    ],
+    "esc_dias7": [
+      {
+        "code": 0,
+        "label": "Ningún día"
+      },
+      {
+        "code": 1,
+        "label": "1 día"
+      },
+      {
+        "code": 2,
+        "label": "2 días"
+      },
+      {
+        "code": 3,
+        "label": "3 días"
+      },
+      {
+        "code": 4,
+        "label": "4 días"
+      },
+      {
+        "code": 5,
+        "label": "5 días"
+      },
+      {
+        "code": 6,
+        "label": "6 días"
+      },
+      {
+        "code": 7,
+        "label": "7 días"
+      }
+    ],
+    "esc_soledad4": [
+      {
+        "code": 1,
+        "label": "Nunca"
+      },
+      {
+        "code": 2,
+        "label": "Muy pocas veces"
+      },
+      {
+        "code": 3,
+        "label": "Con cierta frecuencia"
+      },
+      {
+        "code": 4,
+        "label": "A menudo o siempre"
+      }
+    ],
+    "esc_politica11": [
+      {
+        "code": 0,
+        "label": "0 · Izquierda"
+      },
+      {
+        "code": 1,
+        "label": "1"
+      },
+      {
+        "code": 2,
+        "label": "2"
+      },
+      {
+        "code": 3,
+        "label": "3"
+      },
+      {
+        "code": 4,
+        "label": "4"
+      },
+      {
+        "code": 5,
+        "label": "5"
+      },
+      {
+        "code": 6,
+        "label": "6"
+      },
+      {
+        "code": 7,
+        "label": "7"
+      },
+      {
+        "code": 8,
+        "label": "8"
+      },
+      {
+        "code": 9,
+        "label": "9"
+      },
+      {
+        "code": 10,
+        "label": "10 · Derecha"
+      }
+    ],
+    "esc_audit1": [
+      {
+        "code": 0,
+        "label": "Nunca"
+      },
+      {
+        "code": 1,
+        "label": "1 o menos veces al mes"
+      },
+      {
+        "code": 2,
+        "label": "2 a 4 veces al mes"
+      },
+      {
+        "code": 3,
+        "label": "2 a 3 veces por semana"
+      },
+      {
+        "code": 4,
+        "label": "4 o más veces a la semana"
+      }
+    ],
+    "esc_audit2": [
+      {
+        "code": 0,
+        "label": "Nunca"
+      },
+      {
+        "code": 1,
+        "label": "Menos de 1 vez al mes"
+      },
+      {
+        "code": 2,
+        "label": "Mensualmente"
+      },
+      {
+        "code": 3,
+        "label": "Semanalmente"
+      },
+      {
+        "code": 4,
+        "label": "A diario o casi a diario"
+      }
+    ]
+  },
+  "items": [
+    {
+      "id": "bienvenida",
+      "type": "info",
+      "prompt": "EstaDatos 2026\n¡Hola! Este cuestionario fue creado de forma colaborativa por los distintos grupos de la asignatura Análisis de Datos de Psicología (Universidad de Magallanes). Por eso aborda temáticas muy diversas: bienestar, hábitos, tecnología, relaciones y actitudes, entre otras.\n\n• Es voluntario: puedes dejar de responder cuando quieras.\n• Es anónimo: no te pedimos nombre ni datos de contacto.\n• Toda la información será tratada con respeto y solo con fines académicos.\n\nTe tomará entre 15 y 20 minutos, e incluye una breve tarea de tiempo de respuesta a la mitad. Algunas preguntas tocan temas personales: en esas puedes saltarte la respuesta si prefieres no contestar.",
+      "sectionHeader": true
+    },
+    {
+      "id": "consentimiento",
+      "type": "single_choice",
+      "required": true,
+      "section": "Antes de comenzar",
+      "prompt": "¿Aceptas participar?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Acepto participar"
+        },
+        {
+          "code": 2,
+          "label": "No deseo participar"
+        }
+      ],
+      "exitOnAnswer": [
+        2
+      ],
+      "exitMessage": "<div class=\"q center\">Gracias por tu tiempo.</div><div class=\"info-text center\">No se ha guardado ninguna respuesta.\n\nPuedes cerrar esta ventana.</div>"
+    },
+    {
+      "id": "datos_intro",
+      "type": "info",
+      "prompt": "Datos generales\nPrimero, dos datos para clasificar las respuestas.",
+      "sectionHeader": true,
+      "section": "Datos generales"
+    },
+    {
+      "id": "edad",
+      "type": "number",
+      "required": true,
+      "section": "Datos generales",
+      "prompt": "¿Cuántos años tienes?",
+      "min": 15,
+      "max": 99,
+      "placeholder": "Edad en años",
+      "rangeHelp": "Ingresa tu edad en años (entre 15 y 99)."
+    },
+    {
+      "id": "genero",
+      "type": "single_choice",
+      "required": true,
+      "section": "Datos generales",
+      "prompt": "¿Con qué género te identificas?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Masculino"
+        },
+        {
+          "code": 2,
+          "label": "Femenino"
+        },
+        {
+          "code": 3,
+          "label": "Otro"
+        }
+      ],
+      "followUp": {
+        "id": "genero_otro",
+        "whenCode": 3,
+        "prompt": "¿Cuál?",
+        "placeholder": "Escribe aquí…",
+        "maxLength": 60
+      }
+    },
+    {
+      "id": "be_intro",
+      "type": "info",
+      "prompt": "Cómo te has sentido\nLas siguientes afirmaciones se refieren a cómo te has sentido durante las últimas dos semanas. Indica con qué frecuencia te has sentido así.",
+      "sectionHeader": true,
+      "section": "Bienestar y emociones",
+      "block": "b1",
+      "scale": "be"
+    },
+    {
+      "id": "be01",
+      "type": "esc_frec5",
+      "scale": "be",
+      "block": "b1",
+      "section": "Bienestar y emociones",
+      "prompt": "Durante las últimas dos semanas, me he sentido alegre y de buen ánimo.",
+      "required": true
+    },
+    {
+      "id": "be02",
+      "type": "esc_frec5",
+      "scale": "be",
+      "block": "b1",
+      "section": "Bienestar y emociones",
+      "prompt": "Durante las últimas dos semanas, me he sentido tranquilo/a y relajado/a.",
+      "required": true
+    },
+    {
+      "id": "be03",
+      "type": "esc_frec5",
+      "scale": "be",
+      "block": "b1",
+      "section": "Bienestar y emociones",
+      "prompt": "Durante las últimas dos semanas, me he sentido activo/a y con energía.",
+      "required": true
+    },
+    {
+      "id": "be04",
+      "type": "esc_frec5",
+      "scale": "be",
+      "block": "b1",
+      "section": "Bienestar y emociones",
+      "prompt": "Durante las últimas dos semanas, mi vida cotidiana ha estado llena de cosas que me interesan.",
+      "required": true
+    },
+    {
+      "id": "au_intro",
+      "type": "info",
+      "prompt": "Cómo te ves a ti mismo/a\nLas siguientes afirmaciones describen cómo te sientes respecto de ti mismo/a. Indica tu grado de acuerdo con cada una.",
+      "sectionHeader": true,
+      "section": "Bienestar y emociones",
+      "block": "b1",
+      "scale": "au"
+    },
+    {
+      "id": "au01",
+      "type": "esc_acuerdo4",
+      "scale": "au",
+      "block": "b1",
+      "section": "Bienestar y emociones",
+      "prompt": "En general, me siento satisfecho/a conmigo mismo/a.",
+      "required": true
+    },
+    {
+      "id": "au02",
+      "type": "esc_acuerdo4",
+      "scale": "au",
+      "block": "b1",
+      "section": "Bienestar y emociones",
+      "prompt": "Siento que tengo un buen número de cualidades o características positivas.",
+      "required": true
+    },
+    {
+      "id": "au03",
+      "type": "esc_acuerdo4",
+      "scale": "au",
+      "block": "b1",
+      "section": "Bienestar y emociones",
+      "prompt": "Soy capaz de hacer las cosas tan bien como la mayoría de las demás personas.",
+      "required": true
+    },
+    {
+      "id": "au04",
+      "type": "esc_acuerdo4",
+      "scale": "au",
+      "block": "b1",
+      "section": "Bienestar y emociones",
+      "prompt": "Siento que soy una persona valiosa, al menos en la misma medida que los demás.",
+      "required": true
+    },
+    {
+      "id": "au05",
+      "type": "esc_acuerdo4",
+      "scale": "au",
+      "block": "b1",
+      "section": "Bienestar y emociones",
+      "prompt": "Tengo una actitud positiva y favorable hacia mí mismo/a.",
+      "required": true
+    },
+    {
+      "id": "ep_intro",
+      "type": "info",
+      "prompt": "Estrés\nLas siguientes afirmaciones se refieren a cómo te has sentido durante el último mes. Indica con qué frecuencia te has sentido o pensado de esa manera.",
+      "sectionHeader": true,
+      "section": "Bienestar y emociones",
+      "block": "b1",
+      "scale": "ep"
+    },
+    {
+      "id": "ep01",
+      "type": "esc_pss5",
+      "scale": "ep",
+      "block": "b1",
+      "section": "Bienestar y emociones",
+      "prompt": "Durante el último mes, ¿con qué frecuencia te has sentido nervioso/a o estresado/a?",
+      "required": true
+    },
+    {
+      "id": "ep02",
+      "type": "esc_pss5",
+      "scale": "ep",
+      "block": "b1",
+      "section": "Bienestar y emociones",
+      "prompt": "Durante el último mes, ¿con qué frecuencia has sentido que las cosas te sobrepasaban?",
+      "required": true
+    },
+    {
+      "id": "ep03",
+      "type": "esc_pss5",
+      "scale": "ep",
+      "block": "b1",
+      "section": "Bienestar y emociones",
+      "prompt": "Durante el último mes, ¿con qué frecuencia te has sentido incapaz de controlar las cosas importantes de tu vida?",
+      "required": true
+    },
+    {
+      "id": "ep04",
+      "type": "esc_pss5",
+      "scale": "ep",
+      "block": "b1",
+      "section": "Bienestar y emociones",
+      "prompt": "Durante el último mes, ¿con qué frecuencia te has sentido seguro/a de poder manejar tus problemas personales?",
+      "required": true
+    },
+    {
+      "id": "ep05",
+      "type": "esc_pss5",
+      "scale": "ep",
+      "block": "b1",
+      "section": "Bienestar y emociones",
+      "prompt": "Durante el último mes, ¿con qué frecuencia has sentido que las cosas te salían como querías?",
+      "required": true
+    },
+    {
+      "id": "tf_intro",
+      "type": "info",
+      "prompt": "Ante situaciones difíciles\nLas siguientes afirmaciones describen cómo reaccionas habitualmente ante situaciones difíciles o frustrantes. Indica tu grado de acuerdo con cada una.",
+      "sectionHeader": true,
+      "section": "Bienestar y emociones",
+      "block": "b1",
+      "scale": "tf"
+    },
+    {
+      "id": "tf01",
+      "type": "esc_acuerdo5",
+      "scale": "tf",
+      "block": "b1",
+      "section": "Bienestar y emociones",
+      "prompt": "Cuando estoy ante un problema, normalmente analizo con tranquilidad la causa del problema.",
+      "required": true
+    },
+    {
+      "id": "tf02",
+      "type": "esc_acuerdo5",
+      "scale": "tf",
+      "block": "b1",
+      "section": "Bienestar y emociones",
+      "prompt": "Cuando hay un problema, reacciono con calma sin enojarme.",
+      "required": true
+    },
+    {
+      "id": "tf03",
+      "type": "esc_acuerdo5",
+      "scale": "tf",
+      "block": "b1",
+      "section": "Bienestar y emociones",
+      "prompt": "Cuando me enfrento a un problema, no me rindo fácilmente.",
+      "required": true
+    },
+    {
+      "id": "tf04",
+      "type": "esc_acuerdo5",
+      "scale": "tf",
+      "block": "b1",
+      "section": "Bienestar y emociones",
+      "prompt": "A pesar de tener resultados adversos en mis actividades de trabajo o estudio, siento satisfacción si he dado lo mejor de mí.",
+      "required": true
+    },
+    {
+      "id": "tf05",
+      "type": "esc_acuerdo5",
+      "scale": "tf",
+      "block": "b1",
+      "section": "Bienestar y emociones",
+      "prompt": "Generalmente reacciono con tranquilidad ante las diferencias que tengo con mis amigos.",
+      "required": true
+    },
+    {
+      "id": "tf06",
+      "type": "esc_acuerdo5",
+      "scale": "tf",
+      "block": "b1",
+      "section": "Bienestar y emociones",
+      "prompt": "Cuando mis padres se molestan conmigo, trato de controlar la situación.",
+      "required": true
+    },
+    {
+      "id": "rm_intro",
+      "type": "info",
+      "prompt": "La música y tu ánimo\nLas siguientes afirmaciones describen formas en que las personas usan la música. Indica cuánto te identificas con cada una.",
+      "sectionHeader": true,
+      "section": "Bienestar y emociones",
+      "block": "b1",
+      "scale": "rm"
+    },
+    {
+      "id": "rm01",
+      "type": "esc_acuerdo5",
+      "scale": "rm",
+      "block": "b1",
+      "section": "Bienestar y emociones",
+      "prompt": "Cuando me siento mal, escucho música para mejorar mi estado de ánimo.",
+      "required": true
+    },
+    {
+      "id": "rm02",
+      "type": "esc_acuerdo5",
+      "scale": "rm",
+      "block": "b1",
+      "section": "Bienestar y emociones",
+      "prompt": "Escucho música para distraerme de pensamientos o sentimientos negativos.",
+      "required": true
+    },
+    {
+      "id": "rm03",
+      "type": "esc_acuerdo5",
+      "scale": "rm",
+      "block": "b1",
+      "section": "Bienestar y emociones",
+      "prompt": "Cuando estoy preocupado/a, escucho música para sentirme mejor.",
+      "required": true
+    },
+    {
+      "id": "rm04",
+      "type": "esc_acuerdo5",
+      "scale": "rm",
+      "block": "b1",
+      "section": "Bienestar y emociones",
+      "prompt": "Cuando estoy triste, escuchar música me ayuda a sentirme reconfortado/a.",
+      "required": true
+    },
+    {
+      "id": "so_intro",
+      "type": "info",
+      "prompt": "Tus relaciones sociales\nLas siguientes afirmaciones describen cómo te sientes respecto de tus relaciones sociales. Indica con qué frecuencia te ocurren.",
+      "sectionHeader": true,
+      "section": "Bienestar y emociones",
+      "block": "b1",
+      "scale": "so"
+    },
+    {
+      "id": "so01",
+      "type": "esc_soledad4",
+      "scale": "so",
+      "block": "b1",
+      "section": "Bienestar y emociones",
+      "prompt": "¿Con qué frecuencia sientes que te falta compañía?",
+      "required": true
+    },
+    {
+      "id": "so02",
+      "type": "esc_soledad4",
+      "scale": "so",
+      "block": "b1",
+      "section": "Bienestar y emociones",
+      "prompt": "¿Con qué frecuencia te sientes aislado/a de los demás?",
+      "required": true
+    },
+    {
+      "id": "so03",
+      "type": "esc_soledad4",
+      "scale": "so",
+      "block": "b1",
+      "section": "Bienestar y emociones",
+      "prompt": "¿Con qué frecuencia sientes que hay personas de las que realmente puedes depender?",
+      "required": true
+    },
+    {
+      "id": "af_intro",
+      "type": "info",
+      "prompt": "Actividad física\nA continuación encontrarás una serie de afirmaciones sobre tu actividad física habitual. Indica con qué frecuencia realizas cada una de las siguientes conductas durante una semana típica.",
+      "sectionHeader": true,
+      "section": "Hábitos y vida diaria",
+      "block": "b2",
+      "scale": "af"
+    },
+    {
+      "id": "af01",
+      "type": "esc_frec5",
+      "scale": "af",
+      "block": "b2",
+      "section": "Hábitos y vida diaria",
+      "prompt": "En una semana habitual, realizo actividades físicas intensas o deportes que requieren un esfuerzo muscular fuerte (ej. entrenamientos, correr, spinning).",
+      "required": true
+    },
+    {
+      "id": "af02",
+      "type": "esc_frec5",
+      "scale": "af",
+      "block": "b2",
+      "section": "Hábitos y vida diaria",
+      "prompt": "Dedico al menos 30 minutos al día a realizar actividades físicas de intensidad moderada (ej. andar a paso ligero, andar en bicicleta o ejercicios suaves).",
+      "required": true
+    },
+    {
+      "id": "af03",
+      "type": "esc_frec5",
+      "scale": "af",
+      "block": "b2",
+      "section": "Hábitos y vida diaria",
+      "prompt": "Camino de manera continua durante al menos 10 minutos seguidos para trasladarme o como forma de ejercicio en mi vida diaria.",
+      "required": true
+    },
+    {
+      "id": "af04",
+      "type": "esc_frec5",
+      "scale": "af",
+      "block": "b2",
+      "section": "Hábitos y vida diaria",
+      "prompt": "Mantengo una rutina regular de ejercicio o actividad física durante la semana.",
+      "required": true
+    },
+    {
+      "id": "af05",
+      "type": "esc_frec5",
+      "scale": "af",
+      "block": "b2",
+      "section": "Hábitos y vida diaria",
+      "prompt": "Suelo pasar menos de 6 horas al día en posición sentada o reclinada durante mi jornada diaria.",
+      "required": true
+    },
+    {
+      "id": "cs_intro",
+      "type": "info",
+      "prompt": "Sueño\nLas siguientes preguntas se refieren a tus hábitos de sueño durante el último mes. Responde según corresponda a tu caso.",
+      "sectionHeader": true,
+      "section": "Hábitos y vida diaria",
+      "block": "b2",
+      "scale": "cs"
+    },
+    {
+      "id": "cs01",
+      "type": "number",
+      "scale": "cs",
+      "block": "b2",
+      "section": "Hábitos y vida diaria",
+      "prompt": "¿Cuánto tiempo habrá tardado en dormirse, normalmente, las noches del último mes?",
+      "required": true,
+      "noShuffle": true,
+      "min": 0,
+      "max": 600,
+      "placeholder": "Minutos",
+      "instruction": "Escribe la cantidad de minutos.",
+      "rangeHelp": "Ingresa los minutos (entre 0 y 600)."
+    },
+    {
+      "id": "cs02",
+      "type": "number",
+      "scale": "cs",
+      "block": "b2",
+      "section": "Hábitos y vida diaria",
+      "prompt": "¿Cuántas horas calcula que habrá dormido verdaderamente cada noche durante el último mes?",
+      "required": true,
+      "noShuffle": true,
+      "min": 0,
+      "max": 24,
+      "decimal": true,
+      "placeholder": "Horas",
+      "instruction": "Escribe la cantidad de horas (puedes usar decimales, por ejemplo 6.5).",
+      "rangeHelp": "Ingresa las horas (entre 0 y 24)."
+    },
+    {
+      "id": "cs03",
+      "type": "esc_dias7",
+      "scale": "cs",
+      "block": "b2",
+      "section": "Hábitos y vida diaria",
+      "prompt": "Durante el último mes, ¿cuántos días a la semana, en promedio, ha sentido somnolencia mientras estudiaba, comía o desarrollaba alguna otra actividad?",
+      "required": true,
+      "noShuffle": true
+    },
+    {
+      "id": "cs04",
+      "type": "esc_frec5",
+      "scale": "cs",
+      "block": "b2",
+      "section": "Hábitos y vida diaria",
+      "prompt": "Durante el último mes, ¿con qué frecuencia ha tenido dificultades para conciliar el sueño?",
+      "required": true,
+      "noShuffle": true
+    },
+    {
+      "id": "cs05",
+      "type": "esc_calidad5",
+      "scale": "cs",
+      "block": "b2",
+      "section": "Hábitos y vida diaria",
+      "prompt": "Durante el último mes, ¿cómo evaluaría la calidad general de su sueño?",
+      "required": true,
+      "noShuffle": true
+    },
+    {
+      "id": "hd_intro",
+      "type": "info",
+      "prompt": "Desayuno\nLas siguientes preguntas se refieren a tus hábitos de desayuno durante la semana. Indica cuánto te identificas con cada afirmación.",
+      "sectionHeader": true,
+      "section": "Hábitos y vida diaria",
+      "block": "b2",
+      "scale": "hd"
+    },
+    {
+      "id": "hd01",
+      "type": "esc_cantidad5",
+      "scale": "hd",
+      "block": "b2",
+      "section": "Hábitos y vida diaria",
+      "prompt": "¿Qué tan regularmente desayunas antes de comenzar tu jornada de clases?",
+      "required": true
+    },
+    {
+      "id": "hd02",
+      "type": "esc_cantidad5",
+      "scale": "hd",
+      "block": "b2",
+      "section": "Hábitos y vida diaria",
+      "prompt": "¿Qué tan importante consideras desayunar antes de asistir a clases?",
+      "required": true
+    },
+    {
+      "id": "hd03",
+      "type": "esc_cantidad5",
+      "scale": "hd",
+      "block": "b2",
+      "section": "Hábitos y vida diaria",
+      "prompt": "¿Qué tan frecuentemente tus horarios de clases o la falta de tiempo dificultan que desayunes?",
+      "required": true
+    },
+    {
+      "id": "hd04",
+      "type": "esc_cantidad5",
+      "scale": "hd",
+      "block": "b2",
+      "section": "Hábitos y vida diaria",
+      "prompt": "¿Qué tan equilibrado consideras que es tu desayuno habitual?",
+      "required": true
+    },
+    {
+      "id": "hd05",
+      "type": "esc_cantidad5",
+      "scale": "hd",
+      "block": "b2",
+      "section": "Hábitos y vida diaria",
+      "prompt": "¿Qué tan satisfecho/a te sientes después de desayunar durante la mañana?",
+      "required": true
+    },
+    {
+      "id": "hd06",
+      "type": "esc_cantidad5",
+      "scale": "hd",
+      "block": "b2",
+      "section": "Hábitos y vida diaria",
+      "prompt": "¿Qué tan constante eres con tus horarios de desayuno durante la semana?",
+      "required": true
+    },
+    {
+      "id": "ca_intro",
+      "type": "info",
+      "prompt": "Concentración\nLas siguientes preguntas se refieren a cómo evalúas tu propia capacidad de concentración en contextos académicos.",
+      "sectionHeader": true,
+      "section": "Hábitos y vida diaria",
+      "block": "b2",
+      "scale": "ca"
+    },
+    {
+      "id": "ca01",
+      "type": "esc_concentra5",
+      "scale": "ca",
+      "block": "b2",
+      "section": "Hábitos y vida diaria",
+      "prompt": "¿Qué tan bueno/a eres para concentrarte durante las clases, talleres y prácticas?",
+      "required": true
+    },
+    {
+      "id": "ca02",
+      "type": "esc_concentra5",
+      "scale": "ca",
+      "block": "b2",
+      "section": "Hábitos y vida diaria",
+      "prompt": "¿Qué tan bueno/a eres para entender todos los conceptos enseñados desde el comienzo hasta el final de la clase y de las prácticas?",
+      "required": true
+    },
+    {
+      "id": "ca03",
+      "type": "esc_concentra5",
+      "scale": "ca",
+      "block": "b2",
+      "section": "Hábitos y vida diaria",
+      "prompt": "¿Qué tan bueno/a eres para mantener la concentración durante conversaciones con tus profesores y amigos?",
+      "required": true
+    },
+    {
+      "id": "ca04",
+      "type": "esc_concentra5",
+      "scale": "ca",
+      "block": "b2",
+      "section": "Hábitos y vida diaria",
+      "prompt": "¿Qué tan bueno/a eres para concentrarte al leer textos de estudio y al escuchar clases largas?",
+      "required": true
+    },
+    {
+      "id": "pa_intro",
+      "type": "info",
+      "prompt": "Estudio\nLas siguientes afirmaciones describen conductas relacionadas con tus estudios. Indica con qué frecuencia te ocurren.",
+      "sectionHeader": true,
+      "section": "Hábitos y vida diaria",
+      "block": "b2",
+      "scale": "pa"
+    },
+    {
+      "id": "pa01",
+      "type": "esc_frec5",
+      "scale": "pa",
+      "block": "b2",
+      "section": "Hábitos y vida diaria",
+      "prompt": "Postergo las tareas académicas hasta el último momento.",
+      "required": true
+    },
+    {
+      "id": "pa02",
+      "type": "esc_frec5",
+      "scale": "pa",
+      "block": "b2",
+      "section": "Hábitos y vida diaria",
+      "prompt": "Cuando tengo que estudiar, me distraigo con facilidad con otras actividades.",
+      "required": true
+    },
+    {
+      "id": "pa03",
+      "type": "esc_frec5",
+      "scale": "pa",
+      "block": "b2",
+      "section": "Hábitos y vida diaria",
+      "prompt": "Dejo para después las lecturas o trabajos aunque tenga tiempo para hacerlos.",
+      "required": true
+    },
+    {
+      "id": "pa04",
+      "type": "esc_frec5",
+      "scale": "pa",
+      "block": "b2",
+      "section": "Hábitos y vida diaria",
+      "prompt": "Siento que pierdo tiempo durante mi jornada de estudio.",
+      "required": true
+    },
+    {
+      "id": "pa05",
+      "type": "esc_frec5",
+      "scale": "pa",
+      "block": "b2",
+      "section": "Hábitos y vida diaria",
+      "prompt": "Termino las tareas académicas a tiempo.",
+      "required": true
+    },
+    {
+      "id": "pa06",
+      "type": "esc_frec5",
+      "scale": "pa",
+      "block": "b2",
+      "section": "Hábitos y vida diaria",
+      "prompt": "Me cuesta comenzar a estudiar aunque tenga una evaluación próxima.",
+      "required": true
+    },
+    {
+      "id": "task_rt",
+      "type": "task_rt",
+      "section": "Tarea breve",
+      "title": "Tarea de tiempo de respuesta",
+      "desc": "~1 min · Toca el círculo verde cuando aparezca",
+      "prompt": "Ya vas a la mitad. A continuación hay una tarea breve (alrededor de 1 minuto) que busca medir qué tan rápido eres capaz de responder a un estímulo.\n\nVerás un círculo verde: tócalo lo más rápido que puedas, pero sin adelantarte. Antes habrá un par de ensayos de práctica.",
+      "taskConfig": {
+        "nPractice": 2,
+        "nTest": 10
+      }
+    },
+    {
+      "id": "uc_intro",
+      "type": "info",
+      "prompt": "Uso del celular\nLas siguientes preguntas describen conductas relacionadas con el uso del celular.",
+      "sectionHeader": true,
+      "section": "Celular y redes sociales",
+      "block": "b3",
+      "scale": "uc"
+    },
+    {
+      "id": "uc01",
+      "type": "number",
+      "scale": "uc",
+      "block": "b3",
+      "section": "Celular y redes sociales",
+      "prompt": "¿Cuántos minutos usa el celular en la cama antes de intentar dormir? (Escriba 0 si no lo usa)",
+      "required": true,
+      "noShuffle": true,
+      "min": 0,
+      "max": 600,
+      "placeholder": "Minutos",
+      "instruction": "Escribe la cantidad de minutos.",
+      "rangeHelp": "Ingresa los minutos (entre 0 y 600)."
+    },
+    {
+      "id": "uc02",
+      "type": "number",
+      "scale": "uc",
+      "block": "b3",
+      "section": "Celular y redes sociales",
+      "prompt": "En promedio, ¿cuántas horas al día usa su celular en total (incluyendo redes sociales, mensajes, videos y juegos)?",
+      "required": true,
+      "noShuffle": true,
+      "min": 0,
+      "max": 24,
+      "decimal": true,
+      "placeholder": "Horas",
+      "instruction": "Escribe la cantidad de horas (puedes usar decimales, por ejemplo 3.5).",
+      "rangeHelp": "Ingresa las horas (entre 0 y 24)."
+    },
+    {
+      "id": "uc03",
+      "type": "esc_frec5",
+      "scale": "uc",
+      "block": "b3",
+      "section": "Celular y redes sociales",
+      "prompt": "¿Te sientes ansioso/a o incómodo/a cuando no tienes tu celular a mano?",
+      "required": true,
+      "noShuffle": true,
+      "instruction": "Indica con qué frecuencia te ocurre."
+    },
+    {
+      "id": "uc04",
+      "type": "esc_frec5",
+      "scale": "uc",
+      "block": "b3",
+      "section": "Celular y redes sociales",
+      "prompt": "¿Has intentado pasar menos tiempo usando el celular pero has fallado?",
+      "required": true,
+      "noShuffle": true,
+      "instruction": "Indica con qué frecuencia te ocurre."
+    },
+    {
+      "id": "uc05",
+      "type": "esc_frec5",
+      "scale": "uc",
+      "block": "b3",
+      "section": "Celular y redes sociales",
+      "prompt": "¿El uso del celular ha interferido con tus actividades académicas o laborales?",
+      "required": true,
+      "noShuffle": true,
+      "instruction": "Indica con qué frecuencia te ocurre."
+    },
+    {
+      "id": "us_intro",
+      "type": "info",
+      "prompt": "Uso del smartphone\nLas siguientes afirmaciones describen conductas relacionadas con el uso del smartphone. Indica tu grado de acuerdo con cada una.",
+      "sectionHeader": true,
+      "section": "Celular y redes sociales",
+      "block": "b3",
+      "scale": "us"
+    },
+    {
+      "id": "us01",
+      "type": "esc_acuerdo6",
+      "scale": "us",
+      "block": "b3",
+      "section": "Celular y redes sociales",
+      "prompt": "El uso del smartphone interfiere con mis actividades diarias.",
+      "required": true
+    },
+    {
+      "id": "us02",
+      "type": "esc_acuerdo6",
+      "scale": "us",
+      "block": "b3",
+      "section": "Celular y redes sociales",
+      "prompt": "Me cuesta dejar de usar el smartphone cuando lo empiezo a usar.",
+      "required": true
+    },
+    {
+      "id": "us03",
+      "type": "esc_acuerdo6",
+      "scale": "us",
+      "block": "b3",
+      "section": "Celular y redes sociales",
+      "prompt": "Me siento ansioso/a cuando no tengo mi smartphone conmigo.",
+      "required": true
+    },
+    {
+      "id": "us04",
+      "type": "esc_acuerdo6",
+      "scale": "us",
+      "block": "b3",
+      "section": "Celular y redes sociales",
+      "prompt": "Paso más tiempo usando el smartphone de lo que había planeado.",
+      "required": true
+    },
+    {
+      "id": "us05",
+      "type": "esc_acuerdo6",
+      "scale": "us",
+      "block": "b3",
+      "section": "Celular y redes sociales",
+      "prompt": "El uso del smartphone ha afectado mis relaciones con otras personas.",
+      "required": true
+    },
+    {
+      "id": "us06",
+      "type": "esc_acuerdo6",
+      "scale": "us",
+      "block": "b3",
+      "section": "Celular y redes sociales",
+      "prompt": "Siento que no puedo vivir sin mi smartphone.",
+      "required": true
+    },
+    {
+      "id": "ar_intro",
+      "type": "info",
+      "prompt": "Uso de redes sociales\nLas siguientes preguntas se refieren a tu uso de redes sociales. Indica con qué frecuencia te ocurren las siguientes situaciones.",
+      "sectionHeader": true,
+      "section": "Celular y redes sociales",
+      "block": "b3",
+      "scale": "ar"
+    },
+    {
+      "id": "ar01",
+      "type": "esc_frec5",
+      "scale": "ar",
+      "block": "b3",
+      "section": "Celular y redes sociales",
+      "prompt": "¿Has tenido dificultades para concentrarte mientras estás haciendo alguna tarea o actividad, por estar pendiente a las redes sociales?",
+      "required": true
+    },
+    {
+      "id": "ar02",
+      "type": "esc_frec5",
+      "scale": "ar",
+      "block": "b3",
+      "section": "Celular y redes sociales",
+      "prompt": "¿Has sentido cada vez mayor necesidad de usar redes sociales?",
+      "required": true
+    },
+    {
+      "id": "ar03",
+      "type": "esc_frec5",
+      "scale": "ar",
+      "block": "b3",
+      "section": "Celular y redes sociales",
+      "prompt": "¿Te has sentido enojado o frustrado si no podías usar redes sociales?",
+      "required": true
+    },
+    {
+      "id": "ar04",
+      "type": "esc_frec5",
+      "scale": "ar",
+      "block": "b3",
+      "section": "Celular y redes sociales",
+      "prompt": "¿Has intentado pasar menos tiempo en redes sociales pero has fallado?",
+      "required": true
+    },
+    {
+      "id": "ar05",
+      "type": "esc_frec5",
+      "scale": "ar",
+      "block": "b3",
+      "section": "Celular y redes sociales",
+      "prompt": "¿Has usado regularmente las redes sociales para escapar de tus problemas?",
+      "required": true
+    },
+    {
+      "id": "ar06",
+      "type": "esc_frec5",
+      "scale": "ar",
+      "block": "b3",
+      "section": "Celular y redes sociales",
+      "prompt": "¿Has tenido problemas serios en el trabajo o colegio por estar demasiado pendiente a las redes sociales?",
+      "required": true
+    },
+    {
+      "id": "ea_intro",
+      "type": "info",
+      "prompt": "Tus vínculos cercanos\nLas siguientes afirmaciones describen cómo te relacionas con las personas cercanas y en tus vínculos afectivos. Indica tu grado de acuerdo con cada una.",
+      "sectionHeader": true,
+      "section": "Relaciones y opiniones",
+      "block": "b4",
+      "scale": "ea"
+    },
+    {
+      "id": "ea01",
+      "type": "esc_acuerdo5",
+      "scale": "ea",
+      "block": "b4",
+      "section": "Relaciones y opiniones",
+      "prompt": "Me resulta fácil acercarme emocionalmente a otras personas.",
+      "required": true
+    },
+    {
+      "id": "ea02",
+      "type": "esc_acuerdo5",
+      "scale": "ea",
+      "block": "b4",
+      "section": "Relaciones y opiniones",
+      "prompt": "Me siento cómodo/a dependiendo de otras personas y que ellas dependan de mí.",
+      "required": true
+    },
+    {
+      "id": "ea03",
+      "type": "esc_acuerdo5",
+      "scale": "ea",
+      "block": "b4",
+      "section": "Relaciones y opiniones",
+      "prompt": "Me preocupa que los demás no me quieran tanto como yo los quiero a ellos.",
+      "required": true
+    },
+    {
+      "id": "ea04",
+      "type": "esc_acuerdo5",
+      "scale": "ea",
+      "block": "b4",
+      "section": "Relaciones y opiniones",
+      "prompt": "Me incomoda estar demasiado cerca de otras personas en mis relaciones afectivas.",
+      "required": true
+    },
+    {
+      "id": "ea05",
+      "type": "esc_acuerdo5",
+      "scale": "ea",
+      "block": "b4",
+      "section": "Relaciones y opiniones",
+      "prompt": "Necesito sentirme independiente y autosuficiente en mis relaciones de pareja.",
+      "required": true
+    },
+    {
+      "id": "sp_intro",
+      "type": "info",
+      "prompt": "Relación de pareja\nLas siguientes afirmaciones se refieren a tu relación de pareja actual. Indica tu grado de acuerdo con cada una.",
+      "sectionHeader": true,
+      "section": "Relaciones y opiniones",
+      "block": "b4",
+      "scale": "sp"
+    },
+    {
+      "id": "sp00",
+      "type": "yes_no",
+      "scale": "sp",
+      "block": "b4",
+      "section": "Relaciones y opiniones",
+      "noShuffle": true,
+      "required": true,
+      "prompt": "¿Tienes actualmente una relación de pareja?"
+    },
+    {
+      "id": "sp01",
+      "type": "esc_acuerdo5",
+      "scale": "sp",
+      "block": "b4",
+      "section": "Relaciones y opiniones",
+      "noShuffle": true,
+      "required": true,
+      "prompt": "Me siento satisfecho/a con mi relación de pareja en general.",
+      "showIf": {
+        "item": "sp00",
+        "in": [
+          "yes"
+        ]
+      }
+    },
+    {
+      "id": "sp02",
+      "type": "esc_acuerdo5",
+      "scale": "sp",
+      "block": "b4",
+      "section": "Relaciones y opiniones",
+      "noShuffle": true,
+      "required": true,
+      "prompt": "Mi pareja y yo compartimos objetivos y proyectos de vida similares.",
+      "showIf": {
+        "item": "sp00",
+        "in": [
+          "yes"
+        ]
+      }
+    },
+    {
+      "id": "sp03",
+      "type": "esc_acuerdo5",
+      "scale": "sp",
+      "block": "b4",
+      "section": "Relaciones y opiniones",
+      "noShuffle": true,
+      "required": true,
+      "prompt": "Siento que puedo expresar mis sentimientos y necesidades en mi relación de pareja.",
+      "showIf": {
+        "item": "sp00",
+        "in": [
+          "yes"
+        ]
+      }
+    },
+    {
+      "id": "sp04",
+      "type": "esc_acuerdo5",
+      "scale": "sp",
+      "block": "b4",
+      "section": "Relaciones y opiniones",
+      "noShuffle": true,
+      "required": true,
+      "prompt": "Mi relación de pareja me aporta bienestar y estabilidad emocional.",
+      "showIf": {
+        "item": "sp00",
+        "in": [
+          "yes"
+        ]
+      }
+    },
+    {
+      "id": "sp05",
+      "type": "esc_acuerdo5",
+      "scale": "sp",
+      "block": "b4",
+      "section": "Relaciones y opiniones",
+      "noShuffle": true,
+      "required": true,
+      "prompt": "Si tuviera que evaluar mi relación de pareja en una escala del 1 al 5, le daría una valoración alta.",
+      "showIf": {
+        "item": "sp00",
+        "in": [
+          "yes"
+        ]
+      }
+    },
+    {
+      "id": "sh_intro",
+      "type": "info",
+      "prompt": "Opiniones sobre las mujeres\nLas siguientes afirmaciones expresan opiniones sobre las mujeres y la sociedad. Indica tu grado de acuerdo con cada una.",
+      "sectionHeader": true,
+      "section": "Relaciones y opiniones",
+      "block": "b4",
+      "scale": "sh"
+    },
+    {
+      "id": "sh01",
+      "type": "esc_acuerdo5",
+      "scale": "sh",
+      "block": "b4",
+      "section": "Relaciones y opiniones",
+      "prompt": "Las mujeres intentan ganar poder controlando a los hombres.",
+      "required": true
+    },
+    {
+      "id": "sh02",
+      "type": "esc_acuerdo5",
+      "scale": "sh",
+      "block": "b4",
+      "section": "Relaciones y opiniones",
+      "prompt": "Cuando las mujeres son vencidas por los hombres en una competencia justa, generalmente ellas se quejan de haber sido discriminadas.",
+      "required": true
+    },
+    {
+      "id": "sh03",
+      "type": "esc_acuerdo5",
+      "scale": "sh",
+      "block": "b4",
+      "section": "Relaciones y opiniones",
+      "prompt": "Existen muchas mujeres que para burlarse de los hombres, primero se insinúan sexualmente a ellos y luego rechazan los avances de estos.",
+      "required": true
+    },
+    {
+      "id": "sh04",
+      "type": "esc_acuerdo5",
+      "scale": "sh",
+      "block": "b4",
+      "section": "Relaciones y opiniones",
+      "prompt": "Las mujeres feministas están haciendo demandas completamente irracionales a los hombres.",
+      "required": true
+    },
+    {
+      "id": "hh_intro",
+      "type": "info",
+      "prompt": "Opiniones sobre los hombres\nLas siguientes afirmaciones expresan opiniones sobre los hombres y la sociedad. Indica tu grado de acuerdo con cada una.",
+      "sectionHeader": true,
+      "section": "Relaciones y opiniones",
+      "block": "b4",
+      "scale": "hh"
+    },
+    {
+      "id": "hh01",
+      "type": "esc_acuerdo5",
+      "scale": "hh",
+      "block": "b4",
+      "section": "Relaciones y opiniones",
+      "prompt": "Cuando los hombres prestan ayuda a las mujeres, a menudo intentan demostrar que son mejores que ellas.",
+      "required": true
+    },
+    {
+      "id": "hh02",
+      "type": "esc_acuerdo5",
+      "scale": "hh",
+      "block": "b4",
+      "section": "Relaciones y opiniones",
+      "prompt": "Los hombres se comportan como niños cuando están enfermos.",
+      "required": true
+    },
+    {
+      "id": "hh03",
+      "type": "esc_acuerdo5",
+      "scale": "hh",
+      "block": "b4",
+      "section": "Relaciones y opiniones",
+      "prompt": "Los hombres siempre lucharán por tener mayor poder en la sociedad que las mujeres.",
+      "required": true
+    },
+    {
+      "id": "hh04",
+      "type": "esc_acuerdo5",
+      "scale": "hh",
+      "block": "b4",
+      "section": "Relaciones y opiniones",
+      "prompt": "La mayoría de los hombres acosan sexualmente a las mujeres, aunque sea solamente de forma sutil, en cuanto tienen una posición de poder sobre ellas.",
+      "required": true
+    },
+    {
+      "id": "op_intro",
+      "type": "info",
+      "prompt": "Orientación política\nA continuación te pedimos ubicarte en una escala de orientación política.",
+      "sectionHeader": true,
+      "section": "Relaciones y opiniones",
+      "block": "b4",
+      "scale": "op"
+    },
+    {
+      "id": "op01",
+      "type": "esc_politica11",
+      "scale": "op",
+      "block": "b4",
+      "section": "Relaciones y opiniones",
+      "prompt": "En una escala de 0 a 10, donde 0 representa la izquierda y 10 la derecha, ¿dónde te ubicarías políticamente?",
+      "required": false
+    },
+    {
+      "id": "cd_intro",
+      "type": "info",
+      "prompt": "Consumo de sustancias\nLas siguientes preguntas se refieren a tu consumo de alcohol, marihuana y cocaína durante los últimos 3 meses. Son preguntas personales: tus respuestas son anónimas y, si prefieres no responder alguna, puedes pasar a la siguiente sin contestar.",
+      "sectionHeader": true,
+      "section": "Consumo de sustancias"
+    },
+    {
+      "id": "cd01_alc",
+      "type": "esc_frec5",
+      "scale": "cd",
+      "section": "Consumo de sustancias",
+      "required": false,
+      "prompt": "En los últimos 3 meses, ¿con qué frecuencia ha consumido alcohol?",
+      "instruction": "Sustancia: alcohol"
+    },
+    {
+      "id": "cd02_alc",
+      "type": "esc_frec5",
+      "scale": "cd",
+      "section": "Consumo de sustancias",
+      "required": false,
+      "prompt": "En los últimos 3 meses, ¿ha tenido fuertes deseos o ansias de consumir alcohol?",
+      "instruction": "Sustancia: alcohol",
+      "showIf": {
+        "item": "cd01_alc",
+        "in": [
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "id": "cd03_alc",
+      "type": "esc_frec5",
+      "scale": "cd",
+      "section": "Consumo de sustancias",
+      "required": false,
+      "prompt": "En los últimos 3 meses, ¿con qué frecuencia ha tenido problemas para cumplir con sus obligaciones habituales a causa del consumo de alcohol?",
+      "instruction": "Sustancia: alcohol",
+      "showIf": {
+        "item": "cd01_alc",
+        "in": [
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "id": "cd04_alc",
+      "type": "esc_frec5",
+      "scale": "cd",
+      "section": "Consumo de sustancias",
+      "required": false,
+      "prompt": "¿Alguna vez amigos, familiares o alguien más le ha mostrado preocupación por su consumo de alcohol?",
+      "instruction": "Sustancia: alcohol",
+      "showIf": {
+        "item": "cd01_alc",
+        "in": [
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "id": "cd05_alc",
+      "type": "esc_frec5",
+      "scale": "cd",
+      "section": "Consumo de sustancias",
+      "required": false,
+      "prompt": "¿Alguna vez ha intentado controlar, reducir o dejar de consumir alcohol?",
+      "instruction": "Sustancia: alcohol",
+      "showIf": {
+        "item": "cd01_alc",
+        "in": [
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "id": "cd01_mar",
+      "type": "esc_frec5",
+      "scale": "cd",
+      "section": "Consumo de sustancias",
+      "required": false,
+      "prompt": "En los últimos 3 meses, ¿con qué frecuencia ha consumido marihuana?",
+      "instruction": "Sustancia: marihuana"
+    },
+    {
+      "id": "cd02_mar",
+      "type": "esc_frec5",
+      "scale": "cd",
+      "section": "Consumo de sustancias",
+      "required": false,
+      "prompt": "En los últimos 3 meses, ¿ha tenido fuertes deseos o ansias de consumir marihuana?",
+      "instruction": "Sustancia: marihuana",
+      "showIf": {
+        "item": "cd01_mar",
+        "in": [
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "id": "cd03_mar",
+      "type": "esc_frec5",
+      "scale": "cd",
+      "section": "Consumo de sustancias",
+      "required": false,
+      "prompt": "En los últimos 3 meses, ¿con qué frecuencia ha tenido problemas para cumplir con sus obligaciones habituales a causa del consumo de marihuana?",
+      "instruction": "Sustancia: marihuana",
+      "showIf": {
+        "item": "cd01_mar",
+        "in": [
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "id": "cd04_mar",
+      "type": "esc_frec5",
+      "scale": "cd",
+      "section": "Consumo de sustancias",
+      "required": false,
+      "prompt": "¿Alguna vez amigos, familiares o alguien más le ha mostrado preocupación por su consumo de marihuana?",
+      "instruction": "Sustancia: marihuana",
+      "showIf": {
+        "item": "cd01_mar",
+        "in": [
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "id": "cd05_mar",
+      "type": "esc_frec5",
+      "scale": "cd",
+      "section": "Consumo de sustancias",
+      "required": false,
+      "prompt": "¿Alguna vez ha intentado controlar, reducir o dejar de consumir marihuana?",
+      "instruction": "Sustancia: marihuana",
+      "showIf": {
+        "item": "cd01_mar",
+        "in": [
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "id": "cd01_coc",
+      "type": "esc_frec5",
+      "scale": "cd",
+      "section": "Consumo de sustancias",
+      "required": false,
+      "prompt": "En los últimos 3 meses, ¿con qué frecuencia ha consumido cocaína?",
+      "instruction": "Sustancia: cocaína"
+    },
+    {
+      "id": "cd02_coc",
+      "type": "esc_frec5",
+      "scale": "cd",
+      "section": "Consumo de sustancias",
+      "required": false,
+      "prompt": "En los últimos 3 meses, ¿ha tenido fuertes deseos o ansias de consumir cocaína?",
+      "instruction": "Sustancia: cocaína",
+      "showIf": {
+        "item": "cd01_coc",
+        "in": [
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "id": "cd03_coc",
+      "type": "esc_frec5",
+      "scale": "cd",
+      "section": "Consumo de sustancias",
+      "required": false,
+      "prompt": "En los últimos 3 meses, ¿con qué frecuencia ha tenido problemas para cumplir con sus obligaciones habituales a causa del consumo de cocaína?",
+      "instruction": "Sustancia: cocaína",
+      "showIf": {
+        "item": "cd01_coc",
+        "in": [
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "id": "cd04_coc",
+      "type": "esc_frec5",
+      "scale": "cd",
+      "section": "Consumo de sustancias",
+      "required": false,
+      "prompt": "¿Alguna vez amigos, familiares o alguien más le ha mostrado preocupación por su consumo de cocaína?",
+      "instruction": "Sustancia: cocaína",
+      "showIf": {
+        "item": "cd01_coc",
+        "in": [
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "id": "cd05_coc",
+      "type": "esc_frec5",
+      "scale": "cd",
+      "section": "Consumo de sustancias",
+      "required": false,
+      "prompt": "¿Alguna vez ha intentado controlar, reducir o dejar de consumir cocaína?",
+      "instruction": "Sustancia: cocaína",
+      "showIf": {
+        "item": "cd01_coc",
+        "in": [
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "id": "al_intro",
+      "type": "info",
+      "prompt": "Consumo de alcohol\nLas siguientes preguntas se refieren a tu consumo de alcohol. Responde con sinceridad según tu situación en el último año.",
+      "sectionHeader": true,
+      "section": "Consumo de sustancias"
+    },
+    {
+      "id": "al01",
+      "type": "esc_audit1",
+      "scale": "al",
+      "section": "Consumo de sustancias",
+      "required": false,
+      "prompt": "¿Con qué frecuencia consume alguna bebida alcohólica?"
+    },
+    {
+      "id": "al02",
+      "type": "esc_audit2",
+      "scale": "al",
+      "section": "Consumo de sustancias",
+      "required": false,
+      "prompt": "¿Con qué frecuencia toma 5 o más tragos en un solo día?",
+      "showIf": {
+        "item": "al01",
+        "in": [
+          1,
+          2,
+          3,
+          4
+        ]
+      }
+    },
+    {
+      "id": "al03",
+      "type": "esc_audit2",
+      "scale": "al",
+      "section": "Consumo de sustancias",
+      "required": false,
+      "prompt": "En el curso del último año, ¿con qué frecuencia no ha podido recordar lo que sucedió la noche anterior porque había estado bebiendo?",
+      "showIf": {
+        "item": "al01",
+        "in": [
+          1,
+          2,
+          3,
+          4
+        ]
+      }
+    },
+    {
+      "id": "cierre_intro",
+      "type": "info",
+      "prompt": "Para finalizar\nTres preguntas abiertas, todas opcionales. Puedes escribir o, si prefieres, grabar un audio de hasta 30 segundos.",
+      "sectionHeader": true,
+      "section": "Cierre"
+    },
+    {
+      "id": "orientacion_politica_abierta",
+      "prompt": "¿Cómo definirías tu orientación política? Con una palabra o con una breve frase puedes mencionar una tendencia, un partido, un movimiento o una figura pública con la que te sientas identificado/a",
+      "maxLength": 150,
+      "type": "text",
+      "response": "either",
+      "maxSeconds": 30,
+      "required": false,
+      "section": "Cierre",
+      "audioNote": "Si grabas tu respuesta, el audio se transcribirá para el análisis y luego se eliminará."
+    },
+    {
+      "id": "orientacion_religiosa_abierta",
+      "prompt": "¿Cómo definirías tu orientación religiosa? Con una palabra o con una breve frase puedes mencionar tu religión, o tu postura o visión sobre temas religiosos o trascendentes",
+      "maxLength": 150,
+      "type": "text",
+      "response": "either",
+      "maxSeconds": 30,
+      "required": false,
+      "section": "Cierre",
+      "audioNote": "Si grabas tu respuesta, el audio se transcribirá para el análisis y luego se eliminará."
+    },
+    {
+      "id": "comentario_final",
+      "prompt": "Para finalizar, ¿tienes algún comentario u observación sobre esta encuesta?",
+      "long": true,
+      "maxLength": 600,
+      "type": "text",
+      "response": "either",
+      "maxSeconds": 30,
+      "required": false,
+      "section": "Cierre",
+      "audioNote": "Si grabas tu respuesta, el audio se transcribirá para el análisis y luego se eliminará."
+    }
+  ]
+}

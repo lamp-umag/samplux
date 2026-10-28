@@ -93,7 +93,9 @@ async function runRTTrial(container, index, total, phase) {
   return rt;
 }
 
-export async function run(container) {
+export async function run(container, config = {}) {
+  const nPractice = Number(config.nPractice) > 0 ? Number(config.nPractice) : N_PRACTICE;
+  const nTest = Number(config.nTest) > 0 ? Number(config.nTest) : N_TEST;
   container.innerHTML = `
     <div class="test-intro">
       <div class="test-intro-icon" style="background:#F59E0B22;color:#F59E0B">⚡</div>
@@ -104,23 +106,23 @@ export async function run(container) {
     </div>`;
   await new Promise(r => container.querySelector('#btn-go').addEventListener('click', r, { once: true }));
 
-  for (let i = 0; i < N_PRACTICE; i++) {
-    await runRTTrial(container, i, N_PRACTICE, 'practice');
+  for (let i = 0; i < nPractice; i++) {
+    await runRTTrial(container, i, nPractice, 'practice');
     await sleep(400);
   }
 
   container.innerHTML = `
     <div class="test-intro">
       <h2>¡Práctica lista!</h2>
-      <p>Ahora la prueba real: ${N_TEST} ensayos. Sin retroalimentación.</p>
+      <p>Ahora la prueba real: ${nTest} ensayos. Sin retroalimentación.</p>
       <button class="btn-task-primary" id="btn-go">Iniciar →</button>
     </div>`;
   await new Promise(r => container.querySelector('#btn-go').addEventListener('click', r, { once: true }));
 
   const rts = [];
   let i = 0;
-  while (rts.length < N_TEST) {
-    const rt = await runRTTrial(container, rts.length, N_TEST, 'test');
+  while (rts.length < nTest) {
+    const rt = await runRTTrial(container, rts.length, nTest, 'test');
     if (rt !== null) rts.push({ trial_index: i, rt_ms: rt });
     i++;
     await sleep(rand(300, 600));

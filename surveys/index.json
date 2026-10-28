@@ -29,6 +29,12 @@
       "title": "TELARES · Jornada «Derechos en Acción» (monitores/as)",
       "description": "",
       "file": "telares-jornada-monitores.json"
+    },
+    {
+      "id": "estadatos2026",
+      "title": "EstaDatos 2026",
+      "description": "Cuestionario colaborativo de Análisis de Datos (Psicología UMAG).",
+      "file": "estadatos2026.json"
     }
   ]
 }
