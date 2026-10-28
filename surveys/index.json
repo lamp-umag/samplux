@@ -32,8 +32,8 @@
     },
     {
       "id": "estadatos2026",
-      "title": "EstaDatos 2026",
-      "description": "Cuestionario colaborativo de Análisis de Datos (Psicología UMAG).",
+      "title": "Encuesta para Análisis de Datos en Psicología UMAG 2026",
+      "description": "Cuestionario colaborativo de estudiantes de Psicología UMAG. ~10–15 minutos.",
       "file": "estadatos2026.json"
     }
   ]

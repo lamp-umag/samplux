@@ -96,12 +96,14 @@ async function runRTTrial(container, index, total, phase) {
 export async function run(container, config = {}) {
   const nPractice = Number(config.nPractice) > 0 ? Number(config.nPractice) : N_PRACTICE;
   const nTest = Number(config.nTest) > 0 ? Number(config.nTest) : N_TEST;
+  const maxFailures = Number(config.maxFailures) > 0 ? Number(config.maxFailures) : Infinity;
   container.innerHTML = `
     <div class="test-intro">
       <div class="test-intro-icon" style="background:#F59E0B22;color:#F59E0B">⚡</div>
-      <h2>Tiempo de Reacción</h2>
-      <p>Aparecerá un círculo verde en la pantalla. Tócalo lo más rápido que puedas.</p>
-      <p class="hint">⚠️ No toques antes de que aparezca — ¡se registrará como error!</p>
+      <h2>Tiempo de respuesta</h2>
+      <p>Verás una pantalla que dice «Espera…». Cuando aparezca un <strong>círculo verde</strong>, tócalo lo más rápido que puedas.</p>
+      <p class="hint">Si tocas antes de que aparezca, no pasa nada: simplemente se vuelve a intentar. No es una prueba de capacidad ni hay resultados buenos o malos.</p>
+      <p class="hint">Primero haremos ${nPractice} ensayos de práctica.</p>
       <button class="btn-task-primary" id="btn-go">Comenzar práctica →</button>
     </div>`;
   await new Promise(r => container.querySelector('#btn-go').addEventListener('click', r, { once: true }));
@@ -114,16 +116,19 @@ export async function run(container, config = {}) {
   container.innerHTML = `
     <div class="test-intro">
       <h2>¡Práctica lista!</h2>
-      <p>Ahora la prueba real: ${nTest} ensayos. Sin retroalimentación.</p>
+      <p>Ahora sí: ${nTest} ensayos, sin retroalimentación. Haz lo que puedas, sin presión.</p>
       <button class="btn-task-primary" id="btn-go">Iniciar →</button>
     </div>`;
   await new Promise(r => container.querySelector('#btn-go').addEventListener('click', r, { once: true }));
 
   const rts = [];
   let i = 0;
+  let failures = 0;
+  let endedEarly = false;
   while (rts.length < nTest) {
     const rt = await runRTTrial(container, rts.length, nTest, 'test');
     if (rt !== null) rts.push({ trial_index: i, rt_ms: rt });
+    else if (++failures >= maxFailures) { endedEarly = true; break; }
     i++;
     await sleep(rand(300, 600));
   }
@@ -131,6 +136,8 @@ export async function run(container, config = {}) {
   const validRTs = rts.map(r => r.rt_ms).filter(Boolean);
   const summary = {
     n_trials:   rts.length,
+    n_failed:   failures,
+    ended_early: endedEarly,
     mean_rt_ms: mean(validRTs),
     min_rt_ms:  validRTs.length ? Math.min(...validRTs) : null,
     max_rt_ms:  validRTs.length ? Math.max(...validRTs) : null,
@@ -139,7 +146,13 @@ export async function run(container, config = {}) {
       : null,
   };
 
-  container.innerHTML = `
+  container.innerHTML = endedEarly ? `
+    <div class="test-intro">
+      <div class="test-intro-icon" style="background:#F59E0B22;color:#F59E0B">⚡</div>
+      <h2>¡Gracias por intentarlo!</h2>
+      <p>Parece que esta tarea no resultó cómoda esta vez, y no hay problema. Sigamos con lo que falta del cuestionario.</p>
+      <button class="btn-task-primary" id="btn-done">Continuar →</button>
+    </div>` : `
     <div class="test-intro">
       <div class="test-intro-icon" style="background:#F59E0B22;color:#F59E0B">⚡</div>
       <h2>¡Tarea completada!</h2>

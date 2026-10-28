@@ -28,8 +28,8 @@ import { run as runGoNoGo } from './tasks/gonogo.js';
 // - `text` item `audioNote`: small note shown under the recorder while voice mode is active
 //   (e.g. "el audio se elimina tras la transcripción").
 // - settings.randomizeItems "blocks": block → instrument → item randomization; see shuffleByBlocks.
-// - `number` item `decimal: true`: decimal keypad (e.g. hours).
-// - `task_rt` item: `title`, `desc`, `prompt` (launch-screen explanation), `taskConfig: { nPractice, nTest }`.
+// - `number` item `decimal: true`: free-form decimal entry, comma or point (e.g. hours/minutes).
+// - `task_rt` item: `title`, `desc`, `prompt` (launch-screen explanation), `taskConfig: { nPractice, nTest, maxFailures }`.
 // - survey.settings.thankYou: HTML that replaces the default thank-you message.
 export const APP_CONFIG = {
   enableParadata: true,
@@ -826,20 +826,35 @@ export function createSurveyApp({ db, elements }) {
     }
 
     if (item.type === 'number') {
+      // `decimal: true`: free-form entry (accepts "6,5" and "6.5", no range blocking); the
+      // value is stored as a normalized Number, or as the raw text if it can't be parsed.
+      const free = item.decimal === true;
       const input = document.createElement('input');
-      input.type = 'number';
-      input.inputMode = item.decimal ? 'decimal' : 'numeric';
-      if (item.decimal) input.step = 'any';
+      input.type = free ? 'text' : 'number';
+      input.inputMode = free ? 'decimal' : 'numeric';
       input.placeholder = item.placeholder || '';
-      if (typeof item.min === 'number') input.min = String(item.min);
-      if (typeof item.max === 'number') input.max = String(item.max);
+      if (!free && typeof item.min === 'number') input.min = String(item.min);
+      if (!free && typeof item.max === 'number') input.max = String(item.max);
       if (answers[item.id] != null) input.value = answers[item.id];
-      input.addEventListener('input', () => { answers[item.id] = input.value; });
+      const parseFree = raw => {
+        const t = String(raw).trim().replace(',', '.');
+        if (t === '') return null;
+        const n = Number(t);
+        return Number.isFinite(n) ? n : String(raw).trim();
+      };
+      input.addEventListener('input', () => { answers[item.id] = free ? parseFree(input.value) : input.value; });
       optionsContainer.appendChild(input);
       const back = button('← Atrás', 'secondary');
       back.onclick = goPrev;
       const next = button('Siguiente →', 'primary');
       next.onclick = () => {
+        if (free) {
+          const v = parseFree(input.value);
+          if (item.required && v == null) return;
+          if (v == null) delete answers[item.id]; else answers[item.id] = v;
+          goNext();
+          return;
+        }
         if (item.required && (input.value === '' || isNaN(Number(input.value)))) return;
         const num = input.value === '' ? null : Number(input.value);
         if (num != null && typeof item.min === 'number' && num < item.min) {
