@@ -28,6 +28,7 @@ import { run as runGoNoGo } from './tasks/gonogo.js';
 // - `text` item `audioNote`: small note shown under the recorder while voice mode is active
 //   (e.g. "el audio se elimina tras la transcripción").
 // - settings.randomizeItems "blocks": block → instrument → item randomization; see shuffleByBlocks.
+// - choice items `grid: N`: lay options out in N columns (long scales / lists on one screen).
 // - `number` item `decimal: true`: free-form decimal entry, comma or point (e.g. hours/minutes).
 // - `task_rt` item: `title`, `desc`, `prompt` (launch-screen explanation), `taskConfig: { nPractice, nTest, maxFailures }`.
 // - survey.settings.thankYou: HTML that replaces the default thank-you message.
@@ -282,7 +283,9 @@ export function createSurveyApp({ db, elements }) {
   //   item.block  : big section id. Runs of consecutive items sharing a block form a block;
   //                 items WITHOUT `block` are fixed anchors (consent, tasks, sensitive sections)
   //                 and split the survey into independent segments.
-  //   item.scale  : instrument id inside a block.
+  //   item.scale  : instrument id inside a block. `item.unit` (optional) overrides it for shuffling,
+  //                 so items of different scales can be mixed as one unit; `item.lead: true` keeps
+  //                 a non-info item pinned to the front of its unit (like the instructions).
   // Per segment: block order is shuffled (settings.shuffleBlocks, default true); inside a block
   // the instrument order is shuffled (settings.shuffleScales, default true); inside an
   // instrument the items are shuffled (settings.shuffleItems, default true) — except that leading
@@ -301,12 +304,12 @@ export function createSurveyApp({ db, elements }) {
     };
     const shuffleScale = unit => {
       let lead = 0;
-      while (lead < unit.length && unit[lead].type === 'info') lead++;
+      while (lead < unit.length && (unit[lead].type === 'info' || unit[lead].lead)) lead++;
       if (!on('shuffleItems') || unit.some(it => it.noShuffle)) return unit;
       return [...unit.slice(0, lead), ...shuffle(unit.slice(lead))];
     };
     const shuffleBlock = blockItems => {
-      let units = groupRuns(blockItems, it => it.scale || it.id).map(r => shuffleScale(r.items));
+      let units = groupRuns(blockItems, it => it.unit || it.scale || it.id).map(r => shuffleScale(r.items));
       if (on('shuffleScales')) units = shuffle(units);
       return units.flat();
     };
@@ -670,6 +673,10 @@ export function createSurveyApp({ db, elements }) {
   }
 
   function renderControlsForItem({ item, goNext, goPrev, isLastItem }) {
+    // `grid: N` lays single/multi-choice options out in N columns (keeps long scales on one screen).
+    optionsContainer.style.cssText = item.grid > 1
+      ? `display:grid;grid-template-columns:repeat(${Number(item.grid)},1fr);gap:8px;`
+      : '';
     if (isSingleChoiceItem(item) || item.type === 'yes_no') {
       const options = item.type === 'yes_no'
         ? [{ label: 'Sí', code: 'yes' }, { label: 'No', code: 'no' }]
@@ -1176,6 +1183,7 @@ export function createSurveyApp({ db, elements }) {
         if (!wrap) {
           wrap = document.createElement('div');
           wrap.className = 'followup fade-in';
+          wrap.style.gridColumn = '1 / -1';
           const label = document.createElement('div');
           label.className = 'item-instruction';
           label.textContent = fu.prompt || 'Por favor, especifica:';

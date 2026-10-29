@@ -204,7 +204,7 @@
     "esc_politica11": [
       {
         "code": 0,
-        "label": "0 · Izquierda"
+        "label": "0"
       },
       {
         "code": 1,
@@ -244,7 +244,7 @@
       },
       {
         "code": 10,
-        "label": "10 · Derecha"
+        "label": "10"
       }
     ],
     "esc_audit1": [
@@ -304,15 +304,15 @@
       "type": "single_choice",
       "required": true,
       "section": "Antes de comenzar",
-      "prompt": "¿Aceptas participar?",
+      "prompt": "¿Tienes 18 años o más y aceptas participar voluntariamente?",
       "options": [
         {
           "code": 1,
-          "label": "Acepto participar"
+          "label": "Sí, tengo 18 años o más y acepto participar"
         },
         {
           "code": 2,
-          "label": "No deseo participar"
+          "label": "No"
         }
       ],
       "exitOnAnswer": [
@@ -362,6 +362,46 @@
         "prompt": "¿Cuál?",
         "placeholder": "Escribe aquí…",
         "maxLength": 60
+      }
+    },
+    {
+      "id": "ocupacion",
+      "type": "single_choice",
+      "required": false,
+      "section": "Datos generales",
+      "prompt": "¿Cuál es tu ocupación principal?",
+      "options": [
+        {
+          "code": 1,
+          "label": "Estudio"
+        },
+        {
+          "code": 2,
+          "label": "Trabajo de forma independiente"
+        },
+        {
+          "code": 3,
+          "label": "Trabajo de forma dependiente"
+        },
+        {
+          "code": 4,
+          "label": "Labores de casa o cuidado"
+        },
+        {
+          "code": 5,
+          "label": "Sin empleo"
+        },
+        {
+          "code": 6,
+          "label": "Otra"
+        }
+      ],
+      "followUp": {
+        "id": "ocupacion_otra",
+        "whenCode": 6,
+        "prompt": "¿Cuál?",
+        "placeholder": "Escribe aquí…",
+        "maxLength": 80
       }
     },
     {
@@ -730,13 +770,13 @@
       "scale": "cs",
       "block": "b2",
       "section": "Hábitos y vida diaria",
-      "prompt": "¿Cuánto tiempo habrá tardado en dormirse, normalmente, las noches del último mes?",
+      "prompt": "¿Cuánto tiempo has tardado en dormirte, normalmente, las noches del último mes?",
       "required": false,
       "noShuffle": true,
       "decimal": true,
       "placeholder": "Minutos",
       "instruction": "Escribe la cantidad de minutos.",
-      "help": "Intente hacer una estimación que se acerque a la realidad según lo que usted percibe."
+      "help": "Intenta hacer una estimación que se acerque a la realidad según lo que percibes."
     },
     {
       "id": "cs02",
@@ -744,13 +784,13 @@
       "scale": "cs",
       "block": "b2",
       "section": "Hábitos y vida diaria",
-      "prompt": "¿Cuántas horas calcula que habrá dormido verdaderamente cada noche durante el último mes?",
+      "prompt": "¿Cuántas horas calculas que has dormido verdaderamente cada noche durante el último mes?",
       "required": false,
       "noShuffle": true,
       "decimal": true,
       "placeholder": "Horas",
       "instruction": "Escribe la cantidad de horas (puedes usar coma o punto para los decimales).",
-      "help": "Intente hacer una estimación que se acerque a la realidad según lo que usted percibe."
+      "help": "Intenta hacer una estimación que se acerque a la realidad según lo que percibes."
     },
     {
       "id": "cs03",
@@ -758,7 +798,7 @@
       "scale": "cs",
       "block": "b2",
       "section": "Hábitos y vida diaria",
-      "prompt": "Durante el último mes, ¿con qué frecuencia ha sentido somnolencia mientras estudiaba, trabajaba, comía o desarrollaba alguna otra actividad?",
+      "prompt": "Durante el último mes, ¿con qué frecuencia has sentido somnolencia mientras estudiabas, trabajabas, comías o desarrollabas alguna otra actividad?",
       "required": false,
       "noShuffle": true
     },
@@ -768,7 +808,7 @@
       "scale": "cs",
       "block": "b2",
       "section": "Hábitos y vida diaria",
-      "prompt": "Durante el último mes, ¿con qué frecuencia ha tenido dificultades para conciliar el sueño?",
+      "prompt": "Durante el último mes, ¿con qué frecuencia has tenido dificultades para conciliar el sueño?",
       "required": false,
       "noShuffle": true
     },
@@ -778,7 +818,7 @@
       "scale": "cs",
       "block": "b2",
       "section": "Hábitos y vida diaria",
-      "prompt": "Durante el último mes, ¿cómo evaluaría la calidad general de su sueño?",
+      "prompt": "Durante el último mes, ¿cómo evaluarías la calidad general de tu sueño?",
       "required": false,
       "noShuffle": true
     },
@@ -981,13 +1021,13 @@
       "scale": "uc",
       "block": "b3",
       "section": "Celular y redes sociales",
-      "prompt": "¿Cuántos minutos usa el celular en la cama antes de intentar dormir? (Escriba 0 si no lo usa)",
+      "prompt": "¿Cuántos minutos usas el celular en la cama antes de intentar dormir? (Escribe 0 si no lo usas)",
       "required": false,
       "noShuffle": true,
       "decimal": true,
       "placeholder": "Minutos",
       "instruction": "Escribe la cantidad de minutos.",
-      "help": "Intente hacer una estimación que se acerque a la realidad según lo que usted percibe."
+      "help": "Intenta hacer una estimación que se acerque a la realidad según lo que percibes."
     },
     {
       "id": "uc02",
@@ -995,13 +1035,13 @@
       "scale": "uc",
       "block": "b3",
       "section": "Celular y redes sociales",
-      "prompt": "En promedio, ¿cuántas horas al día usa su celular en total (incluyendo redes sociales, mensajes, videos y juegos)?",
+      "prompt": "En promedio, ¿cuántas horas al día usas tu celular en total (incluyendo redes sociales, mensajes, videos y juegos)?",
       "required": false,
       "noShuffle": true,
       "decimal": true,
       "placeholder": "Horas",
       "instruction": "Escribe la cantidad de horas (puedes usar coma o punto para los decimales).",
-      "help": "Intente hacer una estimación que se acerque a la realidad según lo que usted percibe."
+      "help": "Intenta hacer una estimación que se acerque a la realidad según lo que percibes."
     },
     {
       "id": "uc03",
@@ -1107,6 +1147,64 @@
       "section": "Celular y redes sociales",
       "block": "b3",
       "scale": "ar"
+    },
+    {
+      "id": "redes_usadas",
+      "type": "multi_choice",
+      "scale": "ar",
+      "block": "b3",
+      "section": "Celular y redes sociales",
+      "lead": true,
+      "required": false,
+      "prompt": "¿Qué redes sociales usas?",
+      "instruction": "Marca todas las que uses.",
+      "options": [
+        {
+          "code": 1,
+          "label": "WhatsApp"
+        },
+        {
+          "code": 2,
+          "label": "Instagram"
+        },
+        {
+          "code": 3,
+          "label": "TikTok"
+        },
+        {
+          "code": 4,
+          "label": "Facebook"
+        },
+        {
+          "code": 5,
+          "label": "YouTube"
+        },
+        {
+          "code": 6,
+          "label": "X (Twitter)"
+        },
+        {
+          "code": 7,
+          "label": "Telegram"
+        },
+        {
+          "code": 8,
+          "label": "Otra"
+        },
+        {
+          "code": 9,
+          "label": "Ninguna",
+          "exclusive": true
+        }
+      ],
+      "grid": 2,
+      "followUp": {
+        "id": "redes_otra",
+        "whenCode": 8,
+        "prompt": "¿Cuál?",
+        "placeholder": "Escribe aquí…",
+        "maxLength": 80
+      }
     },
     {
       "id": "ar01",
@@ -1273,11 +1371,12 @@
     {
       "id": "sh_intro",
       "type": "info",
-      "prompt": "Opiniones sobre las mujeres\nLas siguientes afirmaciones expresan opiniones sobre las mujeres y la sociedad. Indica tu grado de acuerdo con cada una.",
+      "prompt": "Opiniones sobre hombres y mujeres\nLas siguientes afirmaciones expresan opiniones sobre los hombres, las mujeres y la sociedad. Indica tu grado de acuerdo con cada una.",
       "sectionHeader": true,
       "section": "Relaciones y opiniones",
       "block": "b4",
-      "scale": "sh"
+      "scale": "sh",
+      "unit": "gen"
     },
     {
       "id": "sh01",
@@ -1286,7 +1385,8 @@
       "block": "b4",
       "section": "Relaciones y opiniones",
       "prompt": "Las mujeres intentan ganar poder controlando a los hombres.",
-      "required": false
+      "required": false,
+      "unit": "gen"
     },
     {
       "id": "sh02",
@@ -1295,7 +1395,8 @@
       "block": "b4",
       "section": "Relaciones y opiniones",
       "prompt": "Cuando las mujeres son vencidas por los hombres en una competencia justa, generalmente ellas se quejan de haber sido discriminadas.",
-      "required": false
+      "required": false,
+      "unit": "gen"
     },
     {
       "id": "sh03",
@@ -1304,7 +1405,8 @@
       "block": "b4",
       "section": "Relaciones y opiniones",
       "prompt": "Existen muchas mujeres que para burlarse de los hombres, primero se insinúan sexualmente a ellos y luego rechazan los avances de estos.",
-      "required": false
+      "required": false,
+      "unit": "gen"
     },
     {
       "id": "sh04",
@@ -1313,16 +1415,8 @@
       "block": "b4",
       "section": "Relaciones y opiniones",
       "prompt": "Las mujeres feministas están haciendo demandas completamente irracionales a los hombres.",
-      "required": false
-    },
-    {
-      "id": "hh_intro",
-      "type": "info",
-      "prompt": "Opiniones sobre los hombres\nLas siguientes afirmaciones expresan opiniones sobre los hombres y la sociedad. Indica tu grado de acuerdo con cada una.",
-      "sectionHeader": true,
-      "section": "Relaciones y opiniones",
-      "block": "b4",
-      "scale": "hh"
+      "required": false,
+      "unit": "gen"
     },
     {
       "id": "hh01",
@@ -1331,7 +1425,8 @@
       "block": "b4",
       "section": "Relaciones y opiniones",
       "prompt": "Cuando los hombres prestan ayuda a las mujeres, a menudo intentan demostrar que son mejores que ellas.",
-      "required": false
+      "required": false,
+      "unit": "gen"
     },
     {
       "id": "hh02",
@@ -1340,7 +1435,8 @@
       "block": "b4",
       "section": "Relaciones y opiniones",
       "prompt": "Los hombres se comportan como niños cuando están enfermos.",
-      "required": false
+      "required": false,
+      "unit": "gen"
     },
     {
       "id": "hh03",
@@ -1349,7 +1445,8 @@
       "block": "b4",
       "section": "Relaciones y opiniones",
       "prompt": "Los hombres siempre lucharán por tener mayor poder en la sociedad que las mujeres.",
-      "required": false
+      "required": false,
+      "unit": "gen"
     },
     {
       "id": "hh04",
@@ -1358,7 +1455,8 @@
       "block": "b4",
       "section": "Relaciones y opiniones",
       "prompt": "La mayoría de los hombres acosan sexualmente a las mujeres, aunque sea solamente de forma sutil, en cuanto tienen una posición de poder sobre ellas.",
-      "required": false
+      "required": false,
+      "unit": "gen"
     },
     {
       "id": "op_intro",
@@ -1376,7 +1474,9 @@
       "block": "b4",
       "section": "Relaciones y opiniones",
       "prompt": "En una escala de 0 a 10, donde 0 representa la izquierda y 10 la derecha, ¿dónde te ubicarías políticamente?",
-      "required": false
+      "required": false,
+      "grid": 6,
+      "instruction": "0 = Izquierda · 10 = Derecha"
     },
     {
       "id": "cd_intro",
@@ -1391,7 +1491,7 @@
       "scale": "cd",
       "section": "Consumo de sustancias",
       "required": false,
-      "prompt": "En los últimos 3 meses, ¿con qué frecuencia ha consumido alcohol?",
+      "prompt": "En los últimos 3 meses, ¿con qué frecuencia has consumido alcohol?",
       "instruction": "Sustancia: alcohol"
     },
     {
@@ -1400,17 +1500,8 @@
       "scale": "cd",
       "section": "Consumo de sustancias",
       "required": false,
-      "prompt": "En los últimos 3 meses, ¿ha tenido fuertes deseos o ansias de consumir alcohol?",
-      "instruction": "Sustancia: alcohol",
-      "showIf": {
-        "item": "cd01_alc",
-        "in": [
-          2,
-          3,
-          4,
-          5
-        ]
-      }
+      "prompt": "En los últimos 3 meses, ¿has tenido fuertes deseos o ansias de consumir alcohol?",
+      "instruction": "Sustancia: alcohol"
     },
     {
       "id": "cd03_alc",
@@ -1418,17 +1509,8 @@
       "scale": "cd",
       "section": "Consumo de sustancias",
       "required": false,
-      "prompt": "En los últimos 3 meses, ¿con qué frecuencia ha tenido problemas para cumplir con sus obligaciones habituales a causa del consumo de alcohol?",
-      "instruction": "Sustancia: alcohol",
-      "showIf": {
-        "item": "cd01_alc",
-        "in": [
-          2,
-          3,
-          4,
-          5
-        ]
-      }
+      "prompt": "En los últimos 3 meses, ¿con qué frecuencia has tenido problemas para cumplir con tus obligaciones habituales a causa del consumo de alcohol?",
+      "instruction": "Sustancia: alcohol"
     },
     {
       "id": "cd04_alc",
@@ -1436,17 +1518,8 @@
       "scale": "cd",
       "section": "Consumo de sustancias",
       "required": false,
-      "prompt": "¿Alguna vez amigos, familiares o alguien más le ha mostrado preocupación por su consumo de alcohol?",
-      "instruction": "Sustancia: alcohol",
-      "showIf": {
-        "item": "cd01_alc",
-        "in": [
-          2,
-          3,
-          4,
-          5
-        ]
-      }
+      "prompt": "¿Alguna vez amigos, familiares o alguien más te ha mostrado preocupación por tu consumo de alcohol?",
+      "instruction": "Sustancia: alcohol"
     },
     {
       "id": "cd05_alc",
@@ -1454,17 +1527,8 @@
       "scale": "cd",
       "section": "Consumo de sustancias",
       "required": false,
-      "prompt": "¿Alguna vez ha intentado controlar, reducir o dejar de consumir alcohol?",
-      "instruction": "Sustancia: alcohol",
-      "showIf": {
-        "item": "cd01_alc",
-        "in": [
-          2,
-          3,
-          4,
-          5
-        ]
-      }
+      "prompt": "¿Alguna vez has intentado controlar, reducir o dejar de consumir alcohol?",
+      "instruction": "Sustancia: alcohol"
     },
     {
       "id": "cd01_mar",
@@ -1472,7 +1536,7 @@
       "scale": "cd",
       "section": "Consumo de sustancias",
       "required": false,
-      "prompt": "En los últimos 3 meses, ¿con qué frecuencia ha consumido marihuana?",
+      "prompt": "En los últimos 3 meses, ¿con qué frecuencia has consumido marihuana?",
       "instruction": "Sustancia: marihuana"
     },
     {
@@ -1481,17 +1545,8 @@
       "scale": "cd",
       "section": "Consumo de sustancias",
       "required": false,
-      "prompt": "En los últimos 3 meses, ¿ha tenido fuertes deseos o ansias de consumir marihuana?",
-      "instruction": "Sustancia: marihuana",
-      "showIf": {
-        "item": "cd01_mar",
-        "in": [
-          2,
-          3,
-          4,
-          5
-        ]
-      }
+      "prompt": "En los últimos 3 meses, ¿has tenido fuertes deseos o ansias de consumir marihuana?",
+      "instruction": "Sustancia: marihuana"
     },
     {
       "id": "cd03_mar",
@@ -1499,17 +1554,8 @@
       "scale": "cd",
       "section": "Consumo de sustancias",
       "required": false,
-      "prompt": "En los últimos 3 meses, ¿con qué frecuencia ha tenido problemas para cumplir con sus obligaciones habituales a causa del consumo de marihuana?",
-      "instruction": "Sustancia: marihuana",
-      "showIf": {
-        "item": "cd01_mar",
-        "in": [
-          2,
-          3,
-          4,
-          5
-        ]
-      }
+      "prompt": "En los últimos 3 meses, ¿con qué frecuencia has tenido problemas para cumplir con tus obligaciones habituales a causa del consumo de marihuana?",
+      "instruction": "Sustancia: marihuana"
     },
     {
       "id": "cd04_mar",
@@ -1517,17 +1563,8 @@
       "scale": "cd",
       "section": "Consumo de sustancias",
       "required": false,
-      "prompt": "¿Alguna vez amigos, familiares o alguien más le ha mostrado preocupación por su consumo de marihuana?",
-      "instruction": "Sustancia: marihuana",
-      "showIf": {
-        "item": "cd01_mar",
-        "in": [
-          2,
-          3,
-          4,
-          5
-        ]
-      }
+      "prompt": "¿Alguna vez amigos, familiares o alguien más te ha mostrado preocupación por tu consumo de marihuana?",
+      "instruction": "Sustancia: marihuana"
     },
     {
       "id": "cd05_mar",
@@ -1535,17 +1572,8 @@
       "scale": "cd",
       "section": "Consumo de sustancias",
       "required": false,
-      "prompt": "¿Alguna vez ha intentado controlar, reducir o dejar de consumir marihuana?",
-      "instruction": "Sustancia: marihuana",
-      "showIf": {
-        "item": "cd01_mar",
-        "in": [
-          2,
-          3,
-          4,
-          5
-        ]
-      }
+      "prompt": "¿Alguna vez has intentado controlar, reducir o dejar de consumir marihuana?",
+      "instruction": "Sustancia: marihuana"
     },
     {
       "id": "cd01_coc",
@@ -1553,7 +1581,7 @@
       "scale": "cd",
       "section": "Consumo de sustancias",
       "required": false,
-      "prompt": "En los últimos 3 meses, ¿con qué frecuencia ha consumido cocaína?",
+      "prompt": "En los últimos 3 meses, ¿con qué frecuencia has consumido cocaína?",
       "instruction": "Sustancia: cocaína"
     },
     {
@@ -1562,17 +1590,8 @@
       "scale": "cd",
       "section": "Consumo de sustancias",
       "required": false,
-      "prompt": "En los últimos 3 meses, ¿ha tenido fuertes deseos o ansias de consumir cocaína?",
-      "instruction": "Sustancia: cocaína",
-      "showIf": {
-        "item": "cd01_coc",
-        "in": [
-          2,
-          3,
-          4,
-          5
-        ]
-      }
+      "prompt": "En los últimos 3 meses, ¿has tenido fuertes deseos o ansias de consumir cocaína?",
+      "instruction": "Sustancia: cocaína"
     },
     {
       "id": "cd03_coc",
@@ -1580,17 +1599,8 @@
       "scale": "cd",
       "section": "Consumo de sustancias",
       "required": false,
-      "prompt": "En los últimos 3 meses, ¿con qué frecuencia ha tenido problemas para cumplir con sus obligaciones habituales a causa del consumo de cocaína?",
-      "instruction": "Sustancia: cocaína",
-      "showIf": {
-        "item": "cd01_coc",
-        "in": [
-          2,
-          3,
-          4,
-          5
-        ]
-      }
+      "prompt": "En los últimos 3 meses, ¿con qué frecuencia has tenido problemas para cumplir con tus obligaciones habituales a causa del consumo de cocaína?",
+      "instruction": "Sustancia: cocaína"
     },
     {
       "id": "cd04_coc",
@@ -1598,17 +1608,8 @@
       "scale": "cd",
       "section": "Consumo de sustancias",
       "required": false,
-      "prompt": "¿Alguna vez amigos, familiares o alguien más le ha mostrado preocupación por su consumo de cocaína?",
-      "instruction": "Sustancia: cocaína",
-      "showIf": {
-        "item": "cd01_coc",
-        "in": [
-          2,
-          3,
-          4,
-          5
-        ]
-      }
+      "prompt": "¿Alguna vez amigos, familiares o alguien más te ha mostrado preocupación por tu consumo de cocaína?",
+      "instruction": "Sustancia: cocaína"
     },
     {
       "id": "cd05_coc",
@@ -1616,17 +1617,8 @@
       "scale": "cd",
       "section": "Consumo de sustancias",
       "required": false,
-      "prompt": "¿Alguna vez ha intentado controlar, reducir o dejar de consumir cocaína?",
-      "instruction": "Sustancia: cocaína",
-      "showIf": {
-        "item": "cd01_coc",
-        "in": [
-          2,
-          3,
-          4,
-          5
-        ]
-      }
+      "prompt": "¿Alguna vez has intentado controlar, reducir o dejar de consumir cocaína?",
+      "instruction": "Sustancia: cocaína"
     },
     {
       "id": "al_intro",
@@ -1641,7 +1633,7 @@
       "scale": "al",
       "section": "Consumo de sustancias",
       "required": false,
-      "prompt": "¿Con qué frecuencia consume alguna bebida alcohólica?"
+      "prompt": "¿Con qué frecuencia consumes alguna bebida alcohólica?"
     },
     {
       "id": "al02",
@@ -1649,16 +1641,7 @@
       "scale": "al",
       "section": "Consumo de sustancias",
       "required": false,
-      "prompt": "¿Con qué frecuencia toma 5 o más tragos en un solo día?",
-      "showIf": {
-        "item": "al01",
-        "in": [
-          1,
-          2,
-          3,
-          4
-        ]
-      }
+      "prompt": "¿Con qué frecuencia tomas 5 o más tragos en un solo día?"
     },
     {
       "id": "al03",
@@ -1666,16 +1649,7 @@
       "scale": "al",
       "section": "Consumo de sustancias",
       "required": false,
-      "prompt": "En el curso del último año, ¿con qué frecuencia no ha podido recordar lo que sucedió la noche anterior porque había estado bebiendo?",
-      "showIf": {
-        "item": "al01",
-        "in": [
-          1,
-          2,
-          3,
-          4
-        ]
-      }
+      "prompt": "En el curso del último año, ¿con qué frecuencia no has podido recordar lo que sucedió la noche anterior porque habías estado bebiendo?"
     },
     {
       "id": "cierre_intro",
