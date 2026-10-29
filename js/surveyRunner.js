@@ -28,6 +28,7 @@ import { run as runGoNoGo } from './tasks/gonogo.js';
 // - `text` item `audioNote`: small note shown under the recorder while voice mode is active
 //   (e.g. "el audio se elimina tras la transcripción").
 // - settings.randomizeItems "blocks": block → instrument → item randomization; see shuffleByBlocks.
+// - `number` item `integer: true`: rejects non-integers (with `min`/`max`/`rangeHelp`).
 // - choice items `grid: N`: lay options out in N columns (long scales / lists on one screen).
 // - `number` item `decimal: true`: free-form decimal entry, comma or point (e.g. hours/minutes).
 // - `task_rt` item: `title`, `desc`, `prompt` (launch-screen explanation), `taskConfig: { nPractice, nTest, maxFailures }`.
@@ -870,6 +871,10 @@ export function createSurveyApp({ db, elements }) {
         }
         if (num != null && typeof item.max === 'number' && num > item.max) {
           footnoteContainer.innerText = item.rangeHelp || `El valor máximo permitido es ${item.max}.`;
+          return;
+        }
+        if (num != null && item.integer === true && !Number.isInteger(num)) {
+          footnoteContainer.innerText = item.rangeHelp || 'Ingresa un número entero.';
           return;
         }
         if (num == null) delete answers[item.id]; else answers[item.id] = num;

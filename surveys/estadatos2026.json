@@ -139,28 +139,6 @@
         "label": "Mucho"
       }
     ],
-    "esc_concentra5": [
-      {
-        "code": 1,
-        "label": "Mala"
-      },
-      {
-        "code": 2,
-        "label": "Regular"
-      },
-      {
-        "code": 3,
-        "label": "Promedio"
-      },
-      {
-        "code": 4,
-        "label": "Buena"
-      },
-      {
-        "code": 5,
-        "label": "Muy buena"
-      }
-    ],
     "esc_calidad5": [
       {
         "code": 1,
@@ -296,7 +274,7 @@
     {
       "id": "bienvenida",
       "type": "info",
-      "prompt": "Encuesta para Análisis de Datos en Psicología UMAG 2026\nEste cuestionario fue creado de forma colaborativa por diferentes grupos de estudiantes de la carrera de Psicología de la Universidad de Magallanes, en el contexto de la asignatura Análisis de Datos y como parte de una actividad formativa. Por eso aborda temáticas muy diversas: bienestar, hábitos, tecnología, relaciones y opiniones, entre otras.\n\n• Es voluntario: puedes dejar de responder cuando quieras.\n• Es anónimo: no te pedimos nombre ni datos de contacto.\n• Toda la información será tratada con respeto y solo con fines académicos.\n• Todas las respuestas son opcionales y no hay respuestas buenas ni malas, pero agradecemos que respondas con la mayor completitud posible.\n\nTiempo estimado: entre 10 y 15 minutos.\n\nSi tienes consultas, crees que hay un problema, o la encuesta te genera malestar o alguna consecuencia negativa, puedes contactar al profesor responsable, Dr. Herman Elgueta: herman.elgueta@umag.cl · +56 61 220 7000 (anexo 1833).",
+      "prompt": "Encuesta para Análisis de Datos en Psicología UMAG 2026\nEste cuestionario fue creado de forma colaborativa por diferentes grupos de estudiantes de la carrera de Psicología de la Universidad de Magallanes, en el contexto de la asignatura Análisis de Datos y como parte de una actividad formativa. Por eso aborda temas diversos.\n\n• Es voluntario y anónimo.\n• Tu información será tratada con respeto y solo con fines académicos.\n• Todas las respuestas son opcionales y no hay respuestas buenas ni malas, pero agradecemos que respondas con la mayor completitud posible.\n\nTiempo estimado: entre 10 y 15 minutos.",
       "sectionHeader": true
     },
     {
@@ -304,6 +282,7 @@
       "type": "single_choice",
       "required": true,
       "section": "Antes de comenzar",
+      "instruction": "Si tienes consultas, crees que hay un problema, o la encuesta te genera malestar o alguna consecuencia negativa, puedes contactar al profesor responsable, Dr. Herman Elgueta: herman.elgueta@umag.cl · +56 61 220 7000 (anexo 1833).",
       "prompt": "¿Tienes 18 años o más y aceptas participar voluntariamente?",
       "options": [
         {
@@ -332,9 +311,12 @@
       "type": "number",
       "required": false,
       "section": "Datos generales",
-      "prompt": "¿Cuántos años tienes?",
-      "decimal": true,
-      "placeholder": "Edad en años"
+      "prompt": "¿Cuál es tu edad en años cumplidos?",
+      "min": 18,
+      "max": 130,
+      "integer": true,
+      "placeholder": "Edad en años cumplidos",
+      "rangeHelp": "Ingresa un número entero entre 18 y 130."
     },
     {
       "id": "genero",
@@ -369,7 +351,8 @@
       "type": "single_choice",
       "required": false,
       "section": "Datos generales",
-      "prompt": "¿Cuál es tu ocupación principal?",
+      "prompt": "¿Cuál es tu actividad principal?",
+      "instruction": "Elige solo una.",
       "options": [
         {
           "code": 1,
@@ -896,7 +879,7 @@
     },
     {
       "id": "ca01",
-      "type": "esc_concentra5",
+      "type": "esc_calidad5",
       "scale": "ca",
       "block": "b2",
       "section": "Hábitos y vida diaria",
@@ -905,7 +888,7 @@
     },
     {
       "id": "ca02",
-      "type": "esc_concentra5",
+      "type": "esc_calidad5",
       "scale": "ca",
       "block": "b2",
       "section": "Hábitos y vida diaria",
@@ -914,7 +897,7 @@
     },
     {
       "id": "ca03",
-      "type": "esc_concentra5",
+      "type": "esc_calidad5",
       "scale": "ca",
       "block": "b2",
       "section": "Hábitos y vida diaria",
@@ -923,7 +906,7 @@
     },
     {
       "id": "ca04",
-      "type": "esc_concentra5",
+      "type": "esc_calidad5",
       "scale": "ca",
       "block": "b2",
       "section": "Hábitos y vida diaria",
@@ -1189,10 +1172,22 @@
         },
         {
           "code": 8,
-          "label": "Otra"
+          "label": "Reddit"
         },
         {
           "code": 9,
+          "label": "LinkedIn"
+        },
+        {
+          "code": 10,
+          "label": "Discord"
+        },
+        {
+          "code": 11,
+          "label": "Otra"
+        },
+        {
+          "code": 12,
           "label": "Ninguna",
           "exclusive": true
         }
@@ -1200,7 +1195,7 @@
       "grid": 2,
       "followUp": {
         "id": "redes_otra",
-        "whenCode": 8,
+        "whenCode": 11,
         "prompt": "¿Cuál?",
         "placeholder": "Escribe aquí…",
         "maxLength": 80
