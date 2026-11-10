@@ -192,6 +192,24 @@ Admin pages gate on a Google-login allow-list (`ALLOWED_EMAILS` in
 
 ---
 
+## fabest link (desktop analysis)
+
+fabest (Herman's statistics app) can mirror a survey locally and update it with new cases,
+without opening a browser each time. Pairing happens once per computer:
+
+1. In a terminal: `fabest samplux connect` (or `--local` to use `http://localhost:5175/admin.html`).
+2. The admin page opens with `?fabest=<port>&code=<code>`. Log in with Google as usual and click
+   **Conectar** in the box "Conectar fabest en este computador".
+3. The page (`js/fabestLink.js`) sends the Firebase refresh token of that login to
+   `http://127.0.0.1:<port>/pair`, where fabest is listening. fabest stores it (mode 0600). From then
+   on it reads Firestore over REST as that user, under the same `firestore.rules`, and only reads.
+
+After that, `fabest samplux list | pull <survey> | update --all` work from the terminal, and
+`fabest samplux disconnect` forgets the pairing. Without the two URL parameters, `fabestLink.js`
+does nothing.
+
+---
+
 ## Relationship to `sssss` & rollback
 
 samplux is a **fresh repository** — the original
