@@ -51,6 +51,7 @@ function ask(user) {
   box.querySelector('.fl-yes').addEventListener('click', async () => {
     box.querySelectorAll('button').forEach(b => { b.disabled = true; });
     msg.textContent = 'Conectando…';
+    let payload = null;
     try {
       const body = {
         code,
@@ -60,13 +61,20 @@ function ask(user) {
         email: user.email || '',
         siteUrl: new URL('.', location.href).href
       };
-      const res = await fetch(`http://127.0.0.1:${port}/pair`, {
+      const send = (extra) => fetch(`http://127.0.0.1:${port}/pair`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
-        // Chrome: a public page talking to this computer (Private Network Access)
-        targetAddressSpace: 'local'
+        ...extra
       });
+      // A public page talking to a program on this same computer. Browsers differ in what they
+      // want here, so: the plain request first, then with Chrome's explicit "this is loopback" hint.
+      let res;
+      try { res = await send({}); }
+      catch (first) {
+        try { res = await send({ targetAddressSpace: 'loopback' }); }
+        catch { payload = JSON.stringify(body); throw first; }
+      }
       const out = await res.json().catch(() => ({}));
       if (!res.ok || !out.ok) throw new Error(out.error || `HTTP ${res.status}`);
       dropParams();
@@ -77,9 +85,34 @@ function ask(user) {
       box.querySelector('.fl-yes').addEventListener('click', () => box.remove());
       box.querySelector('.fl-no').remove();
     } catch (e) {
-      msg.textContent = 'No se pudo conectar con fabest (' + (e?.message || e) + '). ¿Sigue esperando `fabest samplux connect` en la terminal? ' +
-        'Si el navegador pidió permiso para acceder a la red local, acéptalo y vuelve a intentar.';
       box.querySelectorAll('button').forEach(b => { b.disabled = false; });
+      if (!payload) {
+        msg.textContent = 'No se pudo conectar con fabest (' + (e?.message || e) + '). ¿Sigue esperando la conexión en fabest?';
+        return;
+      }
+      // The browser did not let this page's script reach fabest (some block it, some ask for a
+      // "local network" permission). Plan B always works: send the same data as an ordinary form
+      // to fabest's local address, in a new tab. Nothing leaves this computer.
+      msg.textContent = 'El navegador no dejó que esta página hablara directamente con fabest. Pulsa «Conectar en una pestaña nueva»: se abrirá una pestaña local que confirma la conexión.';
+      const yes = box.querySelector('.fl-yes');
+      const alt = yes.cloneNode(true);
+      alt.textContent = 'Conectar en una pestaña nueva';
+      yes.replaceWith(alt);
+      alt.addEventListener('click', () => {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `http://127.0.0.1:${port}/pair`;
+        form.target = '_blank';
+        form.rel = 'noopener';
+        const input = document.createElement('input');
+        input.type = 'hidden'; input.name = 'payload'; input.value = payload;
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+        form.remove();
+        dropParams();
+        msg.innerHTML = 'Se abrió una pestaña nueva. Si dice <b>«Listo»</b>, fabest quedó conectado y puedes cerrar este aviso.';
+      });
     }
   });
 }
