@@ -31,13 +31,13 @@ export async function fetchSurveyDefinition(meta) {
   }
 }
 
-// Minimal extends resolution: merge items + optionSets + remove rules.
+// Minimal extends resolution: merge items + optionSets + settings + remove/relocate rules.
 async function resolveSurveyExtends(raw) {
   if (!raw || typeof raw !== 'object' || !raw.extends) return raw;
   const baseFile = typeof raw.extends === 'string'
     ? raw.extends
     : (raw.extends && typeof raw.extends === 'object' ? raw.extends.file : null);
-  if (!baseFile) return raw;
+  if (!baseFile || !/^[a-zA-Z0-9._-]+\.json$/.test(baseFile)) return raw;
   try {
     const res = await fetch(`surveys/${baseFile}?_=${Date.now()}`);
     const base = await res.json();
@@ -45,12 +45,19 @@ async function resolveSurveyExtends(raw) {
     if (raw.id) merged.id = raw.id;
     if (raw.title) merged.title = raw.title;
     if (raw.description) merged.description = raw.description;
+    if (raw.settings && typeof raw.settings === 'object') {
+      const out = structuredClone(merged.settings || {});
+      for (const [k, v] of Object.entries(raw.settings)) {
+        if (k === 'splash' && v && typeof v === 'object' && out.splash && typeof out.splash === 'object') {
+          out.splash = { ...out.splash, ...v };
+        } else {
+          out[k] = v;
+        }
+      }
+      merged.settings = out;
+    }
     if (raw.optionSets) merged.optionSets = { ...(merged.optionSets || {}), ...raw.optionSets };
     if (Array.isArray(raw.items)) merged.items = raw.items;
-    if (Array.isArray(raw.removeItemIds) && raw.removeItemIds.length) {
-      const drop = new Set(raw.removeItemIds.filter(Boolean));
-      merged.items = (merged.items || []).filter(it => !drop.has(it && it.id));
-    }
     if (raw.removeRutQuestions) {
       const rut = /\bR\s*\.?\s*U\s*\.?\s*T\b/i;
       merged.items = (merged.items || []).filter(it => {
@@ -58,6 +65,36 @@ async function resolveSurveyExtends(raw) {
         const id = it && typeof it.id === 'string' ? it.id : '';
         return !rut.test(p) && !/\brut\b/i.test(id);
       });
+    }
+    if (Array.isArray(raw.removeItemIds) && raw.removeItemIds.length) {
+      const drop = new Set(raw.removeItemIds.filter(Boolean));
+      merged.items = (merged.items || []).filter(it => !drop.has(it && it.id));
+    }
+    if (raw.contactEmailRelocation && typeof raw.contactEmailRelocation === 'object') {
+      const cfg = raw.contactEmailRelocation;
+      const sourceId = typeof cfg.sourceId === 'string' ? cfg.sourceId : 'correo_contacto';
+      const insertBeforeId = typeof cfg.insertBeforeId === 'string' ? cfg.insertBeforeId : 'comentario_final';
+      const items = Array.isArray(merged.items) ? merged.items : [];
+      const sourceIndex = items.findIndex(it => it && it.id === sourceId);
+      if (sourceIndex >= 0) {
+        const emailItem = structuredClone(items[sourceIndex]);
+        if (typeof cfg.required === 'boolean') emailItem.required = cfg.required;
+        if (typeof cfg.prompt === 'string' && cfg.prompt.trim()) emailItem.prompt = cfg.prompt;
+        items.splice(sourceIndex, 1);
+        const targetIndex = items.findIndex(it => it && it.id === insertBeforeId);
+        if (targetIndex >= 0) items.splice(targetIndex, 0, emailItem);
+        else items.push(emailItem);
+        merged.items = items;
+      }
+    }
+    if (raw.introConsentPdfReplace && typeof raw.introConsentPdfReplace === 'object') {
+      const { from, to } = raw.introConsentPdfReplace;
+      if (typeof from === 'string' && typeof to === 'string') {
+        const introItem = (merged.items || []).find(it => it && it.id === 'intro');
+        if (introItem && typeof introItem.prompt === 'string') {
+          introItem.prompt = introItem.prompt.split(from).join(to);
+        }
+      }
     }
     return merged;
   } catch (e) {
