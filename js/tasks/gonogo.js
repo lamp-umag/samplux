@@ -1,4 +1,4 @@
-import { sleep, rand, pct, mean } from './helpers.js';
+import { sleep, rand, shuffle, pct, mean } from './helpers.js';
 
 const N_PRACTICE  = 10;
 const N_TEST      = 40;
@@ -10,8 +10,7 @@ const FEEDBACK_MS = 600;
 function genTrials(n) {
   const nGo   = Math.round(n * GO_RATIO);
   const nNoGo = n - nGo;
-  return [...Array(nGo).fill('go'), ...Array(nNoGo).fill('nogo')]
-    .sort(() => Math.random() - 0.5);
+  return shuffle([...Array(nGo).fill('go'), ...Array(nNoGo).fill('nogo')]);
 }
 
 async function runTrial(container, type, index, total, phase) {

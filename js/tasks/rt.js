@@ -134,6 +134,7 @@ export async function run(container, config = {}) {
   }
 
   const validRTs = rts.map(r => r.rt_ms).filter(Boolean);
+  const rawMean = validRTs.length ? validRTs.reduce((s, v) => s + v, 0) / validRTs.length : null;
   const summary = {
     n_trials:   rts.length,
     n_failed:   failures,
@@ -142,7 +143,7 @@ export async function run(container, config = {}) {
     min_rt_ms:  validRTs.length ? Math.min(...validRTs) : null,
     max_rt_ms:  validRTs.length ? Math.max(...validRTs) : null,
     sd_rt_ms:   validRTs.length > 1
-      ? Math.round(Math.sqrt(validRTs.reduce((s, v) => s + Math.pow(v - mean(validRTs), 2), 0) / validRTs.length))
+      ? Math.round(Math.sqrt(validRTs.reduce((s, v) => s + Math.pow(v - rawMean, 2), 0) / (validRTs.length - 1)))
       : null,
   };
 
