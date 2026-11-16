@@ -879,5 +879,6 @@ previewBtn.addEventListener('click', () => {
 });
 
 closePreviewBtn.addEventListener('click', () => {
+  if (previewApp && previewApp.stop) previewApp.stop();
   previewOverlay.classList.remove('visible');
 });

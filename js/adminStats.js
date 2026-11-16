@@ -1030,7 +1030,10 @@ function flatAnswer(v) {
 
 function csvCell(v) {
   if (v == null) return '';
-  const s = String(v);
+  let s = String(v);
+  // Neutralize spreadsheet formula payloads (=, @, or +/- followed by a letter)
+  // while leaving negative numbers (-12.5) and phone numbers (+56...) untouched.
+  if (/^[=@]|^[+-][A-Za-z]/.test(s)) s = `'${s}`;
   return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 

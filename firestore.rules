@@ -61,6 +61,7 @@ service cloud.firestore {
       allow create: if
         exists(/databases/$(database)/documents/surveys/$(surveyId)) &&
         get(/databases/$(database)/documents/surveys/$(surveyId)).data.published == true &&
+        request.resource.data.keys().size() <= 30 &&
         request.resource.data.surveyId == surveyId &&
         request.resource.data.answers is map;
 
@@ -87,7 +88,7 @@ service cloud.firestore {
         request.resource.data.audio.size() > 0 &&
         request.resource.data.audio.size() <= 700000 &&
         request.resource.data.mime is string &&
-        request.resource.data.mime.matches('audio/.*');
+        request.resource.data.mime.matches('^audio/(webm|mp4|ogg|aac|mpeg)(;.*)?$');
       allow read: if isAdmin() || isSurveyAdmin(surveyId);
       allow update, delete: if false;
     }

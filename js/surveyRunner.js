@@ -78,6 +78,13 @@ export function createSurveyApp({ db, elements }) {
   let audioCleanup = null;      // stops an in-flight recording when the step changes
   let visibilityWatch = null;   // tab-hidden paradata (see deviceInfo.js)
   let submission = null;        // { responseId, uploaded:Set } — stable across submit retries
+  let isPreview = false;        // true when launched via builder.html previewSurvey()
+
+  function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
 
   function cloneAnswerValue(v) {
     if (v === undefined) return undefined;
@@ -181,11 +188,11 @@ export function createSurveyApp({ db, elements }) {
       row.className = 'survey-item';
       row.innerHTML = `
         <div>
-          <h3>${item.title}</h3>
-          <p>${item.description || ''}</p>
+          <h3>${escapeHtml(item.title)}</h3>
+          <p>${escapeHtml(item.description || '')}</p>
         </div>
         <div>
-          <button data-id="${item.id}">Comenzar</button>
+          <button data-id="${escapeHtml(item.id)}">Comenzar</button>
         </div>
       `;
       row.querySelector('button').addEventListener('click', () => {
@@ -204,6 +211,7 @@ export function createSurveyApp({ db, elements }) {
       alert('Encuesta no encontrada');
       return;
     }
+    isPreview = false;
     let data = { id: snap.id, ...snap.data() };
     data = await resolveSurveyExtends(data);
     const prepared = prepareSurvey(data);
@@ -211,10 +219,16 @@ export function createSurveyApp({ db, elements }) {
   }
 
   async function previewSurvey(rawSurvey) {
+    isPreview = true;
     let data = structuredClone(rawSurvey);
     data = await resolveSurveyExtends(data);
     const prepared = prepareSurvey(data);
     startSurvey(prepared);
+  }
+
+  function stop() {
+    if (audioCleanup) { audioCleanup(); audioCleanup = null; }
+    if (visibilityWatch) { visibilityWatch.stop(); visibilityWatch = null; }
   }
 
   function shuffle(arr) {
@@ -438,7 +452,7 @@ export function createSurveyApp({ db, elements }) {
       ? extendsSpec
       : extendsSpec && typeof extendsSpec === 'object' ? extendsSpec.file : null;
 
-    if (!baseFile) return rawSurvey;
+    if (!baseFile || !/^[a-zA-Z0-9._-]+\.json$/.test(baseFile)) return rawSurvey;
 
     try {
       const res = await fetch(`surveys/${baseFile}?_=${Date.now()}`);
@@ -622,7 +636,7 @@ export function createSurveyApp({ db, elements }) {
     }
 
     if (item.section) {
-      metaContainer.innerHTML = `<div class="kicker">${item.section}</div>`;
+      metaContainer.innerHTML = `<div class="kicker">${escapeHtml(item.section)}</div>`;
     }
 
     if (item.type === 'info') {
@@ -632,14 +646,14 @@ export function createSurveyApp({ db, elements }) {
 
       if (isSectionHeader(item)) {
         questionContainer.innerHTML = `
-          <div class="section-header">${headerText}</div>
+          <div class="section-header">${escapeHtml(headerText)}</div>
           <div class="info-text">${content}</div>
         `;
       } else {
         questionContainer.innerHTML = `<div class="info-text">${item.prompt}</div>`;
       }
     } else {
-      const instruction = item.instruction ? `<div class="item-instruction">${item.instruction}</div>` : '';
+      const instruction = item.instruction ? `<div class="item-instruction">${escapeHtml(item.instruction)}</div>` : '';
       questionContainer.innerHTML = instruction + `<div class="q">${item.prompt}</div>`;
     }
 
@@ -1137,8 +1151,8 @@ export function createSurveyApp({ db, elements }) {
       questionContainer.innerHTML = `
         <div class="task-launch-wrap">
           <div class="task-launch-icon" style="background:${info.color}20;color:${info.color}">${info.icon}</div>
-          <div class="task-launch-title">${info.title}</div>
-          <div class="task-launch-desc">${info.desc}</div>
+          <div class="task-launch-title">${escapeHtml(info.title)}</div>
+          <div class="task-launch-desc">${escapeHtml(info.desc)}</div>
           ${item.prompt ? `<div class="info-text">${item.prompt}</div>` : ''}
         </div>`;
       optionsContainer.innerHTML = '';
@@ -1170,7 +1184,7 @@ export function createSurveyApp({ db, elements }) {
       return;
     }
 
-    optionsContainer.innerHTML = '<div class="tiny">Tipo de ítem no soportado: ' + item.type + '</div>';
+    optionsContainer.innerHTML = '<div class="tiny">Tipo de ítem no soportado: ' + escapeHtml(item.type) + '</div>';
   }
 
   /** Conditional "especifica" text box tied to one or more option codes. */
@@ -1291,6 +1305,17 @@ export function createSurveyApp({ db, elements }) {
     // response doc stays small. Uploaded BEFORE the response doc; audio docs are immutable,
     // so `submission` remembers what already went up and a retry only sends what's missing.
     if (audioCleanup) { audioCleanup(); audioCleanup = null; }
+    if (isPreview) {
+      if (visibilityWatch) { visibilityWatch.stop(); visibilityWatch = null; }
+      const customThanks = survey.settings && survey.settings.thankYou;
+      questionContainer.innerHTML = customThanks || APP_CONFIG.messages.thankYou;
+      metaContainer.innerHTML = '';
+      optionsContainer.innerHTML = '';
+      controlsContainer.innerHTML = '';
+      footnoteContainer.innerHTML = '';
+      bar.style.width = '100%';
+      return;
+    }
     const entriesCol = collection(db, `responses/${survey.id}/entries`);
     if (!submission) submission = { responseId: doc(entriesCol).id, uploaded: {} };
     const audioMeta = {};
@@ -1365,14 +1390,14 @@ export function createSurveyApp({ db, elements }) {
 
   async function init() {
     const selected = qsParam('survey');
-    const items = await loadSurveyIndex();
     if (selected) {
       await startSurveyById(selected);
     } else {
+      const items = await loadSurveyIndex();
       showHome(items);
     }
     document.body.style.paddingBottom = '24px';
   }
 
-  return { init, previewSurvey };
+  return { init, previewSurvey, stop };
 }
