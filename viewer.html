@@ -45,17 +45,21 @@ function render(){
  const data=responses.find(r=>r.id===selectedResponseId)?.data||{};
  let value=f.changes.length?f.changes[0].from:data.answers?.[f.item.id];
  for(const c of f.changes){if(local>=c.at)value=c.to;else break}
- const item=f.item,answer=formatAnswer(value,item);
+ const item=f.item,fuId=item.followUp?.id,fuVal=fuId?data.answers?.[fuId]:null,auMeta=data.audio?.[item.id]||null;
+ let answer=formatAnswer(value,item);
+ if(fuVal!=null&&String(fuVal).trim()!=='')answer+=(answer==='—'?'':'\n')+`${item.followUp?.prompt||'Especifica'}: ${String(fuVal).trim()}`;
+ if(auMeta)answer=(answer==='—'?'':`${answer}\n`)+`🎙️ Audio (${fmt(auMeta.durationMs||0)})`;
+ const hasAny=(value!=null&&value!=='')||(fuVal!=null&&String(fuVal).trim()!=='')||!!auMeta;
  $('step').textContent=`PASO ${String(idx+1).padStart(2,'0')} / ${String(frames.length).padStart(2,'0')} · ${fmt(local)} / ${fmt(f.duration)}`;
  $('prompt').textContent=plain(item.prompt||item.title||item.id);
- $('answerLabel').textContent=value==null||value===''?'Sin respuesta':'Respuesta en este momento';
+ $('answerLabel').textContent=hasAny?'Respuesta en este momento':'Sin respuesta';
  $('answer').textContent=answer;
  $('progressFill').style.width=`${position/total*100}%`;
  $('clock').textContent=`${fmt(position)} / ${fmt(total)}`;
  $('timeline').querySelectorAll('.item-row').forEach((el,i)=>el.classList.toggle('active',i===idx));
- renderParticipant(item,value,idx,local);
+ renderParticipant(item,value,idx,local,fuVal,auMeta);
 }
-function renderParticipant(item,value,idx,local){
+function renderParticipant(item,value,idx,local,fuVal,auMeta){
  const q=$('mockQuestion'),section=$('mockSection'),opts=$('mockOptions'),note=$('mockFootnote'),back=$('mockBack'),next=$('mockNext');
  $('deviceScreen').dataset.theme=surveyDef?.settings?.theme==='telares'?'telares':'default';
  const isTask=['task_rt','task_stroop','task_gonogo'].includes(item.type),taskPosition=local/Math.max(1,frames[idx].duration);
@@ -82,12 +86,14 @@ function renderParticipant(item,value,idx,local){
    if(list.length){
      opts.style.display=item.grid>1?'grid':'flex';opts.style.gridTemplateColumns=item.grid>1?`repeat(${Math.min(4,Number(item.grid))},1fr)`:'';
      opts.innerHTML=list.slice(0,18).map((o,i)=>{const code=String(o.code),chosen=selected.includes(code)||selected.includes(String(o.label));const rank=item.type==='ranking'?Math.max(0,selected.indexOf(code))+1:0;return `<div class="mock-opt ${chosen?'selected':''} ${item.type==='ranking'?'rank':''}">${item.type==='ranking'?`<span class="mock-rank">${rank||''}</span>`:''}${esc(o.label)}</div>`}).join('');
+     if(fuVal!=null&&String(fuVal).trim()!=='')opts.innerHTML+=`<div class="mock-input" style="grid-column:1/-1;margin-top:4px">${esc(String(fuVal))}</div>`;
    }else{
      opts.style.display='flex';opts.style.gridTemplateColumns='';
      const valueText=Array.isArray(value)?value.join(', '):typeof value==='object'&&value?JSON.stringify(value):String(value??'');
+     const displayVal=valueText||(auMeta?`🎙️ Audio grabado (${fmt(auMeta.durationMs||0)})`:'');
      if(['text','email','url','number','phone','date','time'].includes(item.type)){
-       opts.innerHTML=item.long?`<div class="mock-input" style="height:105px;white-space:pre-wrap">${esc(valueText||item.placeholder||'')}</div>`:`<div class="mock-input">${esc(valueText||item.placeholder||'')}</div>`;
-     }else if(item.type==='file')opts.innerHTML=`<div class="mock-input">＋ ${esc(valueText||'Seleccionar archivo')}</div>`;
+       opts.innerHTML=item.long?`<div class="mock-input" style="height:105px;white-space:pre-wrap">${esc(displayVal||item.placeholder||'')}</div>`:`<div class="mock-input">${esc(displayVal||item.placeholder||'')}</div>`;
+     }else if(item.type==='file')opts.innerHTML=`<div class="mock-input">＋ ${esc(displayVal||'Seleccionar archivo')}</div>`;
      else if(item.type==='ranking')opts.innerHTML='<div class="mock-input">Toca para ordenar tus respuestas</div>';
    }
  }
