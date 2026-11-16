@@ -19,7 +19,7 @@
   ],
   "author": "LAMP UMAG",
   "license": "UNLICENSED",
-  "type": "commonjs",
+  "type": "module",
   "bugs": {
     "url": "https://github.com/lamp-umag/samplux/issues"
   },
