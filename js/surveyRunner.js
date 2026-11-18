@@ -4,6 +4,8 @@ import { audioSupported, mountAudioWidget, clampMaxSeconds, extensionForMime } f
 import { run as runRT }     from './tasks/rt.js';
 import { run as runStroop } from './tasks/stroop.js';
 import { run as runGoNoGo } from './tasks/gonogo.js';
+import { consentSettings, createConsentRecord, rememberReceipt } from './consent.js';
+import { renderReceipt } from './receiptView.js';
 
 // Item-level extensions (ported from perseg + added for espacios-telares-1;
 // see docs/ARCHITECTURE.md §2):
@@ -33,6 +35,11 @@ import { run as runGoNoGo } from './tasks/gonogo.js';
 // - `number` item `decimal: true`: free-form decimal entry, comma or point (e.g. hours/minutes).
 // - `task_rt` item: `title`, `desc`, `prompt` (launch-screen explanation), `taskConfig: { nPractice, nTest, maxFailures }`.
 // - survey.settings.thankYou: HTML that replaces the default thank-you message.
+// - survey.settings.consent: { enabled, level: "anonymous"|"personal"|"sensitive", itemId, contact } —
+//   registers a consent record on submit and hands the participant a withdrawal code
+//   (js/consent.js, retirar.html, docs/CONSENT.md).
+// - item.handoff: true — in interviewer mode (encuestador.html) the device is handed to the
+//   respondent for this item; cognitive tasks always are. See docs/ENCUESTADOR.md.
 export const APP_CONFIG = {
   enableParadata: true,
   maxAnswerChangeEvents: 50,
@@ -45,7 +52,47 @@ export const APP_CONFIG = {
   }
 };
 
-export function createSurveyApp({ db, elements }) {
+/**
+ * Writes one finished submission to Firestore: audio clips, then the consent record, then
+ * the response. `sub` is plain data (see buildSubmission) so interviewer mode can park it in
+ * an offline outbox and call this later. Safe to call again after a failure: `sub.uploaded`
+ * remembers what went up, and firestore.rules accept an identical re-write.
+ */
+export async function uploadSubmission(db, sub) {
+  sub.uploaded = sub.uploaded || {};
+  for (const clip of sub.clips || []) {
+    if (sub.uploaded[clip.itemId]) continue;
+    const buf = new Uint8Array(await clip.blob.arrayBuffer());
+    await setDoc(doc(db, `responses/${sub.surveyId}/audio`, clip.docId), {
+      surveyId: sub.surveyId, responseId: sub.responseId, itemId: clip.itemId,
+      mime: clip.mime, durationMs: clip.durationMs, size: clip.blob.size,
+      audio: Bytes.fromUint8Array(buf), createdAt: serverTimestamp()
+    });
+    sub.uploaded[clip.itemId] = true;
+  }
+  if (sub.consent && !sub.uploaded.__consent) {
+    const ref = doc(db, 'consents', sub.consent.consentId);
+    try {
+      await setDoc(ref, { ...sub.consent.doc, grantedAt: serverTimestamp() });
+    } catch (e) {
+      // A consent record cannot be rewritten. If an earlier attempt already registered
+      // it (and then lost the connection), that is fine — anything else is a real error.
+      const snap = await getDoc(ref).catch(() => null);
+      if (!snap || !snap.exists()) throw e;
+    }
+    sub.uploaded.__consent = true;
+  }
+  await setDoc(doc(db, `responses/${sub.surveyId}/entries`, sub.responseId), { ...sub.payload, createdAt: serverTimestamp() });
+}
+
+/**
+ * hooks (all optional, used by interviewer mode — js/encuestador.js):
+ *   onRender({ index, item, atEnd })  after every step render
+ *   interviewer()                     → object stored as `interviewer` on the response
+ *   deliver(sub)                      replaces the direct Firestore upload (offline outbox)
+ *   onSubmitted(sub) / onDeclined()   after the thank-you / declined screen is shown
+ */
+export function createSurveyApp({ db, elements, hooks = {} }) {
   const {
     header,
     homeSection,
@@ -79,6 +126,7 @@ export function createSurveyApp({ db, elements }) {
   let visibilityWatch = null;   // tab-hidden paradata (see deviceInfo.js)
   let submission = null;        // { responseId, uploaded:Set } — stable across submit retries
   let isPreview = false;        // true when launched via builder.html previewSurvey()
+  let finished = false;         // thank-you / declined screen is showing
 
   function escapeHtml(s) {
     return String(s ?? '').replace(/[&<>"']/g, c => ({
@@ -216,6 +264,60 @@ export function createSurveyApp({ db, elements }) {
     data = await resolveSurveyExtends(data);
     const prepared = prepareSurvey(data);
     startSurvey(prepared);
+  }
+
+  /** Starts a survey from an already-loaded definition (interviewer mode, works offline). */
+  async function startSurveyData(rawSurvey) {
+    isPreview = false;
+    let data = structuredClone(rawSurvey);
+    data = await resolveSurveyExtends(data);
+    startSurvey(prepareSurvey(data));
+  }
+
+  // First unanswered item that can end the survey (consent): nothing after it is reachable.
+  function gateIndex() {
+    if (!survey) return -1;
+    return survey.items.findIndex(it => Array.isArray(it.exitOnAnswer) && isItemVisible(it) && answers[it.id] == null);
+  }
+
+  // A jump skips the "Siguiente" handler, so tidy what it would have validated.
+  function settleBeforeJump(item) {
+    if (!item || item.type !== 'number' || item.decimal === true) return;
+    const raw = answers[item.id];
+    if (raw == null || raw === '') { delete answers[item.id]; return; }
+    const num = Number(raw);
+    const bad = !Number.isFinite(num) ||
+      (typeof item.min === 'number' && num < item.min) ||
+      (typeof item.max === 'number' && num > item.max) ||
+      (item.integer === true && !Number.isInteger(num));
+    if (bad) delete answers[item.id]; else answers[item.id] = num;
+  }
+
+  /** Free navigation (interviewer mode). `index === items.length` is the send screen. */
+  function goTo(index) {
+    if (!survey || finished) return;
+    const total = survey.items.length;
+    let target = Math.max(0, Math.min(Number(index) || 0, total));
+    if (currentIndex < total) settleBeforeJump(survey.items[currentIndex]);
+    const gate = gateIndex();
+    if (gate >= 0 && target > gate) target = gate;
+    if (target === currentIndex) return;
+    if (currentIndex < total) leaveCurrentItemParadata(survey.items[currentIndex]);
+    if (target < currentIndex && APP_CONFIG.enableParadata) navBackCount += 1;
+    currentIndex = target;
+    renderStep();
+  }
+
+  function getState() {
+    if (!survey) return null;
+    return {
+      survey, currentIndex, answers, audioClips, finished,
+      gateIndex: gateIndex(),
+      visited: new Set(Object.keys(itemTimes)),
+      isVisible: isItemVisible,
+      isEmpty: item => isEmptyAnswer(answers[item.id]) && !audioClips[item.id],
+      optionsFor: normalizeOptions
+    };
   }
 
   async function previewSurvey(rawSurvey) {
@@ -566,6 +668,7 @@ export function createSurveyApp({ db, elements }) {
     itemAnswerChangeCount = {};
     audioClips = {};
     submission = null;
+    finished = false;
     if (visibilityWatch) visibilityWatch.stop();
     visibilityWatch = watchVisibility();
     presentationOrder = Array.isArray(survey._presentationOrder)
@@ -624,6 +727,7 @@ export function createSurveyApp({ db, elements }) {
       const send = button('Enviar respuestas', 'primary');
       send.onclick = submitResponses;
       controlsContainer.append(back, send);
+      if (hooks.onRender) hooks.onRender({ index: currentIndex, item: null, atEnd: true });
       return;
     }
 
@@ -675,6 +779,7 @@ export function createSurveyApp({ db, elements }) {
     if (item.help && item.type !== 'text') {
       footnoteContainer.innerText = item.help;
     }
+    if (hooks.onRender) hooks.onRender({ index: currentIndex, item, atEnd: false });
   }
 
   function filterByAllowedChars(value, allowedChars) {
@@ -1241,6 +1346,8 @@ export function createSurveyApp({ db, elements }) {
     controlsContainer.innerHTML = '';
     footnoteContainer.innerHTML = '';
     questionContainer.innerHTML = customMessageHtml || APP_CONFIG.messages.declined;
+    finished = true;
+    if (hooks.onDeclined) hooks.onDeclined();
   }
 
   function button(label, kind) {
@@ -1273,7 +1380,14 @@ export function createSurveyApp({ db, elements }) {
     return opts.length > 0;
   }
 
+  let submitting = false;
   async function submitResponses() {
+    if (submitting) return;   // a double tap must not register two consents
+    submitting = true;
+    try { await doSubmit(); } finally { submitting = false; }
+  }
+
+  async function doSubmit() {
     if (APP_CONFIG.enableParadata && survey && currentIndex < survey.items.length) {
       const item = survey.items[currentIndex];
       leaveCurrentItemParadata(item);
@@ -1317,42 +1431,49 @@ export function createSurveyApp({ db, elements }) {
       return;
     }
     const entriesCol = collection(db, `responses/${survey.id}/entries`);
-    if (!submission) submission = { responseId: doc(entriesCol).id, uploaded: {} };
+    if (!submission) submission = { surveyId: survey.id, responseId: doc(entriesCol).id, uploaded: {} };
     const audioMeta = {};
-    const clipItems = Object.keys(audioClips).filter(id => survey.items.some(it => it.id === id));
-    try {
-      for (const itemId of clipItems) {
-        const clip = audioClips[itemId];
-        const docId = `${submission.responseId}__${itemId}`;
-        const meta = {
-          docId, mime: clip.mime, ext: extensionForMime(clip.mime), bytes: clip.blob.size,
-          durationMs: clip.durationMs, reRecords: clip.reRecords || 0,
-          ...(clip.mic && { mic: clip.mic })
-        };
-        if (!submission.uploaded[itemId]) {
-          const buf = new Uint8Array(await clip.blob.arrayBuffer());
-          await setDoc(doc(db, `responses/${survey.id}/audio`, docId), {
-            surveyId: survey.id, responseId: submission.responseId, itemId,
-            mime: meta.mime, durationMs: meta.durationMs, size: meta.bytes,
-            audio: Bytes.fromUint8Array(buf), createdAt: serverTimestamp()
-          });
-          submission.uploaded[itemId] = true;
-        }
-        audioMeta[itemId] = meta;
-      }
-    } catch (e) {
-      alert('Error al subir el audio. Intenta de nuevo.');
-      console.error(e);
-      return;
+    const clips = [];
+    for (const itemId of Object.keys(audioClips).filter(id => survey.items.some(it => it.id === id))) {
+      const clip = audioClips[itemId];
+      const docId = `${submission.responseId}__${itemId}`;
+      audioMeta[itemId] = {
+        docId, mime: clip.mime, ext: extensionForMime(clip.mime), bytes: clip.blob.size,
+        durationMs: clip.durationMs, reRecords: clip.reRecords || 0,
+        ...(clip.mic && { mic: clip.mic })
+      };
+      clips.push({ itemId, docId, blob: clip.blob, mime: clip.mime, durationMs: clip.durationMs });
     }
 
     const deviceInfo = await collectDeviceInfo();
     const visibility = visibilityWatch ? visibilityWatch.snapshot() : null;
+    const interviewer = hooks.interviewer ? hooks.interviewer() : null;
 
-    const payload = {
+    // Consent record + withdrawal code (settings.consent). Created once and kept across
+    // retries, so the code on screen always matches what was registered.
+    if (submission.consent === undefined) {
+      const cfg = consentSettings(survey);
+      try {
+        submission.consent = await createConsentRecord({
+          survey, responseId: submission.responseId, answers,
+          audioItems: clips.map(c => c.itemId),
+          grantedAtClient: cfg && cfg.itemId ? responseTimestamps[cfg.itemId] : null,
+          mode: interviewer ? 'encuestador' : 'self'
+        });
+      } catch (e) {
+        console.error('[samplux] no se pudo crear el registro de consentimiento', e);
+        submission.consent = null;
+      }
+    }
+
+    // Top-level fields: KEEP IN SYNC with ERASABLE_FIELDS / STUB_FIELDS in js/consent.js
+    // (a withdrawal must be able to delete every one of them). createdAt is added on upload.
+    submission.payload = {
       surveyId: survey.id,
       answers,
       ...(Object.keys(audioMeta).length > 0 && { audio: audioMeta }),
+      ...(submission.consent && { consentId: submission.consent.consentId }),
+      ...(interviewer && { interviewer }),
       serverCode,
       totalTime,
       itemTimes,
@@ -1368,24 +1489,43 @@ export function createSurveyApp({ db, elements }) {
       browserData,
       deviceInfo,
       ...(visibility && { tabHiddenCount: visibility.hiddenCount, tabHiddenMs: visibility.hiddenMs }),
-      createdAt: serverTimestamp(),
       ua: navigator.userAgent,
       path: location.pathname + location.search
     };
+    submission.clips = clips;
 
     try {
-      await setDoc(doc(entriesCol, submission.responseId), payload);
-      const customThanks = survey.settings && survey.settings.thankYou;
-      questionContainer.innerHTML = customThanks || APP_CONFIG.messages.thankYou;
-      metaContainer.innerHTML = '';
-      optionsContainer.innerHTML = '';
-      controlsContainer.innerHTML = '';
-      footnoteContainer.innerHTML = '';
-      bar.style.width = '100%';
+      if (hooks.deliver) await hooks.deliver(submission);
+      else await uploadSubmission(db, submission);
     } catch (e) {
       alert('Error al enviar. Intenta de nuevo.');
       console.error(e);
+      return;
     }
+
+    if (visibilityWatch) { visibilityWatch.stop(); visibilityWatch = null; }
+    finished = true;
+    const customThanks = survey.settings && survey.settings.thankYou;
+    questionContainer.innerHTML = customThanks || APP_CONFIG.messages.thankYou;
+    metaContainer.innerHTML = '';
+    optionsContainer.innerHTML = '';
+    optionsContainer.style.cssText = '';
+    controlsContainer.innerHTML = '';
+    footnoteContainer.innerHTML = '';
+    bar.style.width = '100%';
+    if (submission.consent) {
+      const receipt = {
+        secret: submission.consent.secret,
+        surveyId: survey.id,
+        surveyTitle: survey.title || survey.id,
+        contact: submission.consent.doc.contact,
+        level: submission.consent.doc.level
+      };
+      renderReceipt(optionsContainer, { ...receipt, shared: !!interviewer });
+      // A shared interviewer device must not remember other people's codes.
+      if (!interviewer) rememberReceipt({ ...receipt, at: new Date().toISOString() });
+    }
+    if (hooks.onSubmitted) hooks.onSubmitted(submission);
   }
 
   async function init() {
@@ -1399,5 +1539,5 @@ export function createSurveyApp({ db, elements }) {
     document.body.style.paddingBottom = '24px';
   }
 
-  return { init, previewSurvey, stop };
+  return { init, previewSurvey, stop, startSurveyData, goTo, getState };
 }

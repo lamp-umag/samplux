@@ -15,6 +15,12 @@ rules_version = '2';
 //   a hardcoded id list — new surveys work the moment they're published, no
 //   rules redeploy needed.
 // - responses/<surveyId>/audio/<responseId>__<itemId>: voice answers (Bytes), see below.
+// - consents/<consentId>: one consent record per response of a survey with
+//   settings.consent (js/consent.js, docs/CONSENT.md). consentId is a hash of a
+//   hash of the participant's withdrawal code, so only the code holder can find
+//   the record or withdraw it. A withdrawn consent unlocks erasing its response.
+// - withdrawal_requests/<id>: "I lost my code" requests from retirar.html,
+//   handled by an admin in retiros.html.
 // - response_export_meta/<surveyId>/flags/<responseId>: exclusion-flag
 //   metadata for CSV export, read/written by admin.html
 //   (both Google-auth gated).
@@ -47,6 +53,29 @@ service cloud.firestore {
         get(/databases/$(database)/documents/surveys/$(surveyId)).data.get('adminEmails', []));
     }
 
+    function isSurveyStaff(surveyId) {
+      return isAdmin() || isSurveyAdmin(surveyId);
+    }
+
+    function surveyIsPublished(surveyId) {
+      return exists(/databases/$(database)/documents/surveys/$(surveyId)) &&
+        get(/databases/$(database)/documents/surveys/$(surveyId)).data.published == true;
+    }
+
+    // True when `cid` names a consent record that has been withdrawn.
+    function consentWithdrawn(cid) {
+      return cid is string && cid.matches('^[a-f0-9]{64}$') &&
+        exists(/databases/$(database)/documents/consents/$(cid)) &&
+        get(/databases/$(database)/documents/consents/$(cid)).data.status == 'withdrawn';
+    }
+
+    // A retry of a write that already landed (flaky network, offline outbox): the
+    // document is identical except for its server timestamp.
+    function sameExcept(field) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([field]) &&
+        request.resource.data[field] == request.time;
+    }
+
     match /surveys/{surveyId} {
       allow read: if resource.data.published == true || isAdmin() ||
         signedInEmailIn(resource.data.get('adminEmails', []));
@@ -59,28 +88,49 @@ service cloud.firestore {
       // expected shape — stops bots from blind-writing junk documents into
       // unrelated or unpublished collections.
       allow create: if
-        exists(/databases/$(database)/documents/surveys/$(surveyId)) &&
-        get(/databases/$(database)/documents/surveys/$(surveyId)).data.published == true &&
+        surveyIsPublished(surveyId) &&
         request.resource.data.keys().size() <= 30 &&
         request.resource.data.surveyId == surveyId &&
-        request.resource.data.answers is map;
+        request.resource.data.answers is map &&
+        // a response queued offline must not arrive after its consent was withdrawn
+        !consentWithdrawn(request.resource.data.get('consentId', null));
 
       // Only admins (Google login) can read responses — admin.html needs
-      // this for stats/exports. Nobody can edit or
-      // delete a response once submitted (immutable by design).
-      allow read: if isAdmin() || isSurveyAdmin(surveyId);
-      allow update, delete: if false;
+      // this for stats/exports.
+      allow read: if isSurveyStaff(surveyId);
+
+      // A response is immutable, with two exceptions:
+      //  1. re-sending the very same document (retry / offline outbox), and
+      //  2. ERASURE — blanking it down to a stub with no answers and no paradata.
+      //     Allowed for the survey's admins (manual withdrawal requests) and for
+      //     anyone once the linked consent has been withdrawn, which only the
+      //     holder of the withdrawal code can do. Field list: STUB_FIELDS in js/consent.js.
+      allow update: if
+        sameExcept('createdAt') ||
+        (
+          request.resource.data.keys().hasOnly(
+            ['surveyId', 'answers', 'consentId', 'createdAt', 'withdrawn', 'withdrawnAt', 'withdrawnVia']) &&
+          request.resource.data.diff(resource.data).unchangedKeys().hasAll(['surveyId']) &&
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['consentId', 'createdAt']) &&
+          request.resource.data.answers is map &&
+          request.resource.data.answers.size() == 0 &&
+          request.resource.data.withdrawn == true &&
+          request.resource.data.withdrawnAt == request.time &&
+          request.resource.data.withdrawnVia in ['code', 'admin'] &&
+          (isSurveyStaff(surveyId) || consentWithdrawn(resource.data.get('consentId', null)))
+        );
+      allow delete: if false;
     }
 
     // Audio answers (open-ended items with response: "audio" | "either"): one doc per
     // clip, id = <responseId>__<itemId>, raw audio in `audio` (Bytes). Same posture as
-    // entries: public create (published survey only), admin read, immutable.
+    // entries: public create (published survey only), admin read, immutable — except
+    // that a clip is deleted when its response is erased (see entries above).
     // Size cap 700000 bytes keeps us under Firestore's 1 MiB doc limit — keep in sync
     // with MAX_AUDIO_BYTES in js/audioRecorder.js.
     match /responses/{surveyId}/audio/{clipId} {
       allow create: if
-        exists(/databases/$(database)/documents/surveys/$(surveyId)) &&
-        get(/databases/$(database)/documents/surveys/$(surveyId)).data.published == true &&
+        surveyIsPublished(surveyId) &&
         request.resource.data.keys().hasOnly(['surveyId', 'responseId', 'itemId', 'mime', 'durationMs', 'size', 'audio', 'createdAt']) &&
         request.resource.data.surveyId == surveyId &&
         clipId == request.resource.data.responseId + '__' + request.resource.data.itemId &&
@@ -89,12 +139,81 @@ service cloud.firestore {
         request.resource.data.audio.size() <= 700000 &&
         request.resource.data.mime is string &&
         request.resource.data.mime.matches('^audio/(webm|mp4|ogg|aac|mpeg)(;.*)?$');
-      allow read: if isAdmin() || isSurveyAdmin(surveyId);
-      allow update, delete: if false;
+      allow read: if isSurveyStaff(surveyId);
+      allow update: if sameExcept('createdAt');
+      allow delete: if isSurveyStaff(surveyId) ||
+        consentWithdrawn(
+          get(/databases/$(database)/documents/responses/$(surveyId)/entries/$(resource.data.responseId))
+            .data.get('consentId', null));
+    }
+
+    // Consent registry. Readable one document at a time by whoever knows its id
+    // (i.e. holds the withdrawal code); never listable by the public.
+    match /consents/{consentId} {
+      allow get: if true;
+      allow list: if isAdmin();
+      allow create: if
+        consentId.matches('^[a-f0-9]{64}$') &&
+        request.resource.data.keys().hasOnly(
+          ['v', 'surveyId', 'surveyTitle', 'responseId', 'status', 'level', 'itemId', 'text',
+           'textHash', 'contact', 'audioItems', 'mode', 'clientGrantedAt', 'grantedAt']) &&
+        request.resource.data.status == 'granted' &&
+        request.resource.data.surveyId is string &&
+        surveyIsPublished(request.resource.data.surveyId) &&
+        request.resource.data.responseId is string &&
+        request.resource.data.responseId.size() <= 64 &&
+        request.resource.data.level in ['anonymous', 'personal', 'sensitive'] &&
+        request.resource.data.text is string &&
+        request.resource.data.text.size() <= 8000 &&
+        request.resource.data.audioItems is list &&
+        request.resource.data.audioItems.size() <= 50;
+
+      allow update: if
+        // WITHDRAWAL by the participant: `proof` must hash to this document's id.
+        (
+          resource.data.status == 'granted' &&
+          request.resource.data.status == 'withdrawn' &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'withdrawnAt', 'via', 'proof']) &&
+          request.resource.data.via == 'code' &&
+          request.resource.data.withdrawnAt == request.time &&
+          request.resource.data.proof is string &&
+          request.resource.data.proof.matches('^[a-f0-9]{64}$') &&
+          hashing.sha256(request.resource.data.proof).toHexString().lower() == consentId
+        ) ||
+        // WITHDRAWAL executed by an admin after a verified manual request.
+        (
+          resource.data.status == 'granted' &&
+          request.resource.data.status == 'withdrawn' &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'withdrawnAt', 'via', 'requestId', 'by']) &&
+          request.resource.data.via == 'admin' &&
+          request.resource.data.withdrawnAt == request.time &&
+          isSurveyStaff(resource.data.surveyId)
+        );
+      allow delete: if false;
+    }
+
+    // "I lost my code": anyone can file a request; only admins see and resolve them.
+    match /withdrawal_requests/{requestId} {
+      allow create: if
+        request.resource.data.keys().hasOnly(
+          ['surveyId', 'surveyTitle', 'email', 'when', 'details', 'status', 'createdAt']) &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.createdAt == request.time &&
+        request.resource.data.surveyId is string && request.resource.data.surveyId.size() <= 200 &&
+        request.resource.data.get('surveyTitle', '') is string && request.resource.data.get('surveyTitle', '').size() <= 300 &&
+        request.resource.data.email is string && request.resource.data.email.size() <= 200 &&
+        request.resource.data.get('when', '') is string && request.resource.data.get('when', '').size() <= 200 &&
+        request.resource.data.get('details', '') is string && request.resource.data.get('details', '').size() <= 2000;
+      allow read: if isAdmin() || (resource.data.surveyId is string && isSurveyAdmin(resource.data.surveyId));
+      allow update: if
+        (isAdmin() || isSurveyAdmin(resource.data.surveyId)) &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status', 'resolution', 'resolvedBy', 'resolvedAt', 'responseId', 'note']);
+      allow delete: if false;
     }
 
     match /response_export_meta/{surveyId}/flags/{responseId} {
-      allow read, write: if isAdmin() || isSurveyAdmin(surveyId);
+      allow read, write: if isSurveyStaff(surveyId);
     }
   }
 }

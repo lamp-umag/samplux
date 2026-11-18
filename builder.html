@@ -301,6 +301,30 @@
           </div>
 
           <div class="card">
+            <h2>Consentimiento y retiro</h2>
+            <div class="field-group mt-12">
+              <select id="f-consentLevel" class="select">
+                <option value="">Desactivado — no se entrega comprobante</option>
+                <option value="anonymous">Datos anónimos — comprobante de cortesía</option>
+                <option value="personal">Datos personales — correo, voz, datos que identifican</option>
+                <option value="sensitive">Datos sensibles — salud, salud mental, sexualidad, creencias…</option>
+              </select>
+              <p class="small mt-8">Al enviar, cada participante recibe un código con el que puede retirar su consentimiento y borrar sus respuestas en retirar.html, sin identificarse. Actívalo siempre que la encuesta recoja datos personales o sensibles.</p>
+            </div>
+            <div id="consentFields" class="hidden">
+              <div class="field-group">
+                <label class="field">ID del ítem de consentimiento</label>
+                <input id="f-consentItem" class="input" placeholder="consentimiento" />
+                <p class="small mt-8">Se guarda una copia del texto mostrado hasta ese ítem y de la opción elegida.</p>
+              </div>
+              <div class="field-group">
+                <label class="field">Contacto de la persona responsable</label>
+                <input id="f-consentContact" class="input" placeholder="Nombre · correo" />
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
             <h2>Aleatorización de ítems</h2>
             <div class="field-group mt-12">
               <select id="f-randomize" class="select">

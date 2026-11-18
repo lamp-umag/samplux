@@ -568,7 +568,8 @@ async function render(force = false) {
     validExplain.textContent =
       `${all.length} entradas en total → ${responses.length} casos válidos ` +
       `(excluye ${excludedCount} marcadas como excluidas${includeExcluded.checked ? ' [incluidas ahora]' : ''} y ` +
-      `${duplicateCount} detectadas como duplicadas${includeDuplicates.checked ? ' [incluidas ahora]' : ''}).`;
+      `${duplicateCount} detectadas como duplicadas${includeDuplicates.checked ? ' [incluidas ahora]' : ''}).` +
+      (docsRaw.withdrawnCount ? ` Además, ${docsRaw.withdrawnCount} participación(es) retiraron su consentimiento: sus respuestas fueron borradas y no se cuentan.` : '');
 
     // ----- raw time -----
     el('timeSummary').textContent = fmtSummaryLine(tSum, fmtDuration) || 'No hay tiempos de respuesta registrados.';
@@ -1081,6 +1082,7 @@ function buildNeatCsvRows(def, responses, surveyId) {
     'dedupe_isDuplicate', 'dedupe_confidence', 'dedupe_keepId',
     'totalTime_s', 'netTime_s', 'correctedTime_s', 'slowItemCount',
     'completeness_pct', 'navBackCount', 'answerChangeCount',
+    'interviewer_mode', 'interviewer_id', 'interviewer_site', 'interviewer_case', 'interviewer_layout', 'interviewer_handoffs',
     ...ansCols.map(c => c.name),
     ...tCols.map(c => c.name),
     ...answerable.map(it => `${it.id}__time_s`)
@@ -1106,6 +1108,8 @@ function buildNeatCsvRows(def, responses, surveyId) {
     row.push(corr ? corr.slowCount : '');
     row.push(Math.round(completenessVsSurvey(ans, answerableIds) * 100));
     row.push(d.navBackCount ?? '', d.answerChangeCount ?? '');
+    const iv = d.interviewer || null;   // null unless collected in encuestador.html
+    row.push(iv ? 1 : 0, iv?.interviewerId ?? '', iv?.site ?? '', iv?.caseNumber ?? '', iv?.layout ?? '', iv ? (iv.handoffItems || []).length : '');
 
     for (const c of ansCols) row.push(c.get(ans));
     for (const c of tCols) row.push(c.get(ans));
@@ -1150,6 +1154,12 @@ function buildMetadataText(def, responses, surveyId) {
     ['completeness_pct', 'porcentaje de ítems de respuesta completados'],
     ['navBackCount', 'número de veces que retrocedió'],
     ['answerChangeCount', 'número de veces que cambió una respuesta'],
+    ['interviewer_mode', '1 = aplicada por encuestador(a) en encuestador.html; 0 = autoadministrada'],
+    ['interviewer_id', 'código de quien encuestó (solo modo encuestador)'],
+    ['interviewer_site', 'lugar / sede declarada al iniciar la sesión (solo modo encuestador)'],
+    ['interviewer_case', 'número correlativo del caso dentro de la sesión (solo modo encuestador)'],
+    ['interviewer_layout', 'vista usada al enviar: horizontal | vertical (solo modo encuestador)'],
+    ['interviewer_handoffs', 'n.º de ítems que la persona respondió por sí misma con el dispositivo en la mano'],
     ['<id>__time_s', 'tiempo dedicado al ítem <id> (segundos)'],
     ...taskColumns(def).map(c => [c.name, c.desc])
   ];

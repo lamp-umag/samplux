@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>samplux — retirar consentimiento</title>
+    <meta name="referrer" content="no-referrer" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%90%8D</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+    <style>
+      header { display: flex; }
+      main { justify-content: flex-start; }
+      .w-title { font-size: 26px; font-weight: 700; line-height: 1.2; margin: 0 0 12px; }
+      .w-lead { font-size: 16px; line-height: 1.6; margin: 0 0 28px; }
+      .w-card { border: 1.5px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 14px; }
+      .w-card h2 { font-size: 16px; font-weight: 700; margin: 0 0 6px; }
+      .w-card p { font-size: 14px; line-height: 1.55; margin: 0 0 14px; color: var(--muted); }
+      .w-card input, .w-card textarea, .w-card select { margin-bottom: 12px; }
+      .w-card select {
+        width: 100%; padding: 14px 16px; font: inherit; font-size: 16px; border-radius: 10px;
+        background: var(--surface); border: 1.5px solid var(--border); color: var(--foreground);
+      }
+      .w-card label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+      .w-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--border); }
+      .w-row:first-of-type { border-top: none; }
+      .w-row .btn { flex: none; padding: 9px 14px; font-size: 13px; }
+      .w-facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 14px; margin: 0 0 16px; }
+      .w-facts dt { color: var(--muted); }
+      .w-facts dd { margin: 0; font-weight: 600; }
+      details.w-text { margin-bottom: 18px; font-size: 14px; }
+      details.w-text summary { cursor: pointer; font-weight: 600; }
+      details.w-text pre { white-space: pre-wrap; font: inherit; line-height: 1.55; color: var(--muted); margin: 10px 0 0; padding: 12px; background: var(--surface); border-radius: 10px; }
+      .w-msg { font-size: 14px; line-height: 1.5; margin: 0 0 12px; font-weight: 600; }
+      .w-code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.06em; text-transform: uppercase; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href=".">🐍 samplux</a>
+      <div class="header-actions"><a class="admin-link" href=".">encuestas</a></div>
+    </header>
+    <main id="view"></main>
+    <script type="module" src="./js/retirar.js"></script>
+  </body>
+</html>

@@ -107,7 +107,15 @@ export async function fetchResponses(surveyId) {
   const colRef = collection(db, `responses/${surveyId}/entries`);
   const snap = await getDocs(colRef);
   const docs = [];
-  snap.forEach(d => docs.push({ id: d.id, data: d.data() }));
+  let withdrawn = 0;
+  // Responses whose consent was withdrawn are blank stubs (see docs/CONSENT.md): they
+  // never count as cases. The tally is exposed as `docs.withdrawnCount`.
+  snap.forEach(d => {
+    const data = d.data();
+    if (data && data.withdrawn === true) withdrawn += 1;
+    else docs.push({ id: d.id, data });
+  });
+  docs.withdrawnCount = withdrawn;
   return docs;
 }
 

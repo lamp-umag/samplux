@@ -50,6 +50,10 @@ const fPublished = el('f-published');
 const fAdmins = el('f-admins');
 const fRandomize = el('f-randomize');
 const fTheme = el('f-theme');
+const fConsentLevel = el('f-consentLevel');
+const fConsentItem = el('f-consentItem');
+const fConsentContact = el('f-consentContact');
+const consentFields = el('consentFields');
 // Always an admin of every survey (also enforced in firestore.rules → isAdmin()).
 const ALWAYS_ADMINS = ['hermanelgueta@gmail.com'];
 const fSplashEnabled = el('f-splashEnabled');
@@ -267,6 +271,11 @@ function openEditor(survey) {
   fAdmins.value = (survey.adminEmails || []).join(', ');
   fRandomize.value = String((survey.settings && survey.settings.randomizeItems) || false);
   fTheme.value = (survey.settings && survey.settings.theme) || '';
+  const consent = (survey.settings && survey.settings.consent) || {};
+  fConsentLevel.value = consent.enabled ? (consent.level || 'personal') : '';
+  fConsentItem.value = consent.itemId || '';
+  fConsentContact.value = consent.contact || '';
+  consentFields.classList.toggle('hidden', !consent.enabled);
   const splash = (survey.settings && survey.settings.splash) || {};
   fSplashEnabled.checked = !!splash.enabled;
   fSplashImage.value = splash.image || '';
@@ -313,6 +322,29 @@ fTheme.addEventListener('change', () => {
   if (fTheme.value) currentSurvey.settings.theme = fTheme.value; else delete currentSurvey.settings.theme;
   syncSaveStatus();
 });
+// settings.consent — see js/consent.js and docs/CONSENT.md.
+function syncConsent() {
+  if (fConsentLevel.value) {
+    currentSurvey.settings.consent = {
+      enabled: true, level: fConsentLevel.value,
+      itemId: fConsentItem.value.trim(), contact: fConsentContact.value.trim()
+    };
+  } else {
+    delete currentSurvey.settings.consent;
+  }
+  consentFields.classList.toggle('hidden', !fConsentLevel.value);
+  syncSaveStatus();
+}
+fConsentLevel.addEventListener('change', () => {
+  // Pre-fill with the item that ends the survey on "no", the usual consent question.
+  if (fConsentLevel.value && !fConsentItem.value) {
+    const gate = (currentSurvey.items || []).find(it => Array.isArray(it.exitOnAnswer));
+    if (gate) fConsentItem.value = gate.id;
+  }
+  syncConsent();
+});
+fConsentItem.addEventListener('input', syncConsent);
+fConsentContact.addEventListener('input', syncConsent);
 fRandomize.addEventListener('change', () => {
   currentSurvey.settings.randomizeItems = fRandomize.value === 'false' ? false : fRandomize.value;
   syncSaveStatus();
@@ -527,6 +559,10 @@ function renderItemBody(item, body, refreshHead) {
       <div class="checkbox-row">
         <input type="checkbox" id="req-${item.id}" data-f="required" ${item.required ? 'checked' : ''} />
         <label for="req-${item.id}">Obligatoria</label>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="hand-${item.id}" data-f="handoff" ${item.handoff ? 'checked' : ''} />
+        <label for="hand-${item.id}">Privada en modo encuestador (la persona responde por sí misma)</label>
       </div>`;
   }
 
@@ -683,6 +719,8 @@ function wireItemBody(item, body, refreshHead) {
 
   const reqEl = body.querySelector('[data-f="required"]');
   if (reqEl) reqEl.addEventListener('change', e => { item.required = e.target.checked; });
+  const handEl = body.querySelector('[data-f="handoff"]');
+  if (handEl) handEl.addEventListener('change', e => { if (e.target.checked) item.handoff = true; else delete item.handoff; });
 
   const placeholderEl = body.querySelector('[data-f="placeholder"]');
   if (placeholderEl) placeholderEl.addEventListener('input', e => { item.placeholder = e.target.value; });
