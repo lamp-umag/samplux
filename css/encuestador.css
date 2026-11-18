@@ -1,0 +1,113 @@
+/* samplux — interviewer mode (encuestador.html). Same strict black & white as the runner:
+   state is carried by border weight and dash pattern, never by hue. */
+body.enc { min-height: 100vh; display: flex; flex-direction: column; }
+
+/* ── Top bar ─────────────────────────────────────────── */
+.enc-bar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 10px 16px; border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,0.96); backdrop-filter: blur(8px);
+}
+.enc-title { font-size: 13px; font-weight: 600; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 32vw; }
+.enc-spacer { flex: 1; }
+.enc-pill {
+  font-size: 12px; font-weight: 600; line-height: 1; white-space: nowrap;
+  padding: 7px 11px; border: 1.5px solid var(--border); border-radius: 999px; color: var(--muted);
+}
+button.enc-pill:hover { border-color: var(--foreground); color: var(--foreground); }
+.enc-pill.solid { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
+.enc-pill.alert { border: 2px dashed var(--foreground); color: var(--foreground); }
+.enc-pill:empty { display: none; }
+.enc-seg { display: inline-flex; border: 1.5px solid var(--border); border-radius: 999px; overflow: hidden; }
+.enc-seg button { padding: 6px 12px; font-size: 14px; font-weight: 600; color: var(--muted); }
+.enc-seg button.on { background: var(--primary); color: var(--primary-foreground); }
+.enc-seg.wide { display: flex; border-radius: 10px; margin-bottom: 20px; }
+.enc-seg.wide button { flex: 1; padding: 13px 10px; font-size: 15px; }
+
+/* ── Setup ───────────────────────────────────────────── */
+.enc-setup { width: 100%; max-width: 520px; margin: 0 auto; padding: 40px 16px; }
+.enc-help { font-size: 15px; line-height: 1.6; color: var(--muted); margin: -16px 0 28px; }
+.enc-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.enc-setup input[type="text"] { margin-bottom: 20px; }
+select.enc-input {
+  width: 100%; padding: 14px 16px; margin-bottom: 20px; font: inherit; font-size: 16px;
+  border-radius: 10px; background: var(--surface); border: 1.5px solid var(--border); color: var(--foreground);
+}
+.enc-status { font-size: 13px; line-height: 1.9; border-top: 1px solid var(--border); padding-top: 14px; }
+.enc-status b { font-weight: 700; }
+
+/* ── Runner + carousel ───────────────────────────────── */
+body.enc #runner { max-width: none; padding: 20px 0 32px; flex: 1; }
+body.enc #runner .progress { margin: 0 16px 20px; }
+.enc-stage { display: none; }
+.enc-card .enc-stage { display: block; }
+
+.enc-track { display: flex; gap: 12px; }
+.enc-card {
+  position: relative; text-align: left; border-radius: 12px; background: var(--bg);
+  padding: 12px 14px; border: 1.5px dashed var(--border-strong); color: var(--muted);
+  transition: border-color 0.15s ease, opacity 0.15s ease;
+}
+.enc-card:not(.active):not(.locked) { cursor: pointer; }
+.enc-card:not(.active):not(.locked):hover { border-color: var(--foreground); }
+.enc-card-head { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.enc-card-head .n { font-variant-numeric: tabular-nums; }
+.enc-card-head .tag { margin-left: auto; letter-spacing: 0.04em; }
+.enc-card-prompt { font-size: 13px; line-height: 1.4; margin-top: 6px; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.enc-card-answer { font-size: 13px; font-weight: 700; line-height: 1.35; margin-top: 8px; color: var(--foreground); overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+
+/* States — pending (never seen): light dashed · skipped (seen, empty): heavy dashed ·
+   answered: heavy solid · info: thin solid on grey · active: heaviest, holds the item. */
+.enc-card.skipped { border: 2px dashed var(--foreground); color: var(--foreground); }
+.enc-card.answered { border: 2px solid var(--foreground); color: var(--foreground); }
+.enc-card.info { border: 1px solid var(--border); background: var(--surface); }
+.enc-card.locked { opacity: 0.35; }
+.enc-card.active { border: 3px solid var(--foreground); color: var(--foreground); padding: 20px 22px 16px; cursor: default; }
+.enc-card.active .enc-card-head { margin-bottom: 14px; color: var(--muted); }
+.enc-card.active .q { font-size: 22px; }
+
+/* Horizontal: a strip you can scroll sideways, current item centred. */
+body.enc[data-layout="horizontal"] .enc-track {
+  overflow-x: auto; align-items: flex-start; scroll-behavior: smooth;
+  padding: 4px max(16px, calc(50vw - 310px)) 16px; scrollbar-width: thin;
+}
+body.enc[data-layout="horizontal"] .enc-card { flex: 0 0 190px; min-height: 124px; }
+body.enc[data-layout="horizontal"] .enc-card.active { flex: 0 0 min(620px, calc(100vw - 32px)); }
+
+/* Vertical: one compact row per item, current one opened in place. */
+body.enc[data-layout="vertical"] .enc-track { flex-direction: column; gap: 8px; max-width: 760px; margin: 0 auto; padding: 0 16px; }
+body.enc[data-layout="vertical"] .enc-card:not(.active) { display: grid; grid-template-columns: 96px 1fr minmax(0, 34%); gap: 12px; align-items: center; padding: 10px 14px; }
+body.enc[data-layout="vertical"] .enc-card:not(.active) .enc-card-head .tag { display: none; }
+body.enc[data-layout="vertical"] .enc-card:not(.active) .enc-card-prompt { margin: 0; -webkit-line-clamp: 1; }
+body.enc[data-layout="vertical"] .enc-card:not(.active) .enc-card-answer { margin: 0; text-align: right; -webkit-line-clamp: 1; }
+
+.enc-hint { text-align: center; font-size: 12px; color: var(--muted); margin-top: 14px; }
+@media (hover: none) { .enc-hint { display: none; } }
+
+/* Review list on the send card */
+.enc-review { margin: -8px 0 20px; }
+.enc-review p { font-size: 14px; line-height: 1.5; margin: 0 0 10px; }
+.enc-review button {
+  display: block; width: 100%; text-align: left; font-size: 14px; padding: 10px 12px; margin-bottom: 6px;
+  border: 1.5px dashed var(--foreground); border-radius: 10px;
+}
+.enc-review button.required { border-width: 2.5px; font-weight: 700; }
+
+/* ── Respondent has the device ───────────────────────── */
+body.enc.respondent .enc-bar, body.enc.respondent .enc-hint, body.enc.respondent .enc-card:not(.active),
+body.enc.respondent .enc-card.active .enc-card-head { display: none; }
+body.enc.respondent .enc-track { display: block; max-width: 520px; margin: 0 auto; padding: 24px 16px; overflow: visible; }
+body.enc.respondent .enc-card.active { border-color: transparent; padding: 0; }
+body.enc.respondent #runner .progress { max-width: 520px; margin: 0 auto 12px; }
+
+.enc-handoff { position: fixed; inset: 0; z-index: 900; background: var(--bg); display: flex; align-items: center; justify-content: center; padding: 24px; }
+.enc-handoff[hidden] { display: none; }
+.enc-handoff-box { max-width: 460px; text-align: center; }
+.enc-handoff-icon { font-size: 56px; line-height: 1; margin-bottom: 20px; }
+.enc-handoff-box .btn { width: 100%; margin-top: 20px; }
+
+/* Finished case */
+body.enc.done .enc-hint { display: none; }
+body.enc.done .enc-track { display: block; max-width: 560px; margin: 0 auto; padding: 16px; overflow: visible; }
+body.enc.done .enc-card.active { border-width: 1.5px; }
+.enc-saved { font-size: 13px; font-weight: 600; margin: 0 0 14px; }

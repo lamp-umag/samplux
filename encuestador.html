@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>samplux — modo encuestador</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%90%8D</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/encuestador.css">
+  </head>
+  <body class="enc">
+    <div class="enc-bar" id="encBar">
+      <a class="brand" href=".">🐍 samplux</a>
+      <span class="enc-pill solid">modo encuestador</span>
+      <span class="enc-title" id="barTitle"></span>
+      <span class="enc-spacer"></span>
+      <button class="enc-pill" id="barMissing" title="Ir a la primera sin responder"></button>
+      <span class="enc-pill" id="barCase"></span>
+      <div class="enc-seg" id="layoutToggle" role="group" aria-label="Vista">
+        <button data-layout="horizontal" title="Carrusel horizontal">⇆</button>
+        <button data-layout="vertical" title="Lista vertical">⇅</button>
+      </div>
+      <button class="enc-pill" id="barSync" title="Subir casos pendientes"></button>
+      <button class="enc-pill" id="barExit">terminar</button>
+    </div>
+
+    <section id="setup" class="enc-setup">
+      <p class="home-title">LAMP · UMAG</p>
+      <h1 class="home-heading">Modo encuestador</h1>
+      <p class="enc-help">Para aplicar una encuesta cara a cara en tablet o computador: tú lees y registras, y ves de un vistazo qué quedó sin responder.</p>
+
+      <label class="enc-label" for="sSurvey">Encuesta</label>
+      <select id="sSurvey" class="enc-input"></select>
+
+      <label class="enc-label" for="sWho">Tu código o nombre</label>
+      <input id="sWho" type="text" maxlength="60" autocomplete="off" placeholder="Por ejemplo: ENC-03" />
+
+      <label class="enc-label" for="sSite">Lugar <span class="tiny">(opcional)</span></label>
+      <input id="sSite" type="text" maxlength="80" autocomplete="off" placeholder="Sede, sala, comuna…" />
+
+      <label class="enc-label">Vista</label>
+      <div class="enc-seg wide" id="sLayout" role="group">
+        <button data-layout="horizontal">⇆ Carrusel horizontal</button>
+        <button data-layout="vertical">⇅ Lista vertical</button>
+      </div>
+
+      <div class="enc-status" id="sStatus"></div>
+      <p class="tiny" id="sMsg"></p>
+      <div class="controls">
+        <button class="btn secondary" id="sBackup" hidden>Respaldo (.json)</button>
+        <button class="btn primary" id="sStart">Comenzar</button>
+      </div>
+    </section>
+
+    <section id="runner">
+      <div class="progress"><div class="bar" id="bar"></div></div>
+      <div class="enc-track" id="track"></div>
+      <div class="enc-hint" id="hint">Teclado: 1–9 elige una opción · Enter continúa · ← → cambia de pregunta</div>
+    </section>
+
+    <!-- The runner renders the current item into this block; it lives inside the active card. -->
+    <div id="stage" class="enc-stage">
+      <div id="meta"></div>
+      <div id="question"></div>
+      <div id="options" class="options"></div>
+      <div id="controls" class="controls"></div>
+      <div class="tiny" id="footnote"></div>
+    </div>
+
+    <div class="enc-handoff" id="handoff" hidden>
+      <div class="enc-handoff-box">
+        <div class="enc-handoff-icon" id="handoffIcon"></div>
+        <div class="q" id="handoffTitle"></div>
+        <div class="info-text" id="handoffText"></div>
+        <button class="btn primary" id="handoffBtn"></button>
+      </div>
+    </div>
+
+    <script type="module" src="./js/encuestador.js"></script>
+  </body>
+</html>
