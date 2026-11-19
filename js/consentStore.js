@@ -24,6 +24,9 @@ export async function eraseResponse(db, { surveyId, responseId, clipIds = [] }, 
     try { await deleteDoc(doc(db, `responses/${surveyId}/audio`, clipId)); }
     catch (e) { if (e.code !== 'permission-denied' && e.code !== 'not-found') throw e; }
   }
+  // Paradata next, while the entry still carries the consentId the delete rule looks up.
+  try { await deleteDoc(doc(db, `responses/${surveyId}/paradata`, responseId)); }
+  catch (e) { if (e.code !== 'permission-denied' && e.code !== 'not-found') throw e; }
   try {
     await updateDoc(doc(db, `responses/${surveyId}/entries`, responseId), update);
     return 'erased';

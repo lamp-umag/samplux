@@ -1,4 +1,4 @@
-import { collection, serverTimestamp, getDocs, query, where, doc, getDoc, setDoc, Bytes } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { collection, serverTimestamp, getDocs, query, where, doc, getDoc, setDoc, writeBatch, Bytes } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import { collectDeviceInfo, watchVisibility } from './deviceInfo.js';
 import { audioSupported, mountAudioWidget, clampMaxSeconds, extensionForMime } from './audioRecorder.js';
 import { run as runRT }     from './tasks/rt.js';
@@ -6,6 +6,9 @@ import { run as runStroop } from './tasks/stroop.js';
 import { run as runGoNoGo } from './tasks/gonogo.js';
 import { consentSettings, createConsentRecord, rememberReceipt } from './consent.js';
 import { renderReceipt } from './receiptView.js';
+import { splitPayload } from './paradata.js';
+import { createBehaviorLog } from './behavior.js';
+import { sanitizeSurvey } from './sanitize.js';
 
 // Item-level extensions (ported from perseg + added for espacios-telares-1;
 // see docs/ARCHITECTURE.md §2):
@@ -38,6 +41,11 @@ import { renderReceipt } from './receiptView.js';
 // - survey.settings.consent: { enabled, level: "anonymous"|"personal"|"sensitive", itemId, contact } —
 //   registers a consent record on submit and hands the participant a withdrawal code
 //   (js/consent.js, retirar.html, docs/CONSENT.md).
+// - survey.settings.paradata: { events: true|false (default true), misses: true|false, maxEvents } — interaction
+//   event log (taps outside controls, tab visibility, rotation…) saved in the paradata document (js/behavior.js).
+// - survey.settings.collect: { geolocation: "off"|"coarse"|"precise" (default off), deviceInfo: false } —
+//   optional extra data; each one is declared to the participant on the consent screen (docs/DATA-POLICY.md).
+// - Survey text is passed through an HTML allow-list (js/sanitize.js) before it is rendered.
 // - item.handoff: true — in interviewer mode (encuestador.html) the device is handed to the
 //   respondent for this item; cognitive tasks always are. See docs/ENCUESTADOR.md.
 export const APP_CONFIG = {
@@ -82,7 +90,11 @@ export async function uploadSubmission(db, sub) {
     }
     sub.uploaded.__consent = true;
   }
-  await setDoc(doc(db, `responses/${sub.surveyId}/entries`, sub.responseId), { ...sub.payload, createdAt: serverTimestamp() });
+  // Entry (answers) and paradata go in one atomic batch: either both exist or neither.
+  const batch = writeBatch(db);
+  batch.set(doc(db, `responses/${sub.surveyId}/entries`, sub.responseId), { ...sub.entry, createdAt: serverTimestamp() });
+  if (sub.paradata) batch.set(doc(db, `responses/${sub.surveyId}/paradata`, sub.responseId), sub.paradata);
+  await batch.commit();
 }
 
 /**
@@ -127,6 +139,8 @@ export function createSurveyApp({ db, elements, hooks = {} }) {
   let submission = null;        // { responseId, uploaded:Set } — stable across submit retries
   let isPreview = false;        // true when launched via builder.html previewSurvey()
   let finished = false;         // thank-you / declined screen is showing
+  let behavior = null;          // interaction event log (js/behavior.js)
+  let geo = null;               // outcome of the optional location step: { status, ... } | null
 
   function escapeHtml(s) {
     return String(s ?? '').replace(/[&<>"']/g, c => ({
@@ -329,6 +343,7 @@ export function createSurveyApp({ db, elements, hooks = {} }) {
   }
 
   function stop() {
+    if (behavior) { behavior.stop(); behavior = null; }
     if (audioCleanup) { audioCleanup(); audioCleanup = null; }
     if (visibilityWatch) { visibilityWatch.stop(); visibilityWatch = null; }
   }
@@ -634,7 +649,7 @@ export function createSurveyApp({ db, elements, hooks = {} }) {
   }
 
   function prepareSurvey(rawSurvey) {
-    const surveyCopy = structuredClone(rawSurvey);
+    const surveyCopy = sanitizeSurvey(structuredClone(rawSurvey));
     return applyRandomization(surveyCopy);
   }
 
@@ -671,6 +686,10 @@ export function createSurveyApp({ db, elements, hooks = {} }) {
     finished = false;
     if (visibilityWatch) visibilityWatch.stop();
     visibilityWatch = watchVisibility();
+    if (behavior) behavior.stop();
+    const pcfg = (survey.settings && survey.settings.paradata) || {};
+    behavior = pcfg.events === false ? null : createBehaviorLog({ misses: pcfg.misses !== false, maxEvents: Number(pcfg.maxEvents) > 0 ? Math.min(Number(pcfg.maxEvents), 3000) : 1500 });
+    geo = null;
     presentationOrder = Array.isArray(survey._presentationOrder)
       ? survey._presentationOrder
       : survey.items.map(it => it.id);
@@ -716,6 +735,7 @@ export function createSurveyApp({ db, elements, hooks = {} }) {
     controlsContainer.innerHTML = '';
     footnoteContainer.innerHTML = '';
 
+    if (currentIndex >= total && needsGeoStep()) { renderGeoStep(); return; }
     if (currentIndex >= total) {
       questionContainer.innerHTML = '<div class="q center">¿Listo para enviar?</div>';
       const back = button('← Atrás', 'secondary');
@@ -735,6 +755,7 @@ export function createSurveyApp({ db, elements, hooks = {} }) {
     const item = survey.items[currentIndex];
     const isLastItem = nextVisibleIndex(currentIndex) >= survey.items.length;
     itemStartTime = Date.now();
+    if (behavior) behavior.item(item.id);
     if (item && item.type !== 'info') {
       stepEntrySnapshot[item.id] = cloneAnswerValue(answers[item.id]);
     }
@@ -1292,6 +1313,47 @@ export function createSurveyApp({ db, elements, hooks = {} }) {
     optionsContainer.innerHTML = '<div class="tiny">Tipo de ítem no soportado: ' + escapeHtml(item.type) + '</div>';
   }
 
+  /* ── Optional location step (settings.collect.geolocation) ─────────────── */
+  function geoMode() {
+    const m = survey && survey.settings && survey.settings.collect && survey.settings.collect.geolocation;
+    return m === 'precise' || m === 'coarse' ? m : 'off';
+  }
+  function needsGeoStep() {
+    return geoMode() !== 'off' && geo === null && !isPreview && 'geolocation' in navigator;
+  }
+  function renderGeoStep() {
+    const precise = geoMode() === 'precise';
+    bar.style.width = '100%';
+    questionContainer.innerHTML = `
+      <div class="q">${precise ? 'Ubicación' : 'Ubicación aproximada'} (opcional)</div>
+      <div class="info-text">Esta investigación pide la ubicación del dispositivo ${precise ? '(precisa)' : 'de forma aproximada (redondeada a ~1 km)'}. Tu navegador te pedirá permiso. Puedes no compartirla y seguir igual: no cambia nada de tu participación.</div>`;
+    optionsContainer.style.cssText = '';
+    const allow = button('Compartir ubicación', 'primary');
+    const skip = button('Prefiero no compartirla', 'secondary');
+    const settle = result => {
+      geo = result;
+      if (behavior) behavior.note({ k: 'geo', s: result.status });
+      renderStep();
+    };
+    skip.onclick = () => settle({ status: 'declined' });
+    allow.onclick = () => {
+      allow.disabled = skip.disabled = true;
+      navigator.geolocation.getCurrentPosition(pos => {
+        const c = pos.coords;
+        const round = v => precise ? v : Math.round(v * 100) / 100;      // 2 decimals ≈ 1.1 km
+        settle({
+          status: 'granted', precision: precise ? 'precise' : 'coarse',
+          lat: round(c.latitude), lon: round(c.longitude),
+          accuracyM: Math.max(Math.round(c.accuracy), precise ? 0 : 1000), at: new Date(pos.timestamp).toISOString()
+        });
+      }, err => settle({ status: err && err.code === 1 ? 'denied' : 'unavailable' }),
+      { enableHighAccuracy: precise, timeout: 12000, maximumAge: 60000 });
+    };
+    controlsContainer.append(skip, allow);
+    footnoteContainer.innerHTML = '';
+    if (hooks.onRender) hooks.onRender({ index: currentIndex, item: null, atEnd: true });
+  }
+
   /** Conditional "especifica" text box tied to one or more option codes. */
   function createFollowUp(item) {
     const fu = item.followUp;
@@ -1347,6 +1409,7 @@ export function createSurveyApp({ db, elements, hooks = {} }) {
     footnoteContainer.innerHTML = '';
     questionContainer.innerHTML = customMessageHtml || APP_CONFIG.messages.declined;
     finished = true;
+    if (behavior) { behavior.stop(); behavior = null; }
     if (hooks.onDeclined) hooks.onDeclined();
   }
 
@@ -1466,18 +1529,19 @@ export function createSurveyApp({ db, elements, hooks = {} }) {
       }
     }
 
-    // Top-level fields: KEEP IN SYNC with ERASABLE_FIELDS / STUB_FIELDS in js/consent.js
-    // (a withdrawal must be able to delete every one of them). createdAt is added on upload.
-    submission.payload = {
+    // Entry vs paradata split: js/paradata.js. KEEP ERASABLE_FIELDS in js/consent.js in sync.
+    const collect = (survey.settings && survey.settings.collect) || {};
+    const bh = behavior ? behavior.snapshot() : null;
+    const split = splitPayload({
       surveyId: survey.id,
       answers,
       ...(Object.keys(audioMeta).length > 0 && { audio: audioMeta }),
       ...(submission.consent && { consentId: submission.consent.consentId }),
+      ...(presentationOrder && { presentationOrder }),
       ...(interviewer && { interviewer }),
       serverCode,
       totalTime,
       itemTimes,
-      ...(presentationOrder && { presentationOrder }),
       ...(Object.keys(responseTimestamps).length > 0 && { responseTimestamps }),
       ...(APP_CONFIG.enableParadata && {
         navBackCount,
@@ -1486,12 +1550,14 @@ export function createSurveyApp({ db, elements, hooks = {} }) {
         ...(answerChangeEvents.length > 0 && { answerChangeEvents }),
         ...(answerChangeEventsTruncated && { answerChangeEventsTruncated: true })
       }),
-      browserData,
-      deviceInfo,
+      ...(collect.deviceInfo !== false && { browserData, deviceInfo }),
       ...(visibility && { tabHiddenCount: visibility.hiddenCount, tabHiddenMs: visibility.hiddenMs }),
-      ua: navigator.userAgent,
-      path: location.pathname + location.search
-    };
+      ...(bh && bh),
+      ...(geo && { geo }),
+      ...(collect.deviceInfo !== false && { ua: navigator.userAgent, path: location.pathname + location.search })
+    });
+    submission.entry = split.entry;
+    submission.paradata = split.paradata;
     submission.clips = clips;
 
     try {
@@ -1504,6 +1570,7 @@ export function createSurveyApp({ db, elements, hooks = {} }) {
     }
 
     if (visibilityWatch) { visibilityWatch.stop(); visibilityWatch = null; }
+    if (behavior) { behavior.stop(); behavior = null; }
     finished = true;
     const customThanks = survey.settings && survey.settings.thankYou;
     questionContainer.innerHTML = customThanks || APP_CONFIG.messages.thankYou;

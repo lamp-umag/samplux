@@ -10,8 +10,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js';
 import { eraseResponse } from './consentStore.js';
 
-// Keep in sync with ALLOWED_EMAILS in js/adminStats.js and isAdmin() in firestore.rules.
-const ALLOWED_EMAILS = new Set(['hermanelgueta@gmail.com', 'herman.elgueta@umag.cl']);
+import { resolveAccess, fetchMySurveys } from './access.js';
 
 const auth = getAuth(app);
 const $ = id => document.getElementById(id);
@@ -61,11 +60,11 @@ onAuthStateChanged(auth, async user => {
 async function loadRequests(email) {
   const col = collection(db, 'withdrawal_requests');
   let docs = [];
-  if (ALLOWED_EMAILS.has(email)) {
+  const access = await resolveAccess(db, auth.currentUser);
+  if (access.role === 'super') {
     docs = (await getDocs(col)).docs;
   } else {
-    const surveys = await getDocs(query(collection(db, 'surveys'), where('published', '==', true)));
-    const mine = surveys.docs.filter(s => (s.data().adminEmails || []).map(e => String(e).toLowerCase()).includes(email));
+    const mine = await fetchMySurveys(db, email);
     if (!mine.length) throw new Error('sin acceso');
     for (const s of mine) docs.push(...(await getDocs(query(col, where('surveyId', '==', s.id)))).docs);
   }

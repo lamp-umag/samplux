@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>samplux — supervisión</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%90%8D</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+    <style>
+      header { display: flex; }
+      main { max-width: 1040px; justify-content: flex-start; }
+      h1 { font-size: 24px; font-weight: 700; margin: 0 0 6px; }
+      h2 { font-size: 15px; font-weight: 700; margin: 28px 0 10px; }
+      .lead { font-size: 14px; line-height: 1.6; color: var(--muted); margin: 0 0 20px; }
+      .card { border: 1.5px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+      table { width: 100%; border-collapse: collapse; font-size: 13px; }
+      th { text-align: left; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 8px 10px; border-bottom: 1.5px solid var(--foreground); white-space: nowrap; }
+      td { padding: 10px; border-bottom: 1px solid var(--border); vertical-align: top; overflow-wrap: anywhere; }
+      td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+      .tag { display: inline-block; font-size: 11px; font-weight: 700; border: 1.5px solid var(--foreground); border-radius: 999px; padding: 1px 8px; margin: 0 4px 4px 0; white-space: nowrap; }
+      .tag.off { border-style: dashed; color: var(--muted); border-color: var(--border-strong); }
+      .sub { font-size: 12px; color: var(--muted); }
+      .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+      .row .btn { flex: none; padding: 8px 12px; font-size: 13px; text-decoration: none; }
+      .row input[type=text], .row input[type=email] { margin: 0; padding: 9px 12px; font-size: 14px; flex: 1; min-width: 200px; }
+      .switch { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+      .switch input { width: 17px; height: 17px; accent-color: var(--foreground); margin: 0; }
+      .scroll { overflow-x: auto; }
+      .msg { font-size: 13px; font-weight: 600; }
+      details summary { cursor: pointer; font-size: 12px; color: var(--muted); }
+      .warn { font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="admin.html">🐍 samplux</a>
+      <div class="header-actions">
+        <button class="admin-link hidden" id="userChip" title="Cerrar sesión"></button>
+        <a class="admin-link" href="builder.html">constructor</a>
+        <a class="admin-link" href="admin.html">admin</a>
+        <a class="admin-link" href="retiros.html">retiros</a>
+      </div>
+    </header>
+    <main>
+      <h1>Supervisión</h1>
+      <p class="lead">Todas las encuestas del servicio, quién las administra y cuántas respuestas tienen; y los permisos de cada cuenta. Solo visible para la administración.</p>
+      <div id="auth" class="card">
+        <p class="lead" style="margin-bottom:14px">Inicia sesión con una cuenta de administración.</p>
+        <div class="row"><button class="btn primary" id="loginBtn">Entrar con Google</button></div>
+        <p class="msg" id="authMsg"></p>
+      </div>
+      <div id="app" class="hidden">
+        <h2>Encuestas</h2>
+        <div class="card scroll" style="padding:0"><table id="surveys"></table></div>
+        <p class="sub" id="surveysNote"></p>
+
+        <h2>Permisos de cuentas</h2>
+        <p class="lead">Por defecto una cuenta ve las <strong>respuestas</strong> de sus encuestas pero no la <strong>paradata</strong> (tiempos, dispositivo, eventos, ubicación). Aquí das ese permiso, o una excepción para crear encuestas sin ser @umag.cl.</p>
+        <div class="card">
+          <div class="row">
+            <input type="email" id="newEmail" placeholder="correo@dominio.cl" />
+            <label class="switch"><input type="checkbox" id="newParadata" /> paradata</label>
+            <label class="switch"><input type="checkbox" id="newExempt" /> puede crear encuestas (excepción)</label>
+            <input type="text" id="newNote" placeholder="nota (por qué)" maxlength="200" />
+            <button class="btn primary" id="addAccess">Guardar</button>
+          </div>
+          <p class="msg" id="accessMsg"></p>
+        </div>
+        <div class="card scroll" style="padding:0"><table id="access"></table></div>
+
+        <h2>Acceso puntual a una encuesta</h2>
+        <p class="lead">Excepción para una encuesta concreta (una cuenta que no es @umag.cl). Las cuentas @umag.cl las agrega la persona responsable desde el constructor.</p>
+        <div class="card">
+          <div class="row">
+            <select id="grantSurvey" class="enc-input" style="padding:9px 12px;border-radius:10px;border:1.5px solid var(--border);font:inherit"></select>
+            <input type="email" id="grantEmail" placeholder="correo@gmail.com" />
+            <select id="grantRole" style="padding:9px 12px;border-radius:10px;border:1.5px solid var(--border);font:inherit"><option value="viewer">ve respuestas</option><option value="editor">edita</option></select>
+            <button class="btn secondary" id="grantBtn">Dar acceso</button>
+          </div>
+          <p class="msg" id="grantMsg"></p>
+        </div>
+      </div>
+    </main>
+    <script type="module" src="./js/superAdmin.js"></script>
+  </body>
+</html>

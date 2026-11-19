@@ -39,7 +39,8 @@ export function enqueue(sub) {
   return put({
     surveyId: sub.surveyId,
     responseId: sub.responseId,
-    payload: sub.payload,
+    entry: sub.entry,
+    paradata: sub.paradata,
     clips: sub.clips || [],
     consent: sub.consent ? { consentId: sub.consent.consentId, doc: sub.consent.doc } : null,
     uploaded: {},
@@ -94,7 +95,7 @@ async function consentWithdrawn(db, consentId) {
 export async function exportBackup() {
   const records = (await pending()).map(r => ({
     surveyId: r.surveyId, responseId: r.responseId, queuedAt: r.queuedAt, lastError: r.lastError || null,
-    payload: r.payload, audioClips: (r.clips || []).map(c => ({ itemId: c.itemId, bytes: c.blob?.size ?? null }))
+    entry: r.entry, paradata: r.paradata, audioClips: (r.clips || []).map(c => ({ itemId: c.itemId, bytes: c.blob?.size ?? null }))
   }));
   return new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), records }, null, 2)], { type: 'application/json' });
 }

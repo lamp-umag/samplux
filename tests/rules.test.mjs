@@ -6,12 +6,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { initializeTestEnvironment, assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
 import {
-  doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, addDoc, collection, deleteField, serverTimestamp, Bytes
+  doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, addDoc, collection, query, where, deleteField, serverTimestamp, Bytes
 } from 'firebase/firestore';
 import { deriveKeys, ERASABLE_FIELDS } from '../js/consent.js';
 
 const [host, port] = (process.env.FIRESTORE_EMULATOR_HOST || '127.0.0.1:8080').split(':');
-let env, anon, admin, surveyAdmin, stranger;
+let env, anon, admin, surveyAdmin, stranger, ctxAs;
 
 const SECRET = '0123456789ABCDEF';
 const response = extra => ({
@@ -40,9 +40,12 @@ before(async () => {
     firestore: { rules: readFileSync(new URL('../firestore.rules', import.meta.url), 'utf8'), host, port: Number(port) }
   });
   anon = env.unauthenticatedContext().firestore();
-  admin = env.authenticatedContext('admin', { email: 'herman.elgueta@umag.cl', email_verified: true }).firestore();
-  surveyAdmin = env.authenticatedContext('sa', { email: 'equipo@umag.cl', email_verified: true }).firestore();
-  stranger = env.authenticatedContext('x', { email: 'otra@gmail.com', email_verified: true }).firestore();
+  const as = (uid, email, extra = {}) =>
+    env.authenticatedContext(uid, { email, email_verified: true, firebase: { sign_in_provider: 'google.com' }, ...extra }).firestore();
+  admin = as('admin', 'herman.elgueta@umag.cl');
+  surveyAdmin = as('sa', 'equipo@umag.cl');
+  stranger = as('x', 'otra@gmail.com');
+  ctxAs = as;
 });
 after(() => env.cleanup());
 
@@ -165,4 +168,115 @@ test('withdrawal requests: anyone files, only admins read and resolve', async ()
   await assertFails(updateDoc(doc(stranger, ref.path), { status: 'resolved' }));
   await assertSucceeds(updateDoc(doc(admin, ref.path), { status: 'resolved', resolution: 'borrada', resolvedBy: 'x', resolvedAt: serverTimestamp(), note: '' }));
   await assertFails(updateDoc(doc(admin, ref.path), { email: 'otro@b.cl' }));
+});
+
+/* ───────── Access model: staff, owners, collaborators, paradata ───────── */
+const mkSurvey = extra => ({ title: 'Mía', published: true, items: [], settings: {}, ...extra });
+
+test('any @umag.cl account creates surveys as owner; others cannot', async () => {
+  const ana = ctxAs('ana', 'ana@umag.cl');
+  await assertSucceeds(setDoc(doc(ana, 'surveys/ana1'), mkSurvey({ ownerEmail: 'ana@umag.cl' })));
+  await assertFails(setDoc(doc(ana, 'surveys/ana2'), mkSurvey({ ownerEmail: 'otra@umag.cl' })));       // not on someone else's behalf
+  await assertFails(setDoc(doc(ana, 'surveys/ana3'), mkSurvey({ ownerEmail: 'ana@umag.cl', adminEmails: ['x@y.cl'] })));
+  await assertFails(setDoc(doc(ana, 'surveys/ana4'), mkSurvey()));                                       // owner required
+  const gmail = ctxAs('g', 'ana@gmail.com');
+  await assertFails(setDoc(doc(gmail, 'surveys/g1'), mkSurvey({ ownerEmail: 'ana@gmail.com' })));
+  await assertFails(setDoc(doc(anon, 'surveys/a1'), mkSurvey({ ownerEmail: 'a@umag.cl' })));
+  await assertFails(setDoc(doc(ctxAs('t', 'ana@umag.cl', { email_verified: false }), 'surveys/t1'), mkSurvey({ ownerEmail: 'ana@umag.cl' })));
+  await assertFails(setDoc(doc(ctxAs('p', 'ana@umag.cl', { firebase: { sign_in_provider: 'password' } }), 'surveys/p1'), mkSurvey({ ownerEmail: 'ana@umag.cl' })));
+  await assertFails(setDoc(doc(ctxAs('lookalike', 'ana@umag.cl.evil.com'), 'surveys/l1'), mkSurvey({ ownerEmail: 'ana@umag.cl.evil.com' })));
+  await assertFails(setDoc(doc(ctxAs('lookalike2', 'ana@xumag.cl'), 'surveys/l2'), mkSurvey({ ownerEmail: 'ana@xumag.cl' })));
+});
+
+test('an exemption lets a specific non-umag address create surveys', async () => {
+  const gmail = ctxAs('g', 'invitada@gmail.com');
+  await assertFails(setDoc(doc(gmail, 'surveys/g1'), mkSurvey({ ownerEmail: 'invitada@gmail.com' })));
+  await assertSucceeds(setDoc(doc(admin, 'access/invitada@gmail.com'), { exempt: true, note: 'colaboradora externa' }));
+  await assertSucceeds(setDoc(doc(gmail, 'surveys/g1'), mkSurvey({ ownerEmail: 'invitada@gmail.com' })));
+});
+
+test('owners edit their survey; the owner and legacy viewers are locked; only admins delete', async () => {
+  const ana = ctxAs('ana', 'ana@umag.cl'), bea = ctxAs('bea', 'bea@umag.cl');
+  await assertSucceeds(setDoc(doc(ana, 'surveys/s1'), mkSurvey({ ownerEmail: 'ana@umag.cl', published: false })));
+  await assertSucceeds(updateDoc(doc(ana, 'surveys/s1'), { title: 'Nuevo', published: true }));
+  await assertFails(updateDoc(doc(bea, 'surveys/s1'), { title: 'Hackeado' }));
+  await assertFails(updateDoc(doc(ana, 'surveys/s1'), { ownerEmail: 'bea@umag.cl' }));
+  await assertFails(updateDoc(doc(ana, 'surveys/s1'), { adminEmails: ['bea@umag.cl'] }));
+  await assertFails(deleteDoc(doc(ana, 'surveys/s1')));
+  await assertSucceeds(updateDoc(doc(admin, 'surveys/s1'), { ownerEmail: 'bea@umag.cl' }));
+  await assertSucceeds(deleteDoc(doc(admin, 'surveys/s1')));
+});
+
+test('owners list their own surveys; unpublished ones stay hidden from others', async () => {
+  const ana = ctxAs('ana', 'ana@umag.cl'), bea = ctxAs('bea', 'bea@umag.cl');
+  await assertSucceeds(setDoc(doc(ana, 'surveys/d1'), mkSurvey({ ownerEmail: 'ana@umag.cl', published: false })));
+  await assertSucceeds(getDocs(query(collection(ana, 'surveys'), where('ownerEmail', '==', 'ana@umag.cl'))));
+  await assertFails(getDocs(collection(ana, 'surveys')));                                 // can't list everything
+  await assertSucceeds(getDoc(doc(ana, 'surveys/d1')));
+  await assertFails(getDoc(doc(bea, 'surveys/d1')));
+  await assertSucceeds(getDocs(query(collection(bea, 'surveys'), where('published', '==', true))));
+  await assertSucceeds(getDocs(collection(admin, 'surveys')));
+});
+
+test('collaborators: owner adds @umag.cl colleagues, only admins add anyone else', async () => {
+  const ana = ctxAs('ana', 'ana@umag.cl'), bea = ctxAs('bea', 'bea@umag.cl'), cat = ctxAs('cat', 'cat@umag.cl');
+  await assertSucceeds(setDoc(doc(ana, 'surveys/s1'), mkSurvey({ ownerEmail: 'ana@umag.cl', published: false })));
+  const c = (email, role = 'viewer', by = 'ana@umag.cl') => ({ surveyId: 's1', email, role, addedBy: by, createdAt: serverTimestamp() });
+  await assertSucceeds(setDoc(doc(ana, 'collab/s1__bea@umag.cl'), c('bea@umag.cl')));
+  await assertFails(setDoc(doc(ana, 'collab/s1__ext@gmail.com'), c('ext@gmail.com')));    // non-umag: not by the owner
+  await assertFails(setDoc(doc(bea, 'collab/s1__cat@umag.cl'), c('cat@umag.cl', 'viewer', 'bea@umag.cl')));  // not the owner
+  await assertFails(setDoc(doc(ana, 'collab/wrong-id'), c('cat@umag.cl')));
+  await assertSucceeds(setDoc(doc(admin, 'collab/s1__ext@gmail.com'), c('ext@gmail.com', 'viewer', 'herman.elgueta@umag.cl')));
+  // viewer reads, cannot edit; once promoted to editor, can
+  await assertSucceeds(getDoc(doc(bea, 'surveys/s1')));
+  await assertFails(updateDoc(doc(bea, 'surveys/s1'), { title: 'x' }));
+  await assertSucceeds(updateDoc(doc(ana, 'collab/s1__bea@umag.cl'), { role: 'editor' }));
+  await assertSucceeds(updateDoc(doc(bea, 'surveys/s1'), { title: 'x' }));
+  await assertFails(updateDoc(doc(bea, 'surveys/s1'), { ownerEmail: 'bea@umag.cl' }));
+  // finding the surveys I was added to, and who is on mine
+  await assertSucceeds(getDocs(query(collection(bea, 'collab'), where('email', '==', 'bea@umag.cl'))));
+  await assertFails(getDocs(query(collection(cat, 'collab'), where('email', '==', 'bea@umag.cl'))));
+  await assertSucceeds(getDocs(query(collection(ana, 'collab'), where('surveyId', '==', 's1'))));
+  await assertSucceeds(deleteDoc(doc(ana, 'collab/s1__bea@umag.cl')));
+  await assertFails(updateDoc(doc(bea, 'surveys/s1'), { title: 'y' }));
+});
+
+test('answers follow ownership; paradata needs an explicit grant', async () => {
+  const ana = ctxAs('ana', 'ana@umag.cl'), bea = ctxAs('bea', 'bea@umag.cl');
+  await assertSucceeds(setDoc(doc(ana, 'surveys/s1'), mkSurvey({ ownerEmail: 'ana@umag.cl' })));
+  await assertSucceeds(setDoc(doc(anon, 'responses/s1/entries/r1'), { surveyId: 's1', answers: { q: 1 }, createdAt: serverTimestamp() }));
+  await assertSucceeds(setDoc(doc(anon, 'responses/s1/paradata/r1'), { surveyId: 's1', totalTime: 5000, events: [{ t: 1, k: 'miss' }] }));
+  await assertFails(setDoc(doc(anon, 'responses/s1/paradata/r2'), { surveyId: 'other', totalTime: 1 }));
+  await assertSucceeds(getDoc(doc(ana, 'responses/s1/entries/r1')));
+  await assertFails(getDoc(doc(bea, 'responses/s1/entries/r1')));
+  await assertFails(getDoc(doc(ana, 'responses/s1/paradata/r1')));                         // owner without grant
+  await assertFails(getDocs(collection(ana, 'responses/s1/paradata')));
+  await assertSucceeds(setDoc(doc(admin, 'access/ana@umag.cl'), { paradata: true }));
+  await assertSucceeds(getDoc(doc(ana, 'responses/s1/paradata/r1')));
+  await assertSucceeds(getDocs(collection(ana, 'responses/s1/paradata')));
+  await assertFails(getDoc(doc(bea, 'responses/s1/paradata/r1')));                          // grant is not survey access
+  await assertSucceeds(setDoc(doc(admin, 'access/bea@umag.cl'), { paradata: true }));
+  await assertFails(getDoc(doc(bea, 'responses/s1/paradata/r1')));
+  await assertSucceeds(getDoc(doc(admin, 'responses/s1/paradata/r1')));
+  await assertFails(updateDoc(doc(anon, 'responses/s1/paradata/r1'), { totalTime: 1 }));
+  await assertSucceeds(setDoc(doc(anon, 'responses/s1/paradata/r1'), { surveyId: 's1', totalTime: 5000, events: [{ t: 1, k: 'miss' }] }));   // identical retry
+});
+
+test('access switches: users read only their own, only admins write', async () => {
+  const ana = ctxAs('ana', 'ana@umag.cl');
+  await assertSucceeds(setDoc(doc(admin, 'access/ana@umag.cl'), { paradata: true }));
+  await assertSucceeds(getDoc(doc(ana, 'access/ana@umag.cl')));
+  await assertSucceeds(getDoc(doc(ctxAs('zoe', 'zoe@umag.cl'), 'access/zoe@umag.cl')));     // own record, even if it does not exist yet
+  await assertFails(getDoc(doc(ana, 'access/bea@umag.cl')));
+  await assertFails(setDoc(doc(ana, 'access/ana@umag.cl'), { paradata: true, exempt: true }));
+  await assertFails(getDocs(collection(ana, 'access')));
+  await assertSucceeds(getDocs(collection(admin, 'access')));
+});
+
+test('withdrawn responses lose their paradata too', async () => {
+  await submit();
+  await assertSucceeds(setDoc(doc(anon, 'responses/pub/paradata/r1'), { surveyId: 'pub', totalTime: 1 }));
+  await assertFails(deleteDoc(doc(anon, 'responses/pub/paradata/r1')));
+  await assertSucceeds(withdraw());
+  await assertSucceeds(deleteDoc(doc(anon, 'responses/pub/paradata/r1')));
 });

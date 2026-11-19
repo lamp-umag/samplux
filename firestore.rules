@@ -25,36 +25,77 @@ rules_version = '2';
 //   metadata for CSV export, read/written by admin.html
 //   (both Google-auth gated).
 //
-// IMPORTANT: keep the email list below in sync with ALLOWED_EMAILS in
-// js/adminStats.js and js/builder.js.
+// ACCESS MODEL (docs/ACCESS.md)
+//  - Super admins: the two addresses in isAdmin() below. Everything, incl. paradata.
+//  - Staff: any verified Google account @umag.cl (or an address exempted in
+//    access/<email>.exempt). Staff create surveys (they become its owner), edit their
+//    own, read the responses of surveys they own or were added to, and add other
+//    @umag.cl colleagues (collab/). Adding anyone else is a super-admin decision.
+//  - Paradata/metadata (timings, device, events…) lives apart from the answers, in
+//    responses/<survey>/paradata/<id>, readable only with access/<email>.paradata == true
+//    (granted by a super admin from super.html) — staff get answers only by default.
+//  - Legacy per-survey viewers: surveys/<id>.adminEmails (editable only by super admins).
+//
+// IMPORTANT: the super-admin list below must stay in sync with SUPER_ADMINS in js/access.js.
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isAdmin() {
+    function verifiedGoogle() {
       return request.auth != null &&
+        request.auth.token.email_verified == true &&
+        request.auth.token.firebase.sign_in_provider == 'google.com';
+    }
+
+    function emailLc() { return request.auth.token.email.lower(); }
+
+    function isAdmin() {
+      return verifiedGoogle() &&
         request.auth.token.email in [
           'hermanelgueta@gmail.com',
           'herman.elgueta@umag.cl'
         ];
     }
 
-    // Per-survey admins: surveys/<id>.adminEmails (lowercase), edited in
-    // builder.html. They can read that survey's responses and manage its
-    // exclusion flags in admin.html — nothing else (no builder, no other surveys).
+    function isUmag() { return emailLc().matches('^[a-z0-9._%+-]+@umag[.]cl$'); }
+
+    function accessPath() { return /databases/$(database)/documents/access/$(emailLc()); }
+
+    // Can create surveys: @umag.cl accounts, plus addresses a super admin exempted.
+    function isStaff() {
+      return verifiedGoogle() && (isUmag() || isAdmin() ||
+        (exists(accessPath()) && get(accessPath()).data.get('exempt', false) == true));
+    }
+
+    // Can read paradata/metadata: super admins and accounts granted it in access/<email>.
+    function hasParadata() {
+      return isAdmin() || (verifiedGoogle() && exists(accessPath()) &&
+        get(accessPath()).data.get('paradata', false) == true);
+    }
+
+    function surveyData(surveyId) {
+      return get(/databases/$(database)/documents/surveys/$(surveyId)).data;
+    }
+    function collabPath(surveyId) {
+      return /databases/$(database)/documents/collab/$(surveyId + '__' + emailLc());
+    }
+    function isOwner(surveyId) {
+      return verifiedGoogle() && surveyData(surveyId).get('ownerEmail', '') == emailLc();
+    }
+    function isCollab(surveyId) { return verifiedGoogle() && exists(collabPath(surveyId)); }
+
+    // Legacy per-survey viewers: surveys/<id>.adminEmails (lowercase).
     function signedInEmailIn(list) {
-      return request.auth != null &&
-        request.auth.token.email_verified == true &&
-        request.auth.token.email.lower() in list;
+      return verifiedGoogle() && emailLc() in list;
     }
 
     function isSurveyAdmin(surveyId) {
-      return signedInEmailIn(
-        get(/databases/$(database)/documents/surveys/$(surveyId)).data.get('adminEmails', []));
+      return signedInEmailIn(surveyData(surveyId).get('adminEmails', []));
     }
 
+    // Reads the answers of a survey: owner, collaborators, legacy viewers, super admins.
     function isSurveyStaff(surveyId) {
-      return isAdmin() || isSurveyAdmin(surveyId);
+      return isAdmin() || isOwner(surveyId) || isCollab(surveyId) || isSurveyAdmin(surveyId);
     }
 
     function surveyIsPublished(surveyId) {
@@ -78,8 +119,53 @@ service cloud.firestore {
 
     match /surveys/{surveyId} {
       allow read: if resource.data.published == true || isAdmin() ||
-        signedInEmailIn(resource.data.get('adminEmails', []));
-      allow create, update, delete: if isAdmin();
+        (verifiedGoogle() && resource.data.ownerEmail == emailLc()) ||
+        signedInEmailIn(resource.data.get('adminEmails', [])) ||
+        isCollab(surveyId);
+
+      // Staff create surveys as their owner. adminEmails (legacy viewers) stays a
+      // super-admin-only field; colleagues are added through collab/ instead.
+      allow create: if isAdmin() || (isStaff() &&
+        request.resource.data.ownerEmail == emailLc() &&
+        request.resource.data.get('adminEmails', []).size() == 0);
+
+      // Owner and editor collaborators edit; nobody but a super admin changes the
+      // owner or the legacy viewer list. Deleting is super-admin only (responses and
+      // their rules hang off the survey document): staff unpublish instead.
+      allow update: if isAdmin() || (verifiedGoogle() &&
+        (resource.data.ownerEmail == emailLc() ||
+          (isCollab(surveyId) && get(collabPath(surveyId)).data.role == 'editor')) &&
+        request.resource.data.ownerEmail == resource.data.ownerEmail &&
+        request.resource.data.get('adminEmails', []) == resource.data.get('adminEmails', []));
+      allow delete: if isAdmin();
+    }
+
+    // Colleagues added to a survey. Doc id = <surveyId>__<email>. The survey owner may
+    // add @umag.cl addresses only; any other address (an exemption) needs a super admin.
+    match /collab/{collabId} {
+      allow read: if isAdmin() ||
+        (verifiedGoogle() && resource.data.email == emailLc()) ||
+        (verifiedGoogle() && isOwner(resource.data.surveyId));
+      allow create: if verifiedGoogle() &&
+        request.resource.data.keys().hasOnly(['surveyId', 'email', 'role', 'addedBy', 'createdAt']) &&
+        request.resource.data.surveyId is string && request.resource.data.email is string &&
+        request.resource.data.email == request.resource.data.email.lower() &&
+        collabId == request.resource.data.surveyId + '__' + request.resource.data.email &&
+        request.resource.data.role in ['viewer', 'editor'] &&
+        request.resource.data.addedBy == emailLc() &&
+        (isAdmin() || (isOwner(request.resource.data.surveyId) &&
+          request.resource.data.email.matches('^[a-z0-9._%+-]+@umag[.]cl$')));
+      allow update: if isAdmin() || (verifiedGoogle() && isOwner(resource.data.surveyId) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role']) &&
+        request.resource.data.role in ['viewer', 'editor']);
+      allow delete: if isAdmin() || (verifiedGoogle() && isOwner(resource.data.surveyId));
+    }
+
+    // Per-account switches set from super.html: { paradata: bool, exempt: bool, note }.
+    // An account can read its own record (the UI needs to know what to show).
+    match /access/{accessId} {
+      allow get: if isAdmin() || (verifiedGoogle() && accessId == emailLc());
+      allow list, write: if isAdmin();
     }
 
     match /responses/{surveyId}/entries/{responseId} {
@@ -120,6 +206,22 @@ service cloud.firestore {
           (isSurveyStaff(surveyId) || consentWithdrawn(resource.data.get('consentId', null)))
         );
       allow delete: if false;
+    }
+
+    // Paradata & metadata of a response (timings, device, interaction events, optional
+    // location…), written together with the entry. Same posture as entries — public create
+    // on a published survey, immutable — but readable only with the paradata permission.
+    match /responses/{surveyId}/paradata/{responseId} {
+      allow create: if
+        surveyIsPublished(surveyId) &&
+        request.resource.data.surveyId == surveyId &&
+        request.resource.data.keys().size() <= 40;
+      allow read: if hasParadata() && isSurveyStaff(surveyId);
+      allow update: if request.resource.data == resource.data;    // identical re-send (retry)
+      allow delete: if isSurveyStaff(surveyId) ||
+        consentWithdrawn(
+          get(/databases/$(database)/documents/responses/$(surveyId)/entries/$(responseId))
+            .data.get('consentId', null));
     }
 
     // Audio answers (open-ended items with response: "audio" | "either"): one doc per
@@ -204,9 +306,9 @@ service cloud.firestore {
         request.resource.data.email is string && request.resource.data.email.size() <= 200 &&
         request.resource.data.get('when', '') is string && request.resource.data.get('when', '').size() <= 200 &&
         request.resource.data.get('details', '') is string && request.resource.data.get('details', '').size() <= 2000;
-      allow read: if isAdmin() || (resource.data.surveyId is string && isSurveyAdmin(resource.data.surveyId));
+      allow read: if isAdmin() || (resource.data.surveyId is string && resource.data.surveyId != '' && isSurveyStaff(resource.data.surveyId));
       allow update: if
-        (isAdmin() || isSurveyAdmin(resource.data.surveyId)) &&
+        (isAdmin() || (resource.data.surveyId != '' && isSurveyStaff(resource.data.surveyId))) &&
         request.resource.data.diff(resource.data).affectedKeys()
           .hasOnly(['status', 'resolution', 'resolvedBy', 'resolvedAt', 'responseId', 'note']);
       allow delete: if false;

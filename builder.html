@@ -215,10 +215,10 @@
       <div id="authCard" class="card">
         <div class="card-header">
           <h1>Acceso restringido</h1>
-          <span class="pill"><span class="pill-dot"></span>Solo administradores</span>
+          <span class="pill"><span class="pill-dot"></span>Cuentas @umag.cl</span>
         </div>
         <p class="muted">Crea, edita y publica encuestas sin tocar archivos JSON a mano.</p>
-        <p class="muted">Acceso restringido a cuentas administradoras autenticadas con Google.</p>
+        <p class="muted">Entra con tu cuenta de Google @umag.cl. Por ahora solo esas cuentas pueden crear y editar encuestas; las excepciones (una persona o una encuesta) las gestiona la administración.</p>
         <div class="mt-16 row">
           <div id="userChip" class="pill hidden"><span id="userEmailEl"></span></div>
           <button id="loginBtn" class="btn btn-primary">Entrar con Google</button>
@@ -228,6 +228,7 @@
 
       <!-- Survey list view -->
       <div id="listView" class="hidden">
+        <div id="policyBanner" class="card small" style="border-style:dashed;margin-bottom:12px"></div>
         <div class="row mt-8">
           <h1>Encuestas</h1>
           <div class="header-actions">
@@ -275,10 +276,24 @@
               <label class="field">Descripción</label>
               <textarea id="f-description" class="input" rows="2" placeholder="Se muestra en la lista de encuestas disponibles"></textarea>
             </div>
-            <div class="field-group">
-              <label class="field">Administradores de esta encuesta</label>
+            <div class="field-group" id="ownerGroup">
+              <label class="field">Responsable</label>
+              <p class="small" id="ownerLine" style="margin:0"></p>
+            </div>
+            <div class="field-group" id="collabGroup">
+              <label class="field">Colegas con acceso a esta encuesta</label>
+              <div id="collabList" class="small"></div>
+              <div class="row mt-8" id="collabAdd">
+                <input id="collabEmail" class="input" placeholder="colega@umag.cl" style="flex:1" />
+                <select id="collabRole" class="select" style="width:auto"><option value="viewer">Ve respuestas</option><option value="editor">Edita la encuesta</option></select>
+                <button type="button" id="collabAddBtn" class="btn btn-outline btn-sm">Agregar</button>
+              </div>
+              <p class="small mt-8" id="collabHint">Solo cuentas @umag.cl (otra cuenta requiere una excepción de la administración). Disponible una vez guardada la encuesta. Ven las respuestas, no los datos técnicos, salvo que la administración les dé ese permiso.</p>
+            </div>
+            <div class="field-group" id="legacyAdminsGroup">
+              <label class="field">Visores heredados (solo administración)</label>
               <input id="f-admins" class="input" placeholder="correo@gmail.com, otra@umag.cl" />
-              <p class="small mt-8">Cuentas de Google que pueden ver estadísticas, respuestas y casos de <em>esta</em> encuesta en admin.html (no pueden editarla ni ver otras). Separa con comas.</p>
+              <p class="small mt-8">Cuentas que ven respuestas de <em>esta</em> encuesta sin acceso al constructor (mecanismo anterior). Separa con comas.</p>
             </div>
             <div class="switch-row field-group">
               <div>
@@ -297,6 +312,26 @@
                 <option value="telares">TELARES — verde, mostaza y terracota</option>
               </select>
               <p class="small mt-8">Cambia los colores de la encuesta que ve el participante (no la vista previa).</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Datos técnicos y opcionales</h2>
+            <p class="small mt-8">Qué se registra además de las respuestas. Todo se guarda aparte (paradata) y solo lo ve quien tenga ese permiso.</p>
+            <div class="checkbox-row mt-12"><input type="checkbox" id="f-evEnabled" /><label for="f-evEnabled">Registro de interacción (eventos de uso)</label></div>
+            <div class="checkbox-row"><input type="checkbox" id="f-evMisses" /><label for="f-evMisses">Incluir toques/clics fuera de los botones</label></div>
+            <div class="checkbox-row"><input type="checkbox" id="f-devInfo" /><label for="f-devInfo">Información del dispositivo y navegador</label></div>
+            <div class="field-group mt-12">
+              <label class="field">Ubicación</label>
+              <select id="f-geo" class="select">
+                <option value="off">No se pide (recomendado)</option>
+                <option value="coarse">Aproximada (~1 km), si la persona lo permite</option>
+                <option value="precise">Precisa (GPS), si la persona lo permite — dato sensible</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field">Lo que recoge esta encuesta</label>
+              <div id="manifestBox" class="small"></div>
             </div>
           </div>
 

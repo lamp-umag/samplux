@@ -192,6 +192,18 @@ Admin pages gate on a Google-login allow-list (`ALLOWED_EMAILS` in
 
 ---
 
+## Access, consent, interviewer mode, data policy
+
+- **Quién puede qué** — cuentas `@umag.cl` crean y editan encuestas; la administración (`super.html`) supervisa
+  todo y concede permisos (paradata, excepciones): [`docs/ACCESS.md`](docs/ACCESS.md).
+- **Consentimiento y retiro** con código/QR, sin identificar a nadie: [`docs/CONSENT.md`](docs/CONSENT.md).
+- **Modo encuestador** (tablet/escritorio, sin conexión): [`docs/ENCUESTADOR.md`](docs/ENCUESTADOR.md).
+- **Política de datos y recolección ética**, ideas (ubicación, sensores, donación de datos):
+  [`docs/DATA-POLICY.md`](docs/DATA-POLICY.md).
+- Tests: `npm test` (lógica) y `npm run test:rules` (reglas de Firestore, con emulador).
+
+---
+
 ## fabest link (desktop analysis)
 
 fabest (Herman's statistics app) can mirror a survey locally and update it with new cases,

@@ -19,7 +19,7 @@ import {
   getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut
 } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
 import {
-  doc, setDoc, serverTimestamp, collection, getDocs, query, where
+  doc, getDoc, setDoc, serverTimestamp, collection, getDocs, query, where
 } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js';
 import {
   fetchSurveyIndex, fetchSurveyDefinition, fetchResponses, fetchExportFlags, mergeFlags,
@@ -31,16 +31,11 @@ import {
   cognitiveItems, renderCognitiveTask, COGNITIVE_METRICS, COGNITIVE_LABELS
 } from './statsCore.js';
 
-const EXPORT_META_ROOT = 'response_export_meta';
+import { resolveAccess, fetchMySurveys, POLICY_NOTICE, PARADATA_NOTICE } from './access.js';
 
-// Global admins (every survey + builder). Keep in sync with ALLOWED_EMAILS in
-// js/builder.js and isAdmin() in firestore.rules. Per-survey admins are NOT
-// listed here: they live in surveys/<id>.adminEmails (set in the builder) and
-// are enforced by isSurveyAdmin() in firestore.rules.
-const ALLOWED_EMAILS = new Set([
-  'hermanelgueta@gmail.com',
-  'herman.elgueta@umag.cl'
-]);
+const EXPORT_META_ROOT = 'response_export_meta';
+let access = { role: 'none', paradata: false };
+
 
 // "Interruption" correction thresholds — see the explanation text rendered
 // into #corrTimeExplain, kept in sync with this comment:
@@ -205,25 +200,17 @@ userChip?.addEventListener('click', async () => {
   try { await signOut(auth); } catch (_) { /* ignore */ }
 });
 
-// Surveys a per-survey admin can open: published surveys whose adminEmails
-// include them (the rules let anyone list published surveys; drafts stay hidden).
-async function fetchSurveysForSurveyAdmin(email) {
-  const snap = await getDocs(query(collection(db, 'surveys'), where('published', '==', true)));
-  return snap.docs
-    .map(d => ({ id: d.id, ...d.data() }))
-    .filter(s => Array.isArray(s.adminEmails) && s.adminEmails.map(e => String(e).toLowerCase()).includes(email));
-}
-
 let accessScope = null; // 'global' | 'survey'
 
 onAuthStateChanged(auth, async (user) => {
   const email = (user?.email || '').toLowerCase();
   accessScope = null;
-  if (user && ALLOWED_EMAILS.has(email)) {
+  access = await resolveAccess(db, user);
+  if (access.role === 'super') {
     accessScope = 'global';
   } else if (user && user.emailVerified) {
     try {
-      surveys = await fetchSurveysForSurveyAdmin(email);
+      surveys = await fetchMySurveys(db, email);
       if (surveys.length) accessScope = 'survey';
     } catch (e) {
       console.warn('No se pudieron revisar los permisos por encuesta.', e);
@@ -239,7 +226,7 @@ onAuthStateChanged(auth, async (user) => {
     await boot();
   } else {
     if (user) {
-      authError.textContent = 'Tu cuenta de Google no está autorizada para acceder a este panel.';
+      authError.textContent = 'Esta cuenta no tiene encuestas en este panel (ni propias, ni compartidas contigo). ' + POLICY_NOTICE;
       authError.classList.remove('hidden');
       userChip.classList.remove('hidden');
       userEmail.textContent = user.email || '(sin correo)';
@@ -261,6 +248,12 @@ async function boot() {
     kpis.innerHTML = `<div class="small danger">No se pudieron cargar las encuestas desde Firestore.</div>`;
     return;
   }
+  // Accounts without the paradata permission get answers only: say so, and hide the technical exports.
+  document.getElementById('paradataNotice')?.remove();
+  if (!access.paradata) {
+    kpis.insertAdjacentHTML('beforebegin', `<div id="paradataNotice" class="small" style="border:1.5px dashed var(--foreground);border-radius:10px;padding:10px 12px;margin-bottom:12px">${escapeHtml(PARADATA_NOTICE)}</div>`);
+  }
+  ['dlDeviceBtn', 'dlJsonBtn'].forEach(id => { const b = el(id); if (b) b.style.display = access.paradata ? '' : 'none'; });
   surveys.sort((a, b) => (b.published === true) - (a.published === true) || String(a.title || a.id).localeCompare(String(b.title || b.id)));
   surveySelect.innerHTML = surveys
     .map(s => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.title || s.id)}${s.published ? '' : ' (borrador)'}</option>`).join('');
@@ -510,7 +503,7 @@ async function render(force = false) {
   setLoading(true);
   try {
     const [docsRaw, flags, def] = await Promise.all([
-      fetchResponses(meta.id), fetchExportFlags(meta.id), loadDef(meta, force === true)
+      fetchResponses(meta.id, { paradata: access.paradata }), fetchExportFlags(meta.id), loadDef(meta, force === true)
     ]);
 
     const all = docsRaw.map(d => ({ id: d.id, data: mergeFlags(d.data, flags.get(d.id)) }));

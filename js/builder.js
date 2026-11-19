@@ -11,16 +11,16 @@ import {
   getDocs,
   setDoc,
   deleteDoc,
+  query,
+  where,
   serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js';
 import { createSurveyApp } from './surveyRunner.js';
+import { resolveAccess, fetchMySurveys, isUmag, norm, POLICY_NOTICE } from './access.js';
+import { collectionManifest } from './manifest.js';
 
-// Keep in sync with ALLOWED_EMAILS in js/adminStats.js,
-// and with the isAdmin() list in firestore.rules.
-const ALLOWED_EMAILS = new Set([
-  'hermanelgueta@gmail.com',
-  'herman.elgueta@umag.cl'
-]);
+let me = { role: 'none', email: '' };   // set by resolveAccess() on sign-in
+const isSuper = () => me.role === 'super';
 
 const auth = getAuth(app);
 
@@ -54,8 +54,6 @@ const fConsentLevel = el('f-consentLevel');
 const fConsentItem = el('f-consentItem');
 const fConsentContact = el('f-consentContact');
 const consentFields = el('consentFields');
-// Always an admin of every survey (also enforced in firestore.rules → isAdmin()).
-const ALWAYS_ADMINS = ['hermanelgueta@gmail.com'];
 const fSplashEnabled = el('f-splashEnabled');
 const splashFields = el('splashFields');
 const fSplashImage = el('f-splashImage');
@@ -117,19 +115,24 @@ function slugify(s) {
 }
 
 // ── Auth ─────────────────────────────────────────────────────
-onAuthStateChanged(auth, user => {
-  if (user && ALLOWED_EMAILS.has((user.email || '').toLowerCase())) {
+onAuthStateChanged(auth, async user => {
+  me = await resolveAccess(db, user);
+  if (user && me.role !== 'none') {
     authCard.classList.add('hidden');
     listView.classList.remove('hidden');
     userChip.classList.remove('hidden');
     userEmailEl.textContent = user.email;
+    el('policyBanner').textContent = isSuper()
+      ? 'Administración: ves todas las encuestas. Panel de supervisión en super.html.'
+      : POLICY_NOTICE + ' Ves las encuestas que creaste y las que te compartieron.';
+    deleteSurveyBtn.classList.toggle('hidden', !isSuper());
     loadSurveyList();
   } else {
     authCard.classList.remove('hidden');
     listView.classList.add('hidden');
     editorView.classList.add('hidden');
     if (user) {
-      authError.textContent = 'Tu cuenta de Google no está autorizada para acceder al constructor.';
+      authError.textContent = 'Esta cuenta no puede crear ni editar encuestas. ' + POLICY_NOTICE;
       authError.classList.remove('hidden');
       userChip.classList.remove('hidden');
       userEmailEl.textContent = user.email || '';
@@ -158,7 +161,7 @@ function blankSurvey() {
   return {
     id: '', title: '', description: '',
     published: false,
-    adminEmails: [...ALWAYS_ADMINS],
+    adminEmails: [],
     settings: { randomizeItems: false, splash: { enabled: false, image: '', durationMs: 1000 } },
     optionSets: {},
     items: [],
@@ -181,8 +184,12 @@ function isDirty() {
 async function loadSurveyList() {
   surveyListContainer.innerHTML = '<p class="muted small">Cargando…</p>';
   try {
-    const snap = await getDocs(collection(db, 'surveys'));
-    surveysCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (isSuper()) {
+      const snap = await getDocs(collection(db, 'surveys'));
+      surveysCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } else {
+      surveysCache = await fetchMySurveys(db, me.email);
+    }
     renderSurveyList();
   } catch (e) {
     console.error(e);
@@ -203,7 +210,7 @@ function renderSurveyList() {
       <div class="survey-card-top">
         <div>
           <div style="font-weight:700;font-size:14px;">${escapeHtml(s.title || '(sin título)')}</div>
-          <div class="small">${escapeHtml(s.id)} · ${(s.items || []).length} ítems</div>
+          <div class="small">${escapeHtml(s.id)} · ${(s.items || []).length} ítems${s.ownerEmail && s.ownerEmail !== me.email ? ` · de ${escapeHtml(s.ownerEmail)}` : ''}</div>
         </div>
         <span class="badge ${s.published ? 'badge-ok' : 'badge-off'}">${s.published ? 'Publicada' : 'Borrador'}</span>
       </div>
@@ -248,7 +255,7 @@ importFile.addEventListener('change', async () => {
       },
       optionSets: parsed.optionSets || {},
       items: parsed.items,
-      adminEmails: parseEmailList((parsed.adminEmails || []).join(',')),
+      adminEmails: isSuper() ? parseEmailList((parsed.adminEmails || []).join(',')) : [],   // viewers are a super-admin field
       _isNew: true
     };
     openEditor(draft);
@@ -269,6 +276,15 @@ function openEditor(survey) {
   fDescription.value = survey.description || '';
   fPublished.checked = !!survey.published;
   fAdmins.value = (survey.adminEmails || []).join(', ');
+  el('legacyAdminsGroup').classList.toggle('hidden', !isSuper());
+  el('ownerLine').textContent = survey._isNew ? `${me.email} (tú, al guardar)` : (survey.ownerEmail || 'sin responsable (encuesta anterior al nuevo sistema: administración)');
+  loadCollabs(survey);
+  const stg = survey.settings || {};
+  el('f-evEnabled').checked = !(stg.paradata && stg.paradata.events === false);
+  el('f-evMisses').checked = !(stg.paradata && stg.paradata.misses === false);
+  el('f-devInfo').checked = !(stg.collect && stg.collect.deviceInfo === false);
+  el('f-geo').value = (stg.collect && ['coarse', 'precise'].includes(stg.collect.geolocation)) ? stg.collect.geolocation : 'off';
+  renderManifest();
   fRandomize.value = String((survey.settings && survey.settings.randomizeItems) || false);
   fTheme.value = (survey.settings && survey.settings.theme) || '';
   const consent = (survey.settings && survey.settings.consent) || {};
@@ -313,6 +329,72 @@ fTitle.addEventListener('input', () => { currentSurvey.title = fTitle.value; syn
 fDescription.addEventListener('input', () => { currentSurvey.description = fDescription.value; syncSaveStatus(); });
 fPublished.addEventListener('change', () => { currentSurvey.published = fPublished.checked; syncSaveStatus(); });
 fAdmins.addEventListener('input', () => { currentSurvey.adminEmails = parseEmailList(fAdmins.value); syncSaveStatus(); });
+
+// ── Optional data collection (settings.paradata / settings.collect) ─────────
+function syncCollect() {
+  const st = currentSurvey.settings;
+  const events = el('f-evEnabled').checked, misses = el('f-evMisses').checked;
+  if (events && misses) delete st.paradata; else st.paradata = { events, misses: events && misses };
+  const geo = el('f-geo').value, dev = el('f-devInfo').checked;
+  if (geo === 'off' && dev) delete st.collect; else st.collect = { geolocation: geo, deviceInfo: dev };
+  el('f-evMisses').disabled = !events;
+  renderManifest();
+  syncSaveStatus();
+}
+['f-evEnabled', 'f-evMisses', 'f-devInfo', 'f-geo'].forEach(id => el(id).addEventListener('change', syncCollect));
+
+function renderManifest() {
+  if (!currentSurvey) return;
+  const m = collectionManifest(currentSurvey);
+  const box = el('manifestBox');
+  box.innerHTML = m.rows.map(r => `<div style="margin-bottom:4px"><strong>${escapeHtml(r.group)}:</strong> ${escapeHtml(r.text)}</div>`).join('') +
+    m.warnings.map(w => `<div class="danger" style="margin-top:6px">⚠ ${escapeHtml(w)}</div>`).join('');
+}
+document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', renderManifest));
+
+// ── Colleagues with access (collab/<surveyId>__<email>) ─────────────────────
+async function loadCollabs(survey) {
+  const list = el('collabList'), add = el('collabAdd'), hint = el('collabHint');
+  const saved = !survey._isNew;
+  add.classList.toggle('hidden', !saved);
+  hint.classList.toggle('hidden', false);
+  list.textContent = saved ? 'Cargando…' : '';
+  if (!saved) return;
+  try {
+    const snap = await getDocs(query(collection(db, 'collab'), where('surveyId', '==', survey.id)));
+    const rows = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => a.email.localeCompare(b.email));
+    list.innerHTML = rows.length ? '' : 'Nadie más por ahora.';
+    rows.forEach(c => {
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.style.cssText = 'justify-content:space-between;margin-bottom:4px';
+      row.innerHTML = `<span>${escapeHtml(c.email)} · ${c.role === 'editor' ? 'edita' : 've respuestas'}</span><button type="button" class="btn btn-outline btn-sm">Quitar</button>`;
+      row.querySelector('button').onclick = async () => {
+        try { await deleteDoc(doc(db, 'collab', c.id)); loadCollabs(survey); } catch (e) { console.error(e); alert('No se pudo quitar.'); }
+      };
+      list.appendChild(row);
+    });
+  } catch (e) {
+    console.warn('collab', e);
+    list.textContent = 'Solo la persona responsable (o la administración) ve esta lista.';
+    add.classList.add('hidden');
+  }
+}
+el('collabAddBtn').addEventListener('click', async () => {
+  const email = norm(el('collabEmail').value);
+  if (!/^\S+@\S+\.\S+$/.test(email)) { alert('Escribe un correo válido.'); return; }
+  if (!isUmag(email) && !isSuper()) { alert('Por ahora solo se puede dar acceso a cuentas @umag.cl. Para otra cuenta, pide una excepción a la administración.'); return; }
+  try {
+    await setDoc(doc(db, 'collab', `${currentSurvey.id}__${email}`), {
+      surveyId: currentSurvey.id, email, role: el('collabRole').value, addedBy: me.email, createdAt: serverTimestamp()
+    });
+    el('collabEmail').value = '';
+    loadCollabs(currentSurvey);
+  } catch (e) {
+    console.error(e);
+    alert('No se pudo agregar. Solo la persona responsable de la encuesta puede dar acceso.');
+  }
+});
 
 // Per-survey admins (see firestore.rules isSurveyAdmin): lowercase, deduped.
 function parseEmailList(text) {
@@ -836,7 +918,10 @@ saveSurveyBtn.addEventListener('click', async () => {
     title: currentSurvey.title,
     description: currentSurvey.description || '',
     published: !!currentSurvey.published,
-    adminEmails: parseEmailList([...ALWAYS_ADMINS, ...(currentSurvey.adminEmails || [])].join(',')),
+    // Legacy viewer list and owner: only a super admin sets them; for everyone else the
+    // fields are left out (merge keeps what is stored, and the rules would reject a change).
+    ...(isSuper() && { adminEmails: parseEmailList((currentSurvey.adminEmails || []).join(',')) }),
+    ...(currentSurvey._isNew && { ownerEmail: me.email, ...(!isSuper() && { adminEmails: [] }) }),
     settings: currentSurvey.settings,
     optionSets: currentSurvey.optionSets || {},
     // JSON round-trip drops `undefined` fields (cleared inputs), which
@@ -851,6 +936,7 @@ saveSurveyBtn.addEventListener('click', async () => {
   saveStatus.textContent = 'Guardando…';
   try {
     await setDoc(doc(db, 'surveys', id), payload, { merge: !currentSurvey._isNew });
+    if (currentSurvey._isNew) currentSurvey.ownerEmail = me.email;
     currentSurvey._isNew = false;
     fId.disabled = true;
     deleteSurveyBtn.classList.remove('hidden');
@@ -860,7 +946,11 @@ saveSurveyBtn.addEventListener('click', async () => {
   } catch (e) {
     console.error(e);
     saveStatus.textContent = '';
-    alert('No se pudo guardar. Revisa la consola para más detalles.');
+    alert(e && e.code === 'permission-denied'
+      ? (currentSurvey._isNew
+          ? `No se pudo crear: el ID "${currentSurvey.id}" probablemente ya lo usa otra encuesta. Elige otro ID.`
+          : 'No tienes permiso para editar esta encuesta (solo la persona responsable o quien tenga permiso de edición).')
+      : 'No se pudo guardar. Revisa la consola para más detalles.');
   } finally {
     saveSurveyBtn.disabled = false;
   }

@@ -8,6 +8,8 @@ import {
   getDocs
 } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js';
 
+import { stripParadata } from './paradata.js';
+
 const EXPORT_META_ROOT = 'response_export_meta';
 
 /* ------------------------------------------------------------------ */
@@ -103,19 +105,35 @@ async function resolveSurveyExtends(raw) {
   }
 }
 
-export async function fetchResponses(surveyId) {
+// `paradata: true` also loads responses/<id>/paradata and merges it into each response
+// (so the stats code keeps reading data.totalTime, data.deviceInfo…). Without the flag —
+// or when Firestore refuses it because the account lacks the permission — paradata fields
+// are removed, including the inline ones that responses stored before the split still carry.
+export async function fetchResponses(surveyId, { paradata = false } = {}) {
   const colRef = collection(db, `responses/${surveyId}/entries`);
   const snap = await getDocs(colRef);
+  let extra = null;
+  if (paradata) {
+    try {
+      extra = new Map();
+      (await getDocs(collection(db, `responses/${surveyId}/paradata`))).forEach(d => extra.set(d.id, d.data()));
+    } catch (e) {
+      console.warn('Sin acceso a la paradata de', surveyId, e && e.code);
+      extra = null;
+    }
+  }
   const docs = [];
   let withdrawn = 0;
   // Responses whose consent was withdrawn are blank stubs (see docs/CONSENT.md): they
   // never count as cases. The tally is exposed as `docs.withdrawnCount`.
   snap.forEach(d => {
-    const data = d.data();
-    if (data && data.withdrawn === true) withdrawn += 1;
-    else docs.push({ id: d.id, data });
+    let data = d.data();
+    if (data && data.withdrawn === true) { withdrawn += 1; return; }
+    data = extra ? { ...data, ...(extra.get(d.id) || {}) } : stripParadata(data);
+    docs.push({ id: d.id, data });
   });
   docs.withdrawnCount = withdrawn;
+  docs.paradataAvailable = !!extra;
   return docs;
 }
 
