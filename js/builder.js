@@ -220,7 +220,7 @@ function renderSurveyList() {
       </div>`;
     card.querySelector('[data-act="edit"]').addEventListener('click', () => openEditor(structuredClone(s)));
     const runBtn = card.querySelector('[data-act="run"]');
-    if (s.published) runBtn.addEventListener('click', () => window.open(`index.html?survey=${encodeURIComponent(s.id)}`, '_blank'));
+    if (s.published) runBtn.addEventListener('click', () => window.open(`encuesta.html?survey=${encodeURIComponent(s.id)}`, '_blank'));
     surveyListContainer.appendChild(card);
   });
 }

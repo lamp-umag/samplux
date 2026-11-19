@@ -2,49 +2,104 @@
 <html lang="es">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://www.gstatic.com; object-src 'none'; base-uri 'none'">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-    <title>samplux — encuestas</title>
-    <meta name="description" content="samplux · Survey Application for Modern Psychometrics — LAMP UMAG" />
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self'; object-src 'none'; base-uri 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>samplux — encuestas que se sienten bien y miden bien</title>
+    <meta name="description" content="samplux es la aplicación de encuestas del Laboratorio Austral de Medición Psicosocial (LAMP), Universidad de Magallanes. Pensada para el teléfono y para el análisis." />
+    <meta property="og:title" content="samplux — aplicación de encuestas" />
+    <meta property="og:description" content="Una encuesta que se siente bien en el teléfono y mide bien en el análisis. LAMP · Universidad de Magallanes." />
+    <meta property="og:type" content="website" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%90%8D</text></svg>" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/app.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/landing.css">
+    <script src="js/landing-redirect.js"></script>
   </head>
   <body>
-    <header>
-      <a class="brand" href=".">🐍 samplux</a>
-      <div class="header-actions">
-        <a class="admin-link" href="encuestador.html">encuestador</a>
-        <a class="admin-link" href="retirar.html">retirar consentimiento</a>
-        <a class="admin-link" href="stats.html">estadísticas</a>
-        <a class="admin-link" href="admin.html">admin</a>
-        <a class="admin-link" href="builder.html">constructor</a>
-      </div>
-    </header>
+    <div class="wrap">
+      <header class="top">
+        <a class="brand" href=".">samplux</a>
+        <nav aria-label="Principal">
+          <a class="hide-sm" href="encuesta.html">Encuestas</a>
+          <a class="hide-sm" href="#como">Cómo se usa</a>
+          <a href="builder.html">Constructor</a>
+          <a class="solid" href="admin.html">Entrar</a>
+        </nav>
+      </header>
 
-    <main>
-      <div id="splashOverlay" class="splash-overlay">
-        <img src="" alt="" />
-      </div>
+      <main>
+        <div class="hero">
+          <p class="eyebrow rise">Aplicación de encuestas · LAMP</p>
+          <h1 class="rise d1">Una encuesta que se siente bien en el teléfono y mide bien en el análisis.</h1>
+          <p class="lead rise d2">samplux nació en el laboratorio para nuestros propios estudios. Quien responde ve una pregunta por pantalla, sin vueltas. Quien investiga recibe los datos ordenados y listos para analizar.</p>
+          <div class="actions rise d3">
+            <a class="pill solid" href="builder.html">Crear una encuesta</a>
+            <a class="pill line" href="admin.html">Ver mis resultados</a>
+          </div>
+        </div>
 
-      <section id="home">
-        <p class="home-title">LAMP · UMAG</p>
-        <h1 class="home-heading">Encuestas disponibles</h1>
-        <div id="surveyList" class="list"></div>
-      </section>
+        <section id="que">
+          <p class="kicker">Qué es</p>
+          <h2>Simple para quien responde, completa para quien investiga.</h2>
+          <div class="cols">
+            <div class="col"><h3>Quien responde</h3><p>Una pregunta por pantalla, botones grandes y nada que instalar. Se hizo pensando primero en el celular, que es donde la gente realmente responde.</p></div>
+            <div class="col"><h3>Quien investiga</h3><p>Creas y publicas la encuesta desde el navegador, compartes un enlace y sigues las respuestas en un panel. Descargas todo cuando lo necesites.</p></div>
+            <div class="col"><h3>Quien aplica en terreno</h3><p>Hay un modo para encuestadores, pensado para tablet o computador, que sigue funcionando aunque se corte la conexión.</p></div>
+          </div>
+        </section>
 
-      <section id="runner">
-        <div id="meta"></div>
-        <div class="progress"><div class="bar" id="bar"></div></div>
-        <div id="question"></div>
-        <div id="options" class="options"></div>
-        <div id="controls" class="controls"></div>
-        <div class="tiny" id="footnote"></div>
-      </section>
-    </main>
+        <section id="como">
+          <p class="kicker">Cómo se usa</p>
+          <h2>Tres pasos.</h2>
+          <div class="cols">
+            <div class="col"><span class="num">1</span><h3>Entra con tu cuenta</h3><p>Usa tu cuenta de Google <strong>@umag.cl</strong> en el <a href="builder.html"><u>constructor</u></a>.</p></div>
+            <div class="col"><span class="num">2</span><h3>Crea y publica</h3><p>Arma tu encuesta, pruébala en la vista previa y publícala. Compartes el enlace con quienes van a responder.</p></div>
+            <div class="col"><span class="num">3</span><h3>Mira los resultados</h3><p>En el <a href="admin.html"><u>panel</u></a> ves las respuestas a medida que llegan y las descargas cuando quieras.</p></div>
+          </div>
+          <p style="margin:32px 0 0;font-size:15px;color:var(--soft)">¿Vienes a responder una encuesta? Usa el enlace que te enviaron, o revisa las <a href="encuesta.html" style="border-bottom:1px solid var(--line)">encuestas disponibles</a>.</p>
+        </section>
 
-    <script type="module" src="./js/main.js"></script>
+        <section id="acceso">
+          <div class="box">
+            <div>
+              <p class="kicker" style="margin-bottom:10px">Quién puede usarla</p>
+              <h2>Abierta a cuentas @umag.cl.</h2>
+            </div>
+            <div>
+              <p>Por ahora crear y editar encuestas está habilitado para cuentas <strong>@umag.cl</strong>. Si eres de otra institución, o piensas hacer una aplicación grande, escríbenos a <a href="mailto:lamp@umag.cl"><u>lamp@umag.cl</u></a>: te damos el visto bueno y revisamos juntos la capacidad del servicio para que todo funcione bien.</p>
+              <div class="actions" style="margin-top:20px"><a class="pill solid" href="mailto:lamp@umag.cl?subject=Quiero%20usar%20samplux&body=Hola%2C%20quiero%20usar%20samplux.%0A%0ANombre%3A%0AInstituci%C3%B3n%20%2F%20unidad%3A%0AEstudio%20(de%20qu%C3%A9%20se%20trata)%3A%0APersonas%20que%20esperas%20que%20respondan%3A%0AFechas%20aproximadas%3A%0AMi%20cuenta%20de%20Google%20(%40umag.cl%20u%20otra)%3A">Escribir a LAMP</a></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="nombre">
+          <div class="name">
+            <div class="big">samp<span>lux</span></div>
+            <ul>
+              <li><b>samp</b> · Survey Application for Modern Psychometrics</li>
+              <li><b>lux</b> · lightweight user experience</li>
+            </ul>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <div class="grid">
+          <div>
+            <p><strong>samplux</strong></p>
+            <p>Creada por el Prof. Herman Elgueta en el Laboratorio Austral de Medición Psicosocial (LAMP), Universidad de Magallanes.</p>
+          </div>
+          <div>
+            <p><strong>Más información</strong></p>
+            <p>Detalles, documentación y código en <a href="https://github.com/lamp-umag/samplux">github.com/lamp-umag/samplux</a>.</p>
+          </div>
+          <div>
+            <p><strong>Contacto</strong></p>
+            <p><a href="mailto:lamp@umag.cl">lamp@umag.cl</a></p>
+          </div>
+        </div>
+      </footer>
+    </div>
   </body>
 </html>

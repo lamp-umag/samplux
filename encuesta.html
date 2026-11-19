@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://www.gstatic.com; object-src 'none'; base-uri 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>samplux — encuestas</title>
+    <meta name="description" content="samplux · Survey Application for Modern Psychometrics — LAMP UMAG" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%90%8D</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+  </head>
+  <body>
+    <header>
+      <a class="brand" href=".">🐍 samplux</a>
+      <div class="header-actions">
+        <a class="admin-link" href="encuestador.html">encuestador</a>
+        <a class="admin-link" href="retirar.html">retirar consentimiento</a>
+        <a class="admin-link" href="stats.html">estadísticas</a>
+        <a class="admin-link" href="admin.html">admin</a>
+        <a class="admin-link" href="builder.html">constructor</a>
+      </div>
+    </header>
+
+    <main>
+      <div id="splashOverlay" class="splash-overlay">
+        <img src="" alt="" />
+      </div>
+
+      <section id="home">
+        <p class="home-title">LAMP · UMAG</p>
+        <h1 class="home-heading">Encuestas disponibles</h1>
+        <div id="surveyList" class="list"></div>
+      </section>
+
+      <section id="runner">
+        <div id="meta"></div>
+        <div class="progress"><div class="bar" id="bar"></div></div>
+        <div id="question"></div>
+        <div id="options" class="options"></div>
+        <div id="controls" class="controls"></div>
+        <div class="tiny" id="footnote"></div>
+      </section>
+    </main>
+
+    <script type="module" src="./js/main.js"></script>
+  </body>
+</html>

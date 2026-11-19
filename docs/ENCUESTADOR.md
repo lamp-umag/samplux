@@ -1,6 +1,6 @@
 # Modo encuestador (`encuestador.html`)
 
-Para aplicar una encuesta cara a cara en tablet o computador. Usa el mismo motor que `index.html`.
+Para aplicar una encuesta cara a cara en tablet o computador. Usa el mismo motor que `encuesta.html`.
 
 - **Carrusel** de tarjetas, horizontal o vertical. Borde claro y punteado = aún no vista; punteado grueso =
   vista y sin responder; sólido grueso = respondida; recuadro grueso = la actual. Un contador "N sin responder"

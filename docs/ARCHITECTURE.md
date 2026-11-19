@@ -13,7 +13,7 @@ what you read in `js/` is exactly what runs.
                           │
                           └─▶ previewSurvey() ──▶ js/surveyRunner.js  (same render pipeline, no write)
 
-  index.html ──▶ js/main.js ──▶ js/surveyRunner.js ──▶ Firestore surveys/{surveyId}  (read, published only)
+  encuesta.html ──▶ js/main.js ──▶ js/surveyRunner.js ──▶ Firestore surveys/{surveyId}  (read, published only)
                                        │            ──▶ Firestore responses/{surveyId}/entries  (write)
                                        └─▶ js/tasks/{rt,stroop,gonogo}.js
                                               (full-screen overlay, returns result)
@@ -282,7 +282,7 @@ you instead of requiring it to be typed by hand).
 
 **Live preview** calls `previewSurvey()` (§2) directly on the in-memory,
 unsaved survey object — what you see in the preview overlay is pixel-for-pixel
-what `index.html` will render once published, because it *is* the same
+what `encuesta.html` will render once published, because it *is* the same
 runner instance.
 
 **Import from JSON:** the old `surveys/*.json` files still work as a seed

@@ -2,93 +2,64 @@
 
 **Survey Application for Modern Psychometrics — with a lightweight user experience.**
 
-A mobile-first, zero-build static web app for running psychometric questionnaires
-and short cognitive tasks, storing anonymous responses in Firebase Firestore.
-Built for and by **LAMP** — *Laboratorio Austral de Medición Psicosocial*,
-Universidad de Magallanes.
+**→ https://lamp-umag.github.io/samplux/**
 
-The surface is intentionally minimal — one question per screen, big tap targets,
-no scrolling during tasks. Underneath it carries a real measurement toolkit:
-a questionnaire **randomization engine**, a **paradata** layer that records how
-participants interact (timing, back-navigation, answer changes), reusable
-**option sets**, **survey inheritance**, and three built-in **cognitive tasks**
-(Reaction Time, Stroop, Go/No-Go).
+A mobile-first, zero-build static web app for running psychometric questionnaires and short cognitive
+tasks. Participants get one question per screen; researchers get tidy data with its process context
+(timings, order, changes of answer) ready for analysis.
 
-> samplux is the cleaned-up successor of the internal `sssss` prototype. Same
-> engine, professional name, fresh repo. See [Relationship to `sssss`](#relationship-to-sssss--rollback).
+Created by **Prof. Herman Elgueta** at **LAMP — Laboratorio Austral de Medición Psicosocial**,
+Universidad de Magallanes. Contact: [lamp@umag.cl](mailto:lamp@umag.cl).
 
----
+## Using it
 
-## What's in the box
+1. Sign in at [`builder.html`](https://lamp-umag.github.io/samplux/builder.html) with a Google account **@umag.cl**.
+2. Create, preview and publish a survey; share `…/encuesta.html?survey=<id>` (the old `…/?survey=<id>` links still work).
+3. Follow the responses and export them in [`admin.html`](https://lamp-umag.github.io/samplux/admin.html).
 
-| Page | File | Audience | Purpose |
-|------|------|----------|---------|
-| **Survey runner** | `index.html` | Participants | Runs a survey one item at a time; injects cognitive tasks; writes responses to Firestore. |
-| **Public stats** | `stats.html` | Anyone | Read-only aggregate dashboard — counts, completion, **total response-time distribution**, per-variable distributions, cognitive-task summaries. No individual answers, no PII. |
-| **Admin** | `admin.html` | Lab (Google login) | Tabbed dashboard: response times, case review & exclusion flags, per-item timing, distributions with expandable open-ended answers, CSV / codebook / raw-JSON export. |
-| **Builder** | `builder.html` | Lab (Google login) | Create/edit/publish surveys in Firestore; import `surveys/*.json`. |
+Creating and editing surveys is currently enabled for `@umag.cl` accounts. Other institutions or large
+applications: write to lamp@umag.cl so we can give the go-ahead and check service quotas first.
 
-All of them are plain HTML + ES modules (`admin-stats.html` now just redirects to `admin.html`). **No build step, no framework, no bundler.**
+## Pages
 
----
+| Page | Audience | Purpose |
+|---|---|---|
+| `index.html` | Everyone | Landing page: what samplux is, how to use it, who to contact. |
+| `encuesta.html` | Participants | The survey runner (list of published surveys, or `?survey=<id>`). |
+| `encuestador.html` | Interviewers | Face-to-face mode for tablet/desktop, works offline. |
+| `retirar.html` | Participants | Withdraw consent with the code from the receipt. |
+| `builder.html` | Staff | Create, edit and publish surveys. |
+| `admin.html` | Staff | Responses, case review, exports (paradata only with permission). |
+| `super.html`, `retiros.html`, `viewer.html` | Administration | Oversight of all surveys and permissions, withdrawal requests, replay. |
 
-## Quick start
+## Documentation
 
-### Run locally
-Any static file server works. From the project root:
+- [`docs/ACCESS.md`](docs/ACCESS.md) — who can do what (staff, collaborators, paradata permission) and security notes.
+- [`docs/CONSENT.md`](docs/CONSENT.md) — consent registry and withdrawal with a receipt code.
+- [`docs/ENCUESTADOR.md`](docs/ENCUESTADOR.md) — interviewer mode and how to test locally.
+- [`docs/DATA-POLICY.md`](docs/DATA-POLICY.md) — ethical data collection, policies to write, ideas (location, sensors, data donation).
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — item schema, randomization, internals. [`docs/ROADMAP.md`](docs/ROADMAP.md) — where it is headed.
+
+## Run locally
 
 ```bash
-python3 -m http.server 5175
-# then open http://localhost:5175/
+npm start                # python3 -m http.server 5175
+npm test                 # logic tests
+npm run test:rules       # Firestore rules tests (starts the emulator)
 ```
+Add `?emulator=8080` on localhost to point a tab at a local Firestore emulator (`npm run seed` creates a pilot survey).
 
-(There is a `.claude/launch.json` preconfigured for the same command.)
+## Deploy
 
-### Deploy
-It's a static site — **GitHub Pages** serves it directly. Push to `main`,
-enable Pages on the repo root, and the app is live at
-`https://lamp-umag.github.io/samplux/`. The `.nojekyll` file is included so
-Pages serves the `js/` modules untouched.
-
----
-
-## Project structure
-
-```
-samplux/
-├── index.html              # Survey runner (participant-facing)
-├── stats.html              # Public aggregate dashboard
-├── admin.html              # Admin dashboard: stats, open answers, cases, exports (Google auth)
-├── admin-stats.html        # Redirect → admin.html (old links)
-├── builder.html            # Survey builder (Google auth)
-├── js/
-│   ├── firebaseClient.js   # ⚙️  Firebase config — the ONE file to edit to swap projects
-│   ├── main.js             # Boots the survey runner
-│   ├── surveyRunner.js     # Survey engine: rendering, randomization, paradata, submit
-│   ├── statsCore.js        # Shared, auth-free stats compute + chart rendering
-│   ├── stats.js            # Public dashboard wiring
-│   ├── adminStats.js       # Admin dashboard (admin.html)
-│   ├── builder.js          # Survey builder
-│   └── tasks/              # Cognitive tasks (full-screen overlay)
-│       ├── helpers.js      #   shared: sleep, rand, shuffle, mean, pct
-│       ├── rt.js           #   Simple Reaction Time
-│       ├── stroop.js       #   Stroop colour–word
-│       └── gonogo.js       #   Go / No-Go inhibition
-├── surveys/
-│   ├── index.json          # Registry: which surveys exist
-│   ├── samplux_demo.json   # Demo survey (sections, scales, tasks)
-│   ├── espacios-telares-1.json  # TELARES student survey (import via builder)
-│   └── assets/             # Images referenced by surveys
-├── docs/
-│   └── ARCHITECTURE.md     # Deeper technical walkthrough
-└── package.json
-```
+Static site on **GitHub Pages** (push to `main`; `.nojekyll` keeps the `js/` modules untouched). Firestore rules:
+`npx firebase-tools deploy --only firestore:rules --project samplux-lamp`. The Firebase project (`samplux-lamp`,
+Santiago region) is configured in the single file `js/firebaseClient.js`.
 
 ---
 
 ## Authoring surveys
 
-A survey is a single JSON file in `surveys/`, listed in `surveys/index.json`.
+A survey is a single JSON file in `surveys/`, (legacy import format; surveys now live in Firestore and are built in `builder.html`).
 The demo (`samplux_demo.json`) exercises every feature. The essentials:
 
 ```jsonc
@@ -127,81 +98,6 @@ the randomization / inheritance details.
 
 ---
 
-## Engineering highlights
-
-### 1. Questionnaire randomization engine
-`settings.randomizeItems` controls per-respondent ordering, computed fresh each
-session and **recorded in the response** (`presentationOrder`) so order effects
-are analysable:
-
-- `within_scale` — shuffle items sharing a `scale`, scale blocks stay put
-- `within_section` — shuffle items inside each `SECCIÓN`, headers pinned
-- `between_scales` — shuffle whole scale blocks
-- `between_dimensions` — shuffle whole `dimension` blocks
-
-### 2. Paradata layer
-While a participant answers, the runner records interaction metadata in memory
-and submits it alongside the answers (it is **not** a separate local database —
-it travels with the response on submit):
-
-- `totalTime` and per-item `itemTimes`
-- `presentationOrder` (the randomized order actually shown)
-- `navBackCount` (times they went back)
-- `answerChangeEvents` / `answerChangeCount` (opinion changes, with from→to)
-- `browserData` (UA, language, timezone, screen, referrer)
-
-This is what powers the **response-time distributions** and **speeder detection**
-in the stats pages.
-
-### 3. Survey inheritance & item routing
-Surveys can `extend` a base file and apply small `transforms`
-(`removeItemIds`, `removeRutQuestions`, `contactEmailRelocation`,
-`introConsentPdfReplace`), so longitudinal variants don't duplicate content.
-The runner dispatches each item to the right renderer by `type`, including the
-cognitive-task overlay path.
-
----
-
-## Data model (Firestore)
-
-```
-responses/{surveyId}/entries/{entryId}      ← one document per submitted response
-response_export_meta/{surveyId}/flags/{id}  ← exclusion flags set in admin case review
-```
-
-Responses are keyed by `surveyId`, so multiple surveys (and the demo) never
-collide. Exclusion flags live in a **separate** collection because the response
-documents themselves are typically write-once / locked.
-
----
-
-## Firebase setup
-
-`js/firebaseClient.js` is the single source of truth for the connection.
-
-> ⚠️ **Current state:** it points at the legacy `sssss-e8013` project so the app
-> runs immediately. Demo responses land under `responses/samplux_demo/entries`.
->
-> **Before real data collection:** create a dedicated **`samplux`** Firebase
-> project, paste its web config into `firebaseClient.js`, and set Firestore
-> rules allowing public `create` on `responses/**` and admin-only access to
-> `response_export_meta/**`. See `docs/ARCHITECTURE.md → Firebase setup`.
-
-Admin pages gate on a Google-login allow-list (`ALLOWED_EMAILS` in
-`adminStats.js` and `builder.js`, mirrored in `firestore.rules`).
-
----
-
-## Access, consent, interviewer mode, data policy
-
-- **Quién puede qué** — cuentas `@umag.cl` crean y editan encuestas; la administración (`super.html`) supervisa
-  todo y concede permisos (paradata, excepciones): [`docs/ACCESS.md`](docs/ACCESS.md).
-- **Consentimiento y retiro** con código/QR, sin identificar a nadie: [`docs/CONSENT.md`](docs/CONSENT.md).
-- **Modo encuestador** (tablet/escritorio, sin conexión): [`docs/ENCUESTADOR.md`](docs/ENCUESTADOR.md).
-- **Política de datos y recolección ética**, ideas (ubicación, sensores, donación de datos):
-  [`docs/DATA-POLICY.md`](docs/DATA-POLICY.md).
-- Tests: `npm test` (lógica) y `npm run test:rules` (reglas de Firestore, con emulador).
-
 ---
 
 ## fabest link (desktop analysis)
@@ -222,24 +118,8 @@ does nothing.
 
 ---
 
-## Relationship to `sssss` & rollback
-
-samplux is a **fresh repository** — the original
-[`lamp-umag/sssss`](https://github.com/lamp-umag/sssss) is left completely
-untouched. That is the rollback plan:
-
-- **Don't like samplux?** Keep using `sssss`; delete or archive `samplux`.
-  Nothing in `sssss` changed.
-- Within samplux, the initial release is tagged **`v0.1.0`** (`git checkout v0.1.0`
-  to return to the first clean state).
-
-The two share the same engine, so any later improvement can be ported either
-direction with a simple file copy.
-
 ---
 
 ## License
 
-**Not yet decided.** No license has been chosen for this project. Until a
-`LICENSE` file is added, the default applies: © LAMP, Universidad de Magallanes —
-all rights reserved. Pick and add a license before any public reuse.
+**Not yet decided.** Until a `LICENSE` file is added, © LAMP, Universidad de Magallanes — all rights reserved.
