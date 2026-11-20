@@ -1,6 +1,8 @@
 /* samplux — interviewer mode (encuestador.html). Same strict black & white as the runner:
    state is carried by border weight and dash pattern, never by hue. */
-body.enc { min-height: 100vh; display: flex; flex-direction: column; }
+body.enc { min-height: 100vh; display: flex; flex-direction: column;
+  --enc-active-w: 620px; --enc-active-border: 3px; --enc-gap: 12px; --enc-compact-w: 190px; --enc-deck-w: 300px; --enc-deck-h: 190px;
+  --enc-overlap: 120px; --enc-scale: .94; --enc-opacity: .92; --enc-shadow: 0 18px 40px -22px rgba(0,0,0,.45); --enc-font: 1; }
 
 /* ── Top bar ─────────────────────────────────────────── */
 .enc-bar {
@@ -42,7 +44,7 @@ body.enc #runner .progress { margin: 0 16px 20px; }
 .enc-stage { display: none; }
 .enc-card .enc-stage { display: block; }
 
-.enc-track { display: flex; gap: 12px; }
+.enc-track { display: flex; gap: var(--enc-gap); }
 .enc-card {
   position: relative; text-align: left; border-radius: 12px; background: var(--bg);
   padding: 12px 14px; border: 1.5px dashed var(--border-strong); color: var(--muted);
@@ -62,17 +64,17 @@ body.enc #runner .progress { margin: 0 16px 20px; }
 .enc-card.answered { border: 2px solid var(--foreground); color: var(--foreground); }
 .enc-card.info { border: 1px solid var(--border); background: var(--surface); }
 .enc-card.locked { opacity: 0.35; }
-.enc-card.active { border: 3px solid var(--foreground); color: var(--foreground); padding: 20px 22px 16px; cursor: default; }
+.enc-card.active { border: var(--enc-active-border) solid var(--foreground); color: var(--foreground); padding: 20px 22px 16px; cursor: default; }
 .enc-card.active .enc-card-head { margin-bottom: 14px; color: var(--muted); }
-.enc-card.active .q { font-size: 22px; }
+.enc-card.active .q { font-size: calc(22px * var(--enc-font)); }
 
 /* Horizontal: a strip you can scroll sideways, current item centred. */
 body.enc[data-layout="horizontal"] .enc-track {
   overflow-x: auto; align-items: flex-start; scroll-behavior: smooth;
-  padding: 4px max(16px, calc(50vw - 310px)) 16px; scrollbar-width: thin;
+  padding: 4px max(16px, calc(50vw - var(--enc-active-w) / 2)) 16px; scrollbar-width: thin;
 }
-body.enc[data-layout="horizontal"] .enc-card { flex: 0 0 190px; min-height: 124px; }
-body.enc[data-layout="horizontal"] .enc-card.active { flex: 0 0 min(620px, calc(100vw - 32px)); }
+body.enc[data-layout="horizontal"] .enc-card { flex: 0 0 var(--enc-compact-w); min-height: 124px; }
+body.enc[data-layout="horizontal"] .enc-card.active { flex: 0 0 min(var(--enc-active-w), calc(100vw - 32px)); }
 
 /* Vertical: one compact row per item, current one opened in place. */
 body.enc[data-layout="vertical"] .enc-track { flex-direction: column; gap: 8px; max-width: 760px; margin: 0 auto; padding: 0 16px; }
@@ -111,3 +113,32 @@ body.enc.done .enc-hint { display: none; }
 body.enc.done .enc-track { display: block; max-width: 560px; margin: 0 auto; padding: 16px; overflow: visible; }
 body.enc.done .enc-card.active { border-width: 1.5px; }
 .enc-saved { font-size: 13px; font-weight: 600; margin: 0 0 14px; }
+
+/* ── Deck style: neighbours are FULL cards that slide partly under the next one ──────── */
+.enc-mini-opts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.enc-mini-opt { font-size: 12px; font-weight: 500; padding: 5px 10px; border: 1.5px solid var(--border); border-radius: 999px; color: var(--muted); }
+.enc-mini-opt.sel { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); font-weight: 700; }
+.enc-mini-more { font-size: 12px; color: var(--muted); align-self: center; }
+.enc-mini-text { margin-top: 10px; font-size: 13px; color: var(--muted); }
+.enc-mini-text.has { color: var(--foreground); font-weight: 700; }
+.enc-card-q { font-size: 14px; line-height: 1.4; color: var(--foreground); margin-top: 8px; }
+.enc-card-q .q { font-size: 14px; margin: 0; font-weight: 600; }
+.enc-card-q .info-text { font-size: 14px; }
+
+body.enc[data-cards="deck"] .enc-card:not(.active) { background: var(--bg); transform: scale(var(--enc-scale)); opacity: var(--enc-opacity); transition: transform .2s ease, border-color .15s ease; position: relative; }
+body.enc[data-cards="deck"] .enc-card:not(.active):not(.locked):hover { transform: scale(calc(var(--enc-scale) + .03)); }
+body.enc[data-cards="deck"] .enc-card.active { box-shadow: var(--enc-shadow); position: relative; }
+body.enc[data-cards="deck"] .enc-card:not(.active) .enc-card-prompt, body.enc[data-cards="deck"] .enc-card:not(.active) .enc-card-answer { display: none; }
+
+/* horizontal deck: wider neighbours overlapping sideways, nearest ones on top */
+body.enc[data-layout="horizontal"][data-cards="deck"] .enc-track { gap: 0; }
+body.enc[data-layout="horizontal"][data-cards="deck"] .enc-card:not(.active) { flex: 0 0 var(--enc-deck-w); margin-left: calc(var(--enc-overlap) * -1); transform-origin: center top; min-height: 170px; }
+body.enc[data-layout="horizontal"][data-cards="deck"] .enc-card:first-child { margin-left: 0; }
+body.enc[data-layout="horizontal"][data-cards="deck"] .enc-card.active { margin: 0 calc(var(--enc-overlap) * .45); }
+
+/* vertical deck: each neighbour shows its top part; the next card covers its bottom */
+body.enc[data-layout="vertical"][data-cards="deck"] .enc-track { gap: 0; }
+body.enc[data-layout="vertical"][data-cards="deck"] .enc-card:not(.active) { display: block; height: var(--enc-deck-h); overflow: hidden; margin-top: calc(var(--enc-overlap) * -.6); transform-origin: center top; }
+body.enc[data-layout="vertical"][data-cards="deck"] .enc-card:first-child { margin-top: 0; }
+body.enc[data-layout="vertical"][data-cards="deck"] .enc-card.active { margin: calc(var(--enc-gap) + 6px) 0; }
+body.enc[data-layout="vertical"][data-cards="deck"] .enc-card:not(.active) .enc-card-head .tag { display: inline; }

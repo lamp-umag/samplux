@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self'; object-src 'none'; base-uri 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>samplux — laboratorio del modo encuestador</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%90%8D</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/encuestador.css">
+    <style>
+      .lab { display: grid; grid-template-columns: minmax(0, 1fr) 320px; min-height: 100vh; }
+      @media (max-width: 980px) { .lab { grid-template-columns: 1fr; } .panel { border-left: 0; border-top: 1px solid var(--border); } }
+      .stage-area { min-width: 0; padding: 24px 0 40px; }
+      .stage-area h1 { font-size: 20px; margin: 0 16px 4px; }
+      .stage-area .sub { margin: 0 16px 20px; font-size: 13px; color: var(--muted); }
+      .panel { border-left: 1px solid var(--border); padding: 20px; background: var(--surface-soft); }
+      .panel h2 { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 18px 0 8px; }
+      .panel h2:first-child { margin-top: 0; }
+      .ctl { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: center; font-size: 13px; margin-bottom: 10px; }
+      .ctl output { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 12px; }
+      .ctl input[type=range] { grid-column: 1 / -1; width: 100%; margin: 0; accent-color: #000; }
+      .panel .enc-seg { display: flex; border-radius: 10px; margin-bottom: 10px; }
+      .panel .enc-seg button { flex: 1; padding: 10px 6px; font-size: 13px; }
+      .panel textarea { width: 100%; min-height: 90px; margin: 6px 0 12px; font-size: 14px; padding: 10px 12px; }
+      .panel .btn { width: 100%; margin-bottom: 8px; flex: none; font-size: 14px; padding: 11px 14px; }
+      .presets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+      .presets button { font-size: 12px; font-weight: 600; padding: 6px 12px; border: 1.5px solid var(--border); border-radius: 999px; }
+      .presets button:hover { border-color: #000; }
+      .msg { font-size: 12px; color: var(--muted); min-height: 16px; }
+      body.enc { display: block; }
+    </style>
+  </head>
+  <body class="enc">
+    <div class="lab">
+      <div class="stage-area">
+        <h1>Laboratorio · modo encuestador</h1>
+        <p class="sub">Una encuesta de mentira para probar el aspecto. Toca opciones, avanza, cambia de vista y ajusta a la derecha. Nada se guarda en servidores.</p>
+        <div class="enc-track" id="track"></div>
+      </div>
+      <aside class="panel">
+        <h2>Vista</h2>
+        <div class="enc-seg" id="cLayout"><button data-v="horizontal">⇆ Horizontal</button><button data-v="vertical">⇅ Vertical</button></div>
+        <div class="enc-seg" id="cCards"><button data-v="compact">▭ Compactas</button><button data-v="deck">▤ Superpuestas</button></div>
+        <div class="presets" id="presets"><button data-p="compact">Compacta</button><button data-p="soft">Mazo suave</button><button data-p="tight">Mazo apretado</button></div>
+
+        <h2>Tarjeta central</h2>
+        <div class="ctl"><label for="activeW">Ancho</label><output></output><input type="range" id="activeW" min="360" max="860" step="10"></div>
+        <div class="ctl"><label for="activeBorder">Grosor del borde</label><output></output><input type="range" id="activeBorder" min="1" max="6" step="1"></div>
+        <div class="ctl"><label for="fontScale">Tamaño del texto</label><output></output><input type="range" id="fontScale" min="0.8" max="1.5" step="0.05"></div>
+        <div class="ctl"><label for="shadow">Sombra</label><output></output><input type="range" id="shadow" min="0" max="1" step="1"></div>
+
+        <h2>Tarjetas vecinas</h2>
+        <div class="ctl"><label for="compactW">Ancho (compactas)</label><output></output><input type="range" id="compactW" min="120" max="320" step="10"></div>
+        <div class="ctl"><label for="deckW">Ancho (superpuestas)</label><output></output><input type="range" id="deckW" min="180" max="440" step="10"></div>
+        <div class="ctl"><label for="deckH">Alto visible (vertical)</label><output></output><input type="range" id="deckH" min="90" max="320" step="10"></div>
+        <div class="ctl"><label for="overlap">Cuánto se tapan</label><output></output><input type="range" id="overlap" min="0" max="260" step="10"></div>
+        <div class="ctl"><label for="scale">Escala</label><output></output><input type="range" id="scale" min="0.7" max="1" step="0.01"></div>
+        <div class="ctl"><label for="opacity">Opacidad</label><output></output><input type="range" id="opacity" min="0.4" max="1" step="0.02"></div>
+        <div class="ctl"><label for="gap">Separación</label><output></output><input type="range" id="gap" min="0" max="32" step="2"></div>
+
+        <h2>Mis notas</h2>
+        <textarea id="notes" placeholder="Lo que te gusta, lo que cambiarías, cómo lo usarías en terreno…"></textarea>
+        <button class="btn primary" id="zipBtn">⬇ Descargar zip con mis preferencias</button>
+        <button class="btn secondary" id="saveBtn">Usar estos valores en este dispositivo</button>
+        <button class="btn secondary" id="resetBtn">Restaurar valores originales</button>
+        <p class="msg" id="msg"></p>
+      </aside>
+    </div>
+    <script type="module" src="./js/encuestadorLab.js"></script>
+  </body>
+</html>

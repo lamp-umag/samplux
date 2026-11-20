@@ -32,6 +32,7 @@ import {
 } from './statsCore.js';
 
 import { resolveAccess, fetchMySurveys, POLICY_NOTICE, PARADATA_NOTICE } from './access.js';
+import { withRetiredItems, changeLogText } from './revisions.js';
 
 const EXPORT_META_ROOT = 'response_export_meta';
 let access = { role: 'none', paradata: false };
@@ -324,7 +325,7 @@ async function loadDef(meta, force) {
 // Completeness only counts unconditional items: an item hidden by showIf (or a
 // follow-up box) was never shown to most people, so it shouldn't count as missing.
 function completenessIds(def) {
-  return answerableItems(def).filter(i => !i.showIf).map(i => i.id);
+  return answerableItems(def).filter(i => !i.showIf && !i._retired).map(i => i.id);
 }
 
 function kpi(value, label, warn = false) {
@@ -497,14 +498,25 @@ function computeCorrectedTime(data, def) {
 /* Main render                                                         */
 /* ------------------------------------------------------------------ */
 
+// "Esta encuesta cambió 3 veces: v1 (12), v2 (40)…" — so nobody mixes versions by accident.
+function revisionNote(all, def) {
+  const by = new Map();
+  all.forEach(r => { const k = r.data?.surveyRevision ?? null; by.set(k, (by.get(k) || 0) + 1); });
+  if ((def.revision || 1) <= 1 && by.size <= 1) return '';
+  const parts = [...by.entries()].sort((a, b) => (a[0] ?? -1) - (b[0] ?? -1)).map(([k, n]) => `${k == null ? 'sin versión' : 'v' + k} (${n})`);
+  return ` La encuesta tiene ${def.revision || '?'} versiones; respuestas por versión: ${parts.join(', ')}. El historial está en metadata.txt.`;
+}
+
 async function render(force = false) {
   const meta = surveys.find(s => s.id === surveySelect.value);
   if (!meta) return;
   setLoading(true);
   try {
-    const [docsRaw, flags, def] = await Promise.all([
+    const [docsRaw, flags, def0] = await Promise.all([
       fetchResponses(meta.id, { paradata: access.paradata }), fetchExportFlags(meta.id), loadDef(meta, force === true)
     ]);
+    // Items deleted from the survey keep their column while any response still has data for them.
+    const def = withRetiredItems(def0, docsRaw);
 
     const all = docsRaw.map(d => ({ id: d.id, data: mergeFlags(d.data, flags.get(d.id)) }));
     const dedupeMap = buildDedupeAnnotations(all);
@@ -562,6 +574,7 @@ async function render(force = false) {
       `${all.length} entradas en total → ${responses.length} casos válidos ` +
       `(excluye ${excludedCount} marcadas como excluidas${includeExcluded.checked ? ' [incluidas ahora]' : ''} y ` +
       `${duplicateCount} detectadas como duplicadas${includeDuplicates.checked ? ' [incluidas ahora]' : ''}).` +
+      revisionNote(all, def) +
       (docsRaw.withdrawnCount ? ` Además, ${docsRaw.withdrawnCount} participación(es) retiraron su consentimiento: sus respuestas fueron borradas y no se cuentan.` : '');
 
     // ----- raw time -----
@@ -1075,7 +1088,8 @@ function buildNeatCsvRows(def, responses, surveyId) {
     'dedupe_isDuplicate', 'dedupe_confidence', 'dedupe_keepId',
     'totalTime_s', 'netTime_s', 'correctedTime_s', 'slowItemCount',
     'completeness_pct', 'navBackCount', 'answerChangeCount',
-    'interviewer_mode', 'interviewer_id', 'interviewer_site', 'interviewer_case', 'interviewer_layout', 'interviewer_handoffs',
+    'survey_revision', ...(access.role === 'super' ? ['presentation_order'] : []),
+    'interviewer_mode', 'interviewer_id', 'interviewer_site', 'interviewer_case', 'interviewer_layout', 'interviewer_cards', 'interviewer_handoffs',
     ...ansCols.map(c => c.name),
     ...tCols.map(c => c.name),
     ...answerable.map(it => `${it.id}__time_s`)
@@ -1101,8 +1115,10 @@ function buildNeatCsvRows(def, responses, surveyId) {
     row.push(corr ? corr.slowCount : '');
     row.push(Math.round(completenessVsSurvey(ans, answerableIds) * 100));
     row.push(d.navBackCount ?? '', d.answerChangeCount ?? '');
+    row.push(d.surveyRevision ?? '');
+    if (access.role === 'super') row.push(Array.isArray(d.presentationOrder) ? d.presentationOrder.join('|') : '');
     const iv = d.interviewer || null;   // null unless collected in encuestador.html
-    row.push(iv ? 1 : 0, iv?.interviewerId ?? '', iv?.site ?? '', iv?.caseNumber ?? '', iv?.layout ?? '', iv ? (iv.handoffItems || []).length : '');
+    row.push(iv ? 1 : 0, iv?.interviewerId ?? '', iv?.site ?? '', iv?.caseNumber ?? '', iv?.layout ?? '', iv?.cardStyle ?? '', iv ? (iv.handoffItems || []).length : '');
 
     for (const c of ansCols) row.push(c.get(ans));
     for (const c of tCols) row.push(c.get(ans));
@@ -1147,17 +1163,21 @@ function buildMetadataText(def, responses, surveyId) {
     ['completeness_pct', 'porcentaje de ítems de respuesta completados'],
     ['navBackCount', 'número de veces que retrocedió'],
     ['answerChangeCount', 'número de veces que cambió una respuesta'],
+    ['survey_revision', 'versión de la encuesta que vio la persona (sube con cada cambio de contenido; ver historial abajo)'],
+    ...(access.role === 'super' ? [['presentation_order', 'orden en que la persona vio los ítems (ids separados por |); solo administración']] : []),
     ['interviewer_mode', '1 = aplicada por encuestador(a) en encuestador.html; 0 = autoadministrada'],
     ['interviewer_id', 'código de quien encuestó (solo modo encuestador)'],
     ['interviewer_site', 'lugar / sede declarada al iniciar la sesión (solo modo encuestador)'],
     ['interviewer_case', 'número correlativo del caso dentro de la sesión (solo modo encuestador)'],
     ['interviewer_layout', 'vista usada al enviar: horizontal | vertical (solo modo encuestador)'],
+    ['interviewer_cards', 'tarjetas: compact | deck (solo modo encuestador)'],
     ['interviewer_handoffs', 'n.º de ítems que la persona respondió por sí misma con el dispositivo en la mano'],
     ['<id>__time_s', 'tiempo dedicado al ítem <id> (segundos)'],
     ...taskColumns(def).map(c => [c.name, c.desc])
   ];
   for (const [c, d] of metaCols) L.push(`  ${c.padEnd(22)} ${d}`);
   L.push('');
+  L.push(...changeLogText(def));
   L.push('ÍTEMS DE RESPUESTA (en orden del documento; el orden real puede variar por');
   L.push('la aleatorización, si está activa — ver presentationOrder en Firestore)');
   L.push('-'.repeat(60));

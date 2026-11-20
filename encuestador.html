@@ -24,6 +24,10 @@
         <button data-layout="horizontal" title="Carrusel horizontal">⇆</button>
         <button data-layout="vertical" title="Lista vertical">⇅</button>
       </div>
+      <div class="enc-seg" id="styleToggle" role="group" aria-label="Tarjetas">
+        <button data-cards="compact" title="Tarjetas compactas">▭</button>
+        <button data-cards="deck" title="Tarjetas completas superpuestas">▤</button>
+      </div>
       <button class="enc-pill" id="barSync" title="Subir casos pendientes"></button>
       <button class="enc-pill" id="barExit">terminar</button>
     </div>
@@ -47,6 +51,13 @@
         <button data-layout="horizontal">⇆ Carrusel horizontal</button>
         <button data-layout="vertical">⇅ Lista vertical</button>
       </div>
+
+      <label class="enc-label">Tarjetas</label>
+      <div class="enc-seg wide" id="sCards" role="group">
+        <button data-cards="compact">▭ Compactas</button>
+        <button data-cards="deck">▤ Completas superpuestas</button>
+      </div>
+      <p class="tiny" style="margin:-10px 0 18px">¿Quieres ajustar el aspecto? <a href="encuestador-lab.html">Abre el laboratorio</a>.</p>
 
       <div class="enc-status" id="sStatus"></div>
       <p class="tiny" id="sMsg"></p>

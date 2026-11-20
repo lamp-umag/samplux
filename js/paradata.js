@@ -9,7 +9,7 @@
 
 // Top-level fields that stay on the entry. Everything else of a payload is paradata.
 // KEEP IN SYNC with STUB_FIELDS in js/consent.js.
-export const ENTRY_FIELDS = ['surveyId', 'answers', 'audio', 'consentId', 'presentationOrder'];
+export const ENTRY_FIELDS = ['surveyId', 'answers', 'audio', 'consentId', 'presentationOrder', 'surveyRevision'];
 
 // Fields that, on old responses (stored before the split), sit inline on the entry.
 export const PARADATA_FIELDS = [

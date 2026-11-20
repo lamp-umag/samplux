@@ -45,6 +45,7 @@ async function resolveSurveyExtends(raw) {
     const base = await res.json();
     const merged = structuredClone(base);
     if (raw.id) merged.id = raw.id;
+    for (const k of ['revision', 'retiredItems', 'changeLog']) if (raw[k] != null) merged[k] = raw[k];
     if (raw.title) merged.title = raw.title;
     if (raw.description) merged.description = raw.description;
     if (raw.settings && typeof raw.settings === 'object') {

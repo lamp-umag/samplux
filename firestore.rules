@@ -205,7 +205,8 @@ service cloud.firestore {
           request.resource.data.withdrawnVia in ['code', 'admin'] &&
           (isSurveyStaff(surveyId) || consentWithdrawn(resource.data.get('consentId', null)))
         );
-      allow delete: if false;
+      // Only a super admin deletes a response outright (survey deletion, super.html); others leave the withdrawal stub.
+      allow delete: if isAdmin();
     }
 
     // Paradata & metadata of a response (timings, device, interaction events, optional
@@ -291,7 +292,7 @@ service cloud.firestore {
           request.resource.data.withdrawnAt == request.time &&
           isSurveyStaff(resource.data.surveyId)
         );
-      allow delete: if false;
+      allow delete: if isAdmin();     // survey deletion from super.html (optional there)
     }
 
     // "I lost my code": anyone can file a request; only admins see and resolve them.
@@ -311,7 +312,7 @@ service cloud.firestore {
         (isAdmin() || (resource.data.surveyId != '' && isSurveyStaff(resource.data.surveyId))) &&
         request.resource.data.diff(resource.data).affectedKeys()
           .hasOnly(['status', 'resolution', 'resolvedBy', 'resolvedAt', 'responseId', 'note']);
-      allow delete: if false;
+      allow delete: if isAdmin();
     }
 
     match /response_export_meta/{surveyId}/flags/{responseId} {

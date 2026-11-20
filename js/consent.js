@@ -31,7 +31,7 @@ const SECRET_LENGTH = 16;                           // 80 bits
 // Withdrawal deletes all of them; firestore.rules then verifies that nothing but
 // STUB_FIELDS is left. KEEP IN SYNC with the payload in surveyRunner.js.
 export const ERASABLE_FIELDS = [
-  'audio', 'serverCode', 'totalTime', 'itemTimes', 'presentationOrder', 'responseTimestamps',
+  'audio', 'surveyRevision', 'serverCode', 'totalTime', 'itemTimes', 'presentationOrder', 'responseTimestamps',
   'navBackCount', 'answerChangeCount', 'itemAnswerChangeCount', 'answerChangeEvents',
   'answerChangeEventsTruncated', 'browserData', 'deviceInfo', 'tabHiddenCount', 'tabHiddenMs',
   'ua', 'path', 'interviewer'

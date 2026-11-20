@@ -15,60 +15,88 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/landing.css">
     <script src="js/landing-redirect.js"></script>
+    <script type="module" src="js/landing.js"></script>
   </head>
   <body>
     <div class="wrap">
       <header class="top">
         <a class="brand" href=".">samplux</a>
         <nav aria-label="Principal">
-          <a class="hide-sm" href="encuesta.html">Encuestas</a>
-          <a class="hide-sm" href="#como">Cómo se usa</a>
-          <a href="builder.html">Constructor</a>
-          <a class="solid" href="admin.html">Entrar</a>
+          <a class="hide-sm" href="encuesta.html" data-i18n="nav_surveys">Encuestas</a>
+          <a class="hide-sm" href="#prueba" data-i18n="nav_try">Pruébalo</a>
+          <a class="hide-sm" href="#como" data-i18n="nav_how">Cómo se usa</a>
+          <a href="builder.html" data-i18n="nav_builder">Constructor</a>
+          <a class="solid" href="admin.html" data-i18n="nav_login">Entrar</a>
+          <span class="lang" role="group" aria-label="Idioma / Language"><button type="button" data-lang="es" aria-pressed="true">ES</button><button type="button" data-lang="en" aria-pressed="false">EN</button></span>
         </nav>
       </header>
 
       <main>
         <div class="hero">
-          <p class="eyebrow rise">Aplicación de encuestas · LAMP</p>
-          <h1 class="rise d1">Una encuesta que se siente bien en el teléfono y mide bien en el análisis.</h1>
-          <p class="lead rise d2">samplux nació en el laboratorio para nuestros propios estudios. Quien responde ve una pregunta por pantalla, sin vueltas. Quien investiga recibe los datos ordenados y listos para analizar.</p>
+          <p class="eyebrow rise" data-i18n="eyebrow">Aplicación de encuestas · LAMP</p>
+          <h1 class="rise d1" data-i18n="h1">Una encuesta que se siente bien en el teléfono y mide bien en el análisis.</h1>
+          <p class="lead rise d2" data-i18n="lead">samplux nació en el laboratorio para nuestros propios estudios. Quien responde ve una pregunta por pantalla, sin vueltas. Quien investiga recibe los datos ordenados y listos para analizar.</p>
           <div class="actions rise d3">
-            <a class="pill solid" href="builder.html">Crear una encuesta</a>
-            <a class="pill line" href="admin.html">Ver mis resultados</a>
+            <a class="pill solid" href="builder.html" data-i18n="cta_create">Crear una encuesta</a>
+            <a class="pill line" href="#prueba" data-i18n="cta_try">Probarla aquí</a>
           </div>
         </div>
 
         <section id="que">
-          <p class="kicker">Qué es</p>
-          <h2>Simple para quien responde, completa para quien investiga.</h2>
+          <p class="kicker" data-i18n="what_k">Qué es</p>
+          <h2 data-i18n="what_h">Simple para quien responde, completa para quien investiga.</h2>
           <div class="cols">
-            <div class="col"><h3>Quien responde</h3><p>Una pregunta por pantalla, botones grandes y nada que instalar. Se hizo pensando primero en el celular, que es donde la gente realmente responde.</p></div>
-            <div class="col"><h3>Quien investiga</h3><p>Creas y publicas la encuesta desde el navegador, compartes un enlace y sigues las respuestas en un panel. Descargas todo cuando lo necesites.</p></div>
-            <div class="col"><h3>Quien aplica en terreno</h3><p>Hay un modo para encuestadores, pensado para tablet o computador, que sigue funcionando aunque se corte la conexión.</p></div>
+            <div class="col"><h3 data-i18n="c1_h">Quien responde</h3><p data-i18n="c1_p">Una pregunta por pantalla, botones grandes y nada que instalar. Se hizo pensando primero en el celular, que es donde la gente realmente responde.</p></div>
+            <div class="col"><h3 data-i18n="c2_h">Quien investiga</h3><p data-i18n="c2_p">Creas y publicas la encuesta desde el navegador, compartes un enlace y sigues las respuestas en un panel. Descargas todo cuando lo necesites.</p></div>
+            <div class="col"><h3 data-i18n="c3_h">Quien aplica en terreno</h3><p data-i18n="c3_p">Hay un modo para encuestadores, pensado para tablet o computador, que sigue funcionando aunque se corte la conexión.</p></div>
+          </div>
+        </section>
+
+        <section id="prueba">
+          <p class="kicker" data-i18n="demo_k">Pruébalo</p>
+          <h2 data-i18n="demo_h">Así se siente responder.</h2>
+          <div class="demo">
+            <div class="phone" aria-live="polite">
+              <div class="phone-bar"><div class="phone-fill" id="dFill"></div></div>
+              <div class="phone-body" id="dBody"></div>
+            </div>
+            <aside class="notes" aria-label="Comentarios">
+              <div class="note-card" data-note="1"><span class="n">1</span><p data-i18n="n1">Un toque por pregunta. Avanza sola, sin botón de siguiente.</p></div>
+              <div class="note-card" data-note="2"><span class="n">2</span><p data-i18n="n2">¿Cambiaste de opinión? Vuelve con «Atrás» y elige otra opción.</p></div>
+              <div class="note-card" data-note="3"><span class="n">3</span><p data-i18n="n3">El orden de las preguntas se sortea para cada persona.</p></div>
+              <div class="note-card seen" id="dSeen">
+                <span class="n">✓</span>
+                <div>
+                  <p class="seen-h" data-i18n="seen_h">Lo que ve quien investiga</p>
+                  <ul id="dSeenList"></ul>
+                  <p class="tiny" data-i18n="seen_p">Nunca quién eres: solo cómo fue responder.</p>
+                </div>
+              </div>
+              <a class="pill line" href="encuesta.html?demo" data-i18n="demo_full">Probar una encuesta completa →</a>
+            </aside>
           </div>
         </section>
 
         <section id="como">
-          <p class="kicker">Cómo se usa</p>
-          <h2>Tres pasos.</h2>
+          <p class="kicker" data-i18n="how_k">Cómo se usa</p>
+          <h2 data-i18n="how_h">Tres pasos.</h2>
           <div class="cols">
-            <div class="col"><span class="num">1</span><h3>Entra con tu cuenta</h3><p>Usa tu cuenta de Google <strong>@umag.cl</strong> en el <a href="builder.html"><u>constructor</u></a>.</p></div>
-            <div class="col"><span class="num">2</span><h3>Crea y publica</h3><p>Arma tu encuesta, pruébala en la vista previa y publícala. Compartes el enlace con quienes van a responder.</p></div>
-            <div class="col"><span class="num">3</span><h3>Mira los resultados</h3><p>En el <a href="admin.html"><u>panel</u></a> ves las respuestas a medida que llegan y las descargas cuando quieras.</p></div>
+            <div class="col"><span class="num">1</span><h3 data-i18n="s1_h">Entra con tu cuenta</h3><p data-i18n-html="s1_p">Usa tu cuenta de Google <strong>@umag.cl</strong> en el <a href="builder.html"><u>constructor</u></a>.</p></div>
+            <div class="col"><span class="num">2</span><h3 data-i18n="s2_h">Crea y publica</h3><p data-i18n="s2_p">Arma tu encuesta, pruébala en la vista previa y publícala. Compartes el enlace con quienes van a responder.</p></div>
+            <div class="col"><span class="num">3</span><h3 data-i18n="s3_h">Mira los resultados</h3><p data-i18n-html="s3_p">En el <a href="admin.html"><u>panel</u></a> ves las respuestas a medida que llegan y las descargas cuando quieras.</p></div>
           </div>
-          <p style="margin:32px 0 0;font-size:15px;color:var(--soft)">¿Vienes a responder una encuesta? Usa el enlace que te enviaron, o revisa las <a href="encuesta.html" style="border-bottom:1px solid var(--line)">encuestas disponibles</a>.</p>
+          <p class="note" data-i18n-html="respond">¿Vienes a responder una encuesta? Usa el enlace que te enviaron, o revisa las <a href="encuesta.html">encuestas disponibles</a>.</p>
         </section>
 
         <section id="acceso">
           <div class="box">
             <div>
-              <p class="kicker" style="margin-bottom:10px">Quién puede usarla</p>
-              <h2>Abierta a cuentas @umag.cl.</h2>
+              <p class="kicker" style="margin-bottom:10px" data-i18n="acc_k">Quién puede usarla</p>
+              <h2 data-i18n="acc_h">Abierta a cuentas @umag.cl.</h2>
             </div>
             <div>
-              <p>Por ahora crear y editar encuestas está habilitado para cuentas <strong>@umag.cl</strong>. Si eres de otra institución, o piensas hacer una aplicación grande, escríbenos a <a href="mailto:lamp@umag.cl"><u>lamp@umag.cl</u></a>: te damos el visto bueno y revisamos juntos la capacidad del servicio para que todo funcione bien.</p>
-              <div class="actions" style="margin-top:20px"><a class="pill solid" href="mailto:lamp@umag.cl?subject=Quiero%20usar%20samplux&body=Hola%2C%20quiero%20usar%20samplux.%0A%0ANombre%3A%0AInstituci%C3%B3n%20%2F%20unidad%3A%0AEstudio%20(de%20qu%C3%A9%20se%20trata)%3A%0APersonas%20que%20esperas%20que%20respondan%3A%0AFechas%20aproximadas%3A%0AMi%20cuenta%20de%20Google%20(%40umag.cl%20u%20otra)%3A">Escribir a LAMP</a></div>
+              <p data-i18n-html="acc_p">Por ahora crear y editar encuestas está habilitado para cuentas <strong>@umag.cl</strong>. Si eres de otra institución, o piensas hacer una aplicación grande, escríbenos a <a href="mailto:lamp@umag.cl"><u>lamp@umag.cl</u></a>: te damos el visto bueno y revisamos juntos la capacidad del servicio para que todo funcione bien.</p>
+              <div class="actions" style="margin-top:20px"><a class="pill solid" id="mailBtn" href="mailto:lamp@umag.cl" data-i18n="acc_btn">Escribir a LAMP</a></div>
             </div>
           </div>
         </section>
@@ -88,14 +116,14 @@
         <div class="grid">
           <div>
             <p><strong>samplux</strong></p>
-            <p>Creada por el Prof. Herman Elgueta en el Laboratorio Austral de Medición Psicosocial (LAMP), Universidad de Magallanes.</p>
+            <p data-i18n="f_credit">Creada por el Prof. Herman Elgueta en el Laboratorio Austral de Medición Psicosocial (LAMP), Universidad de Magallanes.</p>
           </div>
           <div>
-            <p><strong>Más información</strong></p>
-            <p>Detalles, documentación y código en <a href="https://github.com/lamp-umag/samplux">github.com/lamp-umag/samplux</a>.</p>
+            <p><strong data-i18n="f_more_h">Más información</strong></p>
+            <p data-i18n-html="f_more_p">Detalles, documentación y código en <a href="https://github.com/lamp-umag/samplux">github.com/lamp-umag/samplux</a>.</p>
           </div>
           <div>
-            <p><strong>Contacto</strong></p>
+            <p><strong data-i18n="f_contact">Contacto</strong></p>
             <p><a href="mailto:lamp@umag.cl">lamp@umag.cl</a></p>
           </div>
         </div>

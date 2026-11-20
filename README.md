@@ -27,6 +27,7 @@ applications: write to lamp@umag.cl so we can give the go-ahead and check servic
 | `index.html` | Everyone | Landing page: what samplux is, how to use it, who to contact. |
 | `encuesta.html` | Participants | The survey runner (list of published surveys, or `?survey=<id>`). |
 | `encuestador.html` | Interviewers | Face-to-face mode for tablet/desktop, works offline. |
+| `encuestador-lab.html` | Interviewers / team | Lab to tune the look of interviewer mode and download a preferences zip. |
 | `retirar.html` | Participants | Withdraw consent with the code from the receipt. |
 | `builder.html` | Staff | Create, edit and publish surveys. |
 | `admin.html` | Staff | Responses, case review, exports (paradata only with permission). |
@@ -35,6 +36,7 @@ applications: write to lamp@umag.cl so we can give the go-ahead and check servic
 ## Documentation
 
 - [`docs/ACCESS.md`](docs/ACCESS.md) — who can do what (staff, collaborators, paradata permission) and security notes.
+- [`docs/EDITING-LIVE-SURVEYS.md`](docs/EDITING-LIVE-SURVEYS.md) — what editing or deleting a live survey does to its data.
 - [`docs/CONSENT.md`](docs/CONSENT.md) — consent registry and withdrawal with a receipt code.
 - [`docs/ENCUESTADOR.md`](docs/ENCUESTADOR.md) — interviewer mode and how to test locally.
 - [`docs/DATA-POLICY.md`](docs/DATA-POLICY.md) — ethical data collection, policies to write, ideas (location, sensors, data donation).

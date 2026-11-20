@@ -18,6 +18,7 @@ import {
 import { createSurveyApp } from './surveyRunner.js';
 import { resolveAccess, fetchMySurveys, isUmag, norm, POLICY_NOTICE } from './access.js';
 import { collectionManifest } from './manifest.js';
+import { diffItems, describeRisks, logEntry, mergeRetired } from './revisions.js';
 
 let me = { role: 'none', email: '' };   // set by resolveAccess() on sign-in
 const isSuper = () => me.role === 'super';
@@ -914,7 +915,23 @@ saveSurveyBtn.addEventListener('click', async () => {
   currentSurvey.id = id;
   currentSurvey.title = fTitle.value.trim();
 
+  // What does this edit do to data already collected? (js/revisions.js)
+  const nextItems = JSON.parse(JSON.stringify(currentSurvey.items || []));
+  const prev = currentSurvey._isNew ? null : JSON.parse(savedSnapshot || 'null');
+  const diff = prev ? diffItems(prev.items || [], nextItems) : null;
+  if (diff && diff.changed) {
+    const risks = describeRisks(diff);
+    if (risks && !confirm(`Esta encuesta ya puede tener respuestas. Con este cambio:\n\n${risks}\n\n¿Guardar de todos modos?`)) return;
+  }
+  const baseRev = Number(currentSurvey.revision) || 0;
+  const newRev = !prev ? 1 : (diff && diff.changed ? baseRev + 1 : (baseRev || 1));
+  const log = diff && diff.changed ? [...(currentSurvey.changeLog || []), logEntry(newRev, diff, me.email)].slice(-200) : (currentSurvey.changeLog || []);
+  const retired = diff ? mergeRetired(currentSurvey.retiredItems || [], diff, nextItems, newRev) : (currentSurvey.retiredItems || []);
+
   const payload = {
+    revision: newRev,
+    changeLog: log,
+    retiredItems: retired,
     title: currentSurvey.title,
     description: currentSurvey.description || '',
     published: !!currentSurvey.published,
@@ -937,6 +954,7 @@ saveSurveyBtn.addEventListener('click', async () => {
   try {
     await setDoc(doc(db, 'surveys', id), payload, { merge: !currentSurvey._isNew });
     if (currentSurvey._isNew) currentSurvey.ownerEmail = me.email;
+    currentSurvey.revision = newRev; currentSurvey.changeLog = log; currentSurvey.retiredItems = retired;
     currentSurvey._isNew = false;
     fId.disabled = true;
     deleteSurveyBtn.classList.remove('hidden');
@@ -956,19 +974,10 @@ saveSurveyBtn.addEventListener('click', async () => {
   }
 });
 
-deleteSurveyBtn.addEventListener('click', async () => {
+deleteSurveyBtn.addEventListener('click', () => {
   if (currentSurvey._isNew) { closeEditorBtn.click(); return; }
-  if (!confirm(`¿Eliminar la encuesta "${currentSurvey.title}"? Esta acción no se puede deshacer. Las respuestas ya guardadas NO se borran.`)) return;
-  try {
-    await deleteDoc(doc(db, 'surveys', currentSurvey.id));
-    currentSurvey = null;
-    editorView.classList.add('hidden');
-    listView.classList.remove('hidden');
-    await loadSurveyList();
-  } catch (e) {
-    console.error(e);
-    alert('No se pudo eliminar la encuesta.');
-  }
+  alert('Eliminar una encuesta con todos sus datos se hace desde super.html (administración), con confirmación y opciones. Aquí solo se puede despublicar.');
+  location.href = 'super.html';
 });
 
 // ── Live preview (reuses the real survey runner) ─────────────

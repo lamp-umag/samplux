@@ -32,6 +32,8 @@
       .msg { font-size: 13px; font-weight: 600; }
       details summary { cursor: pointer; font-size: 12px; color: var(--muted); }
       .warn { font-weight: 700; }
+      .cols3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+      .big { font-size: 28px; font-weight: 500; letter-spacing: -0.03em; }
     </style>
   </head>
   <body>
@@ -56,6 +58,12 @@
         <h2>Encuestas</h2>
         <div class="card scroll" style="padding:0"><table id="surveys"></table></div>
         <p class="sub" id="surveysNote"></p>
+
+        <h2>Capacidad y cuotas</h2>
+        <div class="card">
+          <div class="row"><button class="btn secondary" id="quotaBtn">Calcular estimación</button><span class="sub">Cuenta documentos (no los descarga).</span></div>
+          <div id="quota" style="margin-top:12px"></div>
+        </div>
 
         <h2>Permisos de cuentas</h2>
         <p class="lead">Por defecto una cuenta ve las <strong>respuestas</strong> de sus encuestas pero no la <strong>paradata</strong> (tiempos, dispositivo, eventos, ubicación). Aquí das ese permiso, o una excepción para crear encuestas sin ser @umag.cl.</p>

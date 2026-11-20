@@ -139,6 +139,7 @@ export function createSurveyApp({ db, elements, hooks = {} }) {
   let submission = null;        // { responseId, uploaded:Set } — stable across submit retries
   let isPreview = false;        // true when launched via builder.html previewSurvey()
   let finished = false;         // thank-you / declined screen is showing
+  let demoMode = false;         // encuesta.html?demo — runs surveys/samplux_demo.json, never saves
   let behavior = null;          // interaction event log (js/behavior.js)
   let geo = null;               // outcome of the optional location step: { status, ... } | null
 
@@ -332,6 +333,15 @@ export function createSurveyApp({ db, elements, hooks = {} }) {
       isEmpty: item => isEmptyAnswer(answers[item.id]) && !audioClips[item.id],
       optionsFor: normalizeOptions
     };
+  }
+
+  /** encuesta.html?demo: the repository's demo survey, run as a preview (nothing is written). */
+  async function startDemo() {
+    const res = await fetch(`surveys/samplux_demo.json?_=${Date.now()}`);
+    if (!res.ok) { alert('Demostración no disponible'); return; }
+    demoMode = true;
+    isPreview = true;
+    startSurvey(prepareSurvey(await resolveSurveyExtends(await res.json())));
   }
 
   async function previewSurvey(rawSurvey) {
@@ -590,6 +600,7 @@ export function createSurveyApp({ db, elements, hooks = {} }) {
       }
 
       if (rawSurvey.id) merged.id = rawSurvey.id;
+      for (const k of ['revision', 'retiredItems', 'changeLog']) if (rawSurvey[k] != null) merged[k] = rawSurvey[k];
       if (rawSurvey.title) merged.title = rawSurvey.title;
       if (rawSurvey.description) merged.description = rawSurvey.description;
       if (rawSurvey.settings) merged.settings = mergeSettings(merged.settings, rawSurvey.settings);
@@ -1491,6 +1502,7 @@ export function createSurveyApp({ db, elements, hooks = {} }) {
       controlsContainer.innerHTML = '';
       footnoteContainer.innerHTML = '';
       bar.style.width = '100%';
+      if (demoMode) footnoteContainer.textContent = 'Demostración: no se guardó ninguna respuesta.';
       return;
     }
     const entriesCol = collection(db, `responses/${survey.id}/entries`);
@@ -1538,6 +1550,7 @@ export function createSurveyApp({ db, elements, hooks = {} }) {
       ...(Object.keys(audioMeta).length > 0 && { audio: audioMeta }),
       ...(submission.consent && { consentId: submission.consent.consentId }),
       ...(presentationOrder && { presentationOrder }),
+      ...(survey.revision != null && { surveyRevision: survey.revision }),
       ...(interviewer && { interviewer }),
       serverCode,
       totalTime,
@@ -1597,7 +1610,9 @@ export function createSurveyApp({ db, elements, hooks = {} }) {
 
   async function init() {
     const selected = qsParam('survey');
-    if (selected) {
+    if (qsParam('demo') !== null) {
+      await startDemo();
+    } else if (selected) {
       await startSurveyById(selected);
     } else {
       const items = await loadSurveyIndex();

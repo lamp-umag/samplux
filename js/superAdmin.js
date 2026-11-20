@@ -4,7 +4,7 @@ import {
   getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut
 } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
 import {
-  collection, getDocs, getCountFromServer, query, orderBy, limit, doc, setDoc, updateDoc, deleteDoc, serverTimestamp
+  collection, getDocs, getCountFromServer, getAggregateFromServer, sum, count, query, where, orderBy, limit, doc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js';
 import { resolveAccess, norm } from './access.js';
 import { collectionManifest } from './manifest.js';
@@ -78,12 +78,13 @@ function renderSurveys() {
     ].join('');
     const warn = m.warnings.length ? `<div class="warn">⚠ ${esc(m.warnings[0])}</div>` : '';
     const assign = `<div><button class="btn secondary" data-owner="${esc(s.id)}" style="padding:4px 10px;font-size:12px;margin-top:6px">${s.ownerEmail ? 'Cambiar responsable' : 'Asignar responsable'}</button></div>`;
+    const del = `<div><button class="btn secondary" data-del="${esc(s.id)}" style="padding:4px 10px;font-size:12px;margin-top:6px">Eliminar…</button></div>`;
     const detail = `<details><summary>detalle</summary>${m.rows.map(r => `<div class="sub">${esc(r.group)}: ${esc(r.text)}</div>`).join('')}</details>`;
     return `<tr>
       <td><a href="admin.html?survey=${encodeURIComponent(s.id)}"><strong>${esc(s.title || s.id)}</strong></a><div class="sub">${esc(s.id)} · ${(s.items || []).length} ítems · creada ${fmtDate(s.createdAt)}</div></td>
       <td><span class="tag ${s.published ? '' : 'off'}">${s.published ? 'publicada' : 'borrador'}</span></td>
       <td class="num">${s.count ?? '—'}<div class="sub">${s.last ? 'última ' + fmtDate(s.last) : ''}</div></td>
-      <td>${admins}${assign}</td>
+      <td>${admins}${assign}${del}</td>
       <td>${tags}${warn}${detail}</td></tr>`;
   }).join('');
   $('surveys').querySelectorAll('[data-owner]').forEach(b => b.onclick = async () => {
@@ -93,6 +94,7 @@ function renderSurveys() {
     if (!/^\S+@\S+\.\S+$/.test(email)) { alert('Correo no válido.'); return; }
     try { await updateDoc(doc(db, 'surveys', id), { ownerEmail: email }); loadAll(); } catch (e) { console.error(e); alert('No se pudo asignar.'); }
   });
+  $('surveys').querySelectorAll('[data-del]').forEach(b => b.onclick = () => purgeSurvey(b.dataset.del));
   $('surveysNote').textContent = `${surveys.length} encuestas · ${total} respuestas en total (incluye las ya retiradas, que quedan como registros vacíos).`;
 }
 
@@ -143,3 +145,83 @@ $('grantBtn').onclick = async () => {
     $('grantMsg').textContent = `${email} ahora tiene acceso a ${sid}.`; $('grantEmail').value = ''; loadAll();
   } catch (e) { console.error(e); $('grantMsg').textContent = 'No se pudo guardar.'; }
 };
+
+/* ── Delete a survey together with everything recorded about it ───────────── */
+async function purgeCollection(q, label, status) {
+  let n = 0;
+  for (;;) {
+    const snap = await getDocs(query(q, limit(400)));
+    if (snap.empty) break;
+    const batch = writeBatch(db);
+    snap.docs.forEach(d => batch.delete(d.ref));
+    await batch.commit();
+    n += snap.size;
+    status(`${label}: ${n} borrados…`);
+  }
+  return n;
+}
+
+async function purgeSurvey(id) {
+  const s = surveys.find(x => x.id === id);
+  const keepConsents = !confirm(
+    `ELIMINAR "${s?.title || id}" (${s?.count ?? '?'} respuestas)\n\n` +
+    'Se borran la encuesta, sus respuestas, paradata, audios, marcas de exclusión, accesos de colegas y solicitudes de retiro.\n\n' +
+    '¿Borrar TAMBIÉN el registro de consentimientos? (Aceptar = sí, borrarlo; Cancelar = conservarlo como prueba de que existió y se respetó el consentimiento)');
+  const typed = prompt(`Esto no se puede deshacer. ¿Descargaste antes los datos desde admin.html?\n\nEscribe el ID de la encuesta para confirmar:\n${id}`);
+  if (typed !== id) { alert('Cancelado: el ID no coincide.'); return; }
+  const msg = $('surveysNote');
+  const status = t => { msg.textContent = `Eliminando ${id} — ${t}`; };
+  try {
+    await purgeCollection(collection(db, `responses/${id}/entries`), 'respuestas', status);
+    await purgeCollection(collection(db, `responses/${id}/paradata`), 'paradata', status);
+    await purgeCollection(collection(db, `responses/${id}/audio`), 'audios', status);
+    await purgeCollection(collection(db, `response_export_meta/${id}/flags`), 'marcas', status);
+    await purgeCollection(query(collection(db, 'collab'), where('surveyId', '==', id)), 'accesos', status);
+    await purgeCollection(query(collection(db, 'withdrawal_requests'), where('surveyId', '==', id)), 'solicitudes', status);
+    if (!keepConsents) await purgeCollection(query(collection(db, 'consents'), where('surveyId', '==', id)), 'consentimientos', status);
+    await deleteDoc(doc(db, 'surveys', id));
+    alert(`"${id}" eliminada${keepConsents ? ' (registro de consentimientos conservado)' : ''}.`);
+  } catch (e) {
+    console.error(e);
+    alert('Se interrumpió: ' + (e?.message || e) + '\nPuedes volver a intentar; lo ya borrado no se restaura.');
+  }
+  loadAll();
+}
+
+/* ── Capacity / quota overview ────────────────────────────────────────────── */
+// Firestore does not expose usage to the browser, so this is an ESTIMATE from what we can count.
+// Limits of the free (Spark) plan: 50k reads, 20k writes, 20k deletes per day; 1 GiB stored.
+// Check real usage in Firebase Console → Usage, and set a budget alert if the plan is Blaze.
+const QUOTA = { reads: 50000, writes: 20000, storageBytes: 1024 ** 3 };
+const AVG = { entry: 1500, paradata: 7000 };   // bytes per document, typical
+
+async function renderQuota() {
+  const box = $('quota');
+  box.textContent = 'Calculando…';
+  let entries = 0, paradata = 0, audioDocs = 0, audioBytes = 0, consents = 0;
+  try {
+    for (const s of surveys) {
+      entries += s.count || 0;
+      const p = await getCountFromServer(collection(db, `responses/${s.id}/paradata`));
+      paradata += p.data().count;
+      const a = await getAggregateFromServer(collection(db, `responses/${s.id}/audio`), { n: count(), bytes: sum('size') });
+      audioDocs += a.data().n; audioBytes += a.data().bytes || 0;
+    }
+    consents = (await getCountFromServer(collection(db, 'consents'))).data().count;
+  } catch (e) { console.warn(e); box.textContent = 'No se pudo calcular.'; return; }
+  const docs = entries + paradata + audioDocs + consents;
+  const stored = entries * AVG.entry + paradata * AVG.paradata + audioBytes;
+  const writesPerResponse = 3;                                   // entry + paradata + (consent | audio share)
+  const perDay = Math.floor(QUOTA.writes / writesPerResponse);
+  const dashLoads = docs ? Math.floor(QUOTA.reads / Math.max(1, entries + paradata)) : '—';
+  const mb = n => (n / 1048576).toFixed(n > 1e8 ? 0 : 1) + ' MB';
+  box.innerHTML = `
+    <div class="cols3">
+      <div><div class="big">${docs.toLocaleString('es-CL')}</div><div class="sub">documentos de respuestas (${entries} resp. · ${paradata} paradata · ${audioDocs} audios · ${consents} consent.)</div></div>
+      <div><div class="big">${mb(stored)}</div><div class="sub">almacenamiento estimado de ${mb(QUOTA.storageBytes)} (${(stored / QUOTA.storageBytes * 100).toFixed(1)}%) · audio real: ${mb(audioBytes)}</div></div>
+      <div><div class="big">~${perDay.toLocaleString('es-CL')}</div><div class="sub">respuestas por día que aguanta el plan gratuito (límite: 20.000 escrituras/día)</div></div>
+      <div><div class="big">${dashLoads === '—' ? '—' : dashLoads.toLocaleString('es-CL')}</div><div class="sub">cargas de panel por día antes de pasar las 50.000 lecturas (cada carga lee todas las respuestas + paradata)</div></div>
+    </div>
+    <p class="sub" style="margin-top:12px">Estimación: documentos promedio de ${AVG.entry} B (respuesta) y ${AVG.paradata} B (paradata). Una aplicación masiva el mismo día (p. ej. un curso entero a la vez) es lo que más cuota consume: avisa antes. El uso real está en Firebase Console → Uso; si el plan es Blaze, pon una alerta de presupuesto.</p>`;
+}
+$('quotaBtn').onclick = renderQuota;

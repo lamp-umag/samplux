@@ -11,6 +11,8 @@ import { db } from './firebaseClient.js';
 import { collection, getDocsFromServer, query, where } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import { createSurveyApp } from './surveyRunner.js';
 import { enqueue, syncOutbox, pendingCount, exportBackup } from './outbox.js';
+import { loadPrefs, savePrefs, applyPrefs } from './encPrefs.js';
+import { staticBody } from './encCards.js';
 
 const $ = id => document.getElementById(id);
 const LS_SESSION = 'samplux.enc.session';
@@ -38,7 +40,12 @@ const optionsEl = document.getElementById('options');
 const controlsEl = document.getElementById('controls');
 
 let session = readJson(LS_SESSION, null) || {};
-let layout = session.layout === 'vertical' ? 'vertical' : 'horizontal';
+const prefs = loadPrefs();
+if (session.layout === 'vertical' || session.layout === 'horizontal') prefs.layout = session.layout;
+if (session.cardStyle === 'deck' || session.cardStyle === 'compact') prefs.cardStyle = session.cardStyle;
+applyPrefs(prefs);
+let layout = prefs.layout;
+let cardStyle = prefs.cardStyle;
 let surveyDef = null;
 let caseMeta = null;          // per-case counters that end up in `interviewer`
 let respondentView = false;   // the respondent is holding the device
@@ -70,6 +77,7 @@ const app = createSurveyApp({
       sessionId: session.sessionId,
       caseNumber: session.caseNumber,
       layout,
+      cardStyle,
       layoutSwitches: caseMeta.layoutSwitches,
       jumps: caseMeta.jumps,
       handoffItems: caseMeta.handoffItems,
@@ -100,6 +108,16 @@ function centre(card) {
 document.querySelectorAll('#layoutToggle button, #sLayout button').forEach(b => {
   b.onclick = () => setLayout(b.dataset.layout, { count: true });
 });
+function setCards(next, { count = false } = {}) {
+  if (count && next !== cardStyle && caseMeta) caseMeta.layoutSwitches += 1;
+  cardStyle = next;
+  document.body.dataset.cards = cardStyle;
+  document.querySelectorAll('[data-cards]').forEach(b => { if (b.tagName === 'BUTTON') b.classList.toggle('on', b.dataset.cards === cardStyle); });
+  session.cardStyle = cardStyle;
+  writeJson(LS_SESSION, session);
+  if (app.getState() && !app.getState().finished) rerenderTrack();
+}
+document.querySelectorAll('#styleToggle button, #sCards button').forEach(b => { b.onclick = () => setCards(b.dataset.cards, { count: true }); });
 
 /* ── Carousel ─────────────────────────────────────────── */
 const isHandoff = item => !!item && (item.handoff === true || /^task_/.test(item.type || ''));
@@ -129,7 +147,12 @@ function cardState(item, st) {
   return st.visited.has(item.id) ? 'skipped' : 'pending';
 }
 
-function renderTrack({ index, item, atEnd }) {
+let lastRender = null;
+function rerenderTrack() { if (lastRender) renderTrack(lastRender); }
+
+function renderTrack(args) {
+  lastRender = args;
+  const { index, item, atEnd } = args;
   const st = app.getState();
   if (!st) return;
   const items = st.survey.items;
@@ -177,8 +200,10 @@ function renderTrack({ index, item, atEnd }) {
     } else {
       card.append(el('div', 'enc-card-prompt', clip(plain(it.type === 'info' ? String(it.prompt || '').split('\n')[0] : (it.prompt || it.title || it.id)), 120)));
       card.append(el('div', 'enc-card-answer', state === 'answered' ? answerSummary(it, st) : ''));
+      if (cardStyle === 'deck') card.append(staticBody(it, { answers: st.answers, optionsFor: st.optionsFor, hasAudio: x => !!st.audioClips[x.id] }));
       if (!locked) card.onclick = () => { caseMeta.jumps += 1; app.goTo(i); };
     }
+    card.style.zIndex = isActive ? '1000' : String(i);
     cards.push(card);
   });
 
@@ -407,12 +432,13 @@ async function showSetup() {
   $('runner').style.display = 'none';
   $('setup').style.display = '';
   document.body.classList.remove('respondent', 'done');
-  $('encBar').querySelectorAll('#barMissing,#barCase,#layoutToggle,#barExit').forEach(n => { n.style.display = 'none'; });
+  $('encBar').querySelectorAll('#barMissing,#barCase,#layoutToggle,#styleToggle,#barExit').forEach(n => { n.style.display = 'none'; });
   surveyDef = null;
   updateBar();
   $('sWho').value = session.interviewerId || '';
   $('sSite').value = session.site || '';
   setLayout(layout);
+  setCards(cardStyle);
 
   const { surveys, fromCache } = await loadSurveys();
   const list = Object.values(surveys).sort((a, b) => String(a.title || a.id).localeCompare(String(b.title || b.id)));
@@ -434,13 +460,13 @@ async function showSetup() {
     surveyDef = surveys[$('sSurvey').value];
     if (!surveyDef) return;
     session = {
-      interviewerId: who, site: $('sSite').value.trim(), layout, surveyId: surveyDef.id,
+      interviewerId: who, site: $('sSite').value.trim(), layout, cardStyle, surveyId: surveyDef.id,
       sessionId: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
       caseNumber: 1, completed: 0, declined: 0
     };
     writeJson(LS_SESSION, session);
     $('setup').style.display = 'none';
-    $('encBar').querySelectorAll('#barMissing,#barCase,#layoutToggle,#barExit').forEach(n => { n.style.display = ''; });
+    $('encBar').querySelectorAll('#barMissing,#barCase,#layoutToggle,#styleToggle,#barExit').forEach(n => { n.style.display = ''; });
     newCase();
   };
 }

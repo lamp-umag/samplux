@@ -132,7 +132,7 @@ test('admins can erase (manual requests); strangers cannot', async () => {
   await assertSucceeds(updateDoc(doc(surveyAdmin, `consents/${keys.consentId}`), { status: 'withdrawn', withdrawnAt: serverTimestamp(), via: 'admin', requestId: 'q', by: 'equipo@umag.cl' }));
   await assertSucceeds(deleteDoc(doc(surveyAdmin, 'responses/pub/audio/r1__voz')));
   await assertSucceeds(updateDoc(doc(surveyAdmin, 'responses/pub/entries/r1'), stub('admin')));
-  await assertFails(deleteDoc(doc(admin, 'responses/pub/entries/r1')));                        // the stub stays
+  await assertFails(deleteDoc(doc(surveyAdmin, 'responses/pub/entries/r1')));                  // survey staff leave the stub
 });
 
 test('an identical re-send is accepted, a different one is not', async () => {
@@ -279,4 +279,16 @@ test('withdrawn responses lose their paradata too', async () => {
   await assertFails(deleteDoc(doc(anon, 'responses/pub/paradata/r1')));
   await assertSucceeds(withdraw());
   await assertSucceeds(deleteDoc(doc(anon, 'responses/pub/paradata/r1')));
+});
+
+test('only a super admin can purge a survey\'s records (entries, consents, requests)', async () => {
+  await submit();
+  const req = await assertSucceeds(addDoc(collection(anon, 'withdrawal_requests'), { surveyId: 'pub', email: 'a@b.cl', status: 'pending', createdAt: serverTimestamp() }));
+  await assertFails(deleteDoc(doc(surveyAdmin, 'responses/pub/entries/r1')));
+  await assertFails(deleteDoc(doc(surveyAdmin, `consents/${keys.consentId}`)));
+  await assertFails(deleteDoc(doc(surveyAdmin, req.path)));
+  await assertSucceeds(deleteDoc(doc(admin, 'responses/pub/entries/r1')));
+  await assertSucceeds(deleteDoc(doc(admin, `consents/${keys.consentId}`)));
+  await assertSucceeds(deleteDoc(doc(admin, req.path)));
+  await assertSucceeds(deleteDoc(doc(admin, 'responses/pub/audio/r1__voz')));
 });
