@@ -1,4 +1,4 @@
-import { sleep, rand, mean } from './helpers.js';
+import { sleep, rand, mean, nextPaint, eventRtMs } from './helpers.js';
 
 const N_PRACTICE = 3;
 const N_TEST     = 20;
@@ -59,14 +59,14 @@ async function runRTTrial(container, index, total, phase) {
   }
 
   renderReady(container);
-  const t0 = performance.now();
+  const t0 = await nextPaint();
 
   const rt = await new Promise(r => {
     const tid = setTimeout(() => r(null), MAX_RT);
-    zone.addEventListener('pointerdown', function h() {
+    zone.addEventListener('pointerdown', function h(e) {
       clearTimeout(tid);
       zone.removeEventListener('pointerdown', h);
-      r(Math.round(performance.now() - t0));
+      r(eventRtMs(e, t0));
     });
   });
 

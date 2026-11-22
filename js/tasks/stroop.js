@@ -1,4 +1,4 @@
-import { sleep, shuffle, rand, mean, pct } from './helpers.js';
+import { sleep, shuffle, rand, mean, pct, nextPaint, eventRtMs } from './helpers.js';
 
 const COLORS = {
   rojo:     { label: 'Rojo',     hex: '#EF4444' },
@@ -44,10 +44,9 @@ function renderTrialShell(container, phase, index, total) {
     </div>`;
 }
 
-function waitForResponse(container, maxMs) {
+function waitForResponse(container, maxMs, t0) {
   return new Promise(resolve => {
     let done = false;
-    const t0 = performance.now();
 
     container.querySelectorAll('.resp-btn').forEach(b => b.disabled = false);
 
@@ -65,7 +64,7 @@ function waitForResponse(container, maxMs) {
       clearTimeout(tid);
       container.removeEventListener('pointerdown', handler);
       container.querySelectorAll('.resp-btn').forEach(b => b.disabled = true);
-      resolve({ response: btn.dataset.color, rt: Math.round(performance.now() - t0) });
+      resolve({ response: btn.dataset.color, rt: eventRtMs(e, t0) });
     });
   });
 }
@@ -87,7 +86,8 @@ async function runTrial(container, trial, index, total, phase) {
   word.style.color = COLORS[trial.ink].hex;
   word.classList.remove('hidden');
 
-  const { response, rt } = await waitForResponse(container, MAX_RT);
+  const t0 = await nextPaint();
+  const { response, rt } = await waitForResponse(container, MAX_RT, t0);
   const correct = response === trial.ink;
 
   word.classList.add('hidden');

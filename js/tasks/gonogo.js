@@ -1,4 +1,4 @@
-import { sleep, rand, shuffle, pct, mean } from './helpers.js';
+import { sleep, rand, shuffle, pct, mean, nextPaint, eventRtMs } from './helpers.js';
 
 const N_PRACTICE  = 10;
 const N_TEST      = 40;
@@ -41,7 +41,7 @@ async function runTrial(container, type, index, total, phase) {
     : '<div class="gg-x no-go-x">✕</div>';
   stim.classList.remove('hidden');
 
-  const t0 = performance.now();
+  const t0 = await nextPaint();
   let tapped = false;
 
   const result = await new Promise(resolve => {
@@ -50,12 +50,12 @@ async function runTrial(container, type, index, total, phase) {
       resolve({ tapped: false, rt: null });
     }, STIM_MS);
 
-    function tapHandler() {
+    function tapHandler(e) {
       if (tapped) return;
       tapped = true;
       clearTimeout(tid);
       zone.removeEventListener('pointerdown', tapHandler);
-      resolve({ tapped: true, rt: Math.round(performance.now() - t0) });
+      resolve({ tapped: true, rt: eventRtMs(e, t0) });
     }
     zone.addEventListener('pointerdown', tapHandler);
   });

@@ -4,6 +4,7 @@
 // surveyRunner.js (payload + audio blobs + consent record), minus the withdrawal secret.
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import { uploadSubmission } from './surveyRunner.js';
+import { mirrorOutboxEnqueue, mirrorOutboxRemove } from './nativeBridge.js';
 
 const DB_NAME = 'samplux-outbox';
 const STORE = 'submissions';
@@ -33,9 +34,10 @@ async function tx(mode, fn) {
 export const pending = () => tx('readonly', s => s.getAll());
 export const pendingCount = () => tx('readonly', s => s.count());
 const put = rec => tx('readwrite', s => s.put(rec));
-const remove = id => tx('readwrite', s => s.delete(id));
+const remove = id => { mirrorOutboxRemove(id); return tx('readwrite', s => s.delete(id)); };
 
 export function enqueue(sub) {
+  mirrorOutboxEnqueue(sub);
   return put({
     surveyId: sub.surveyId,
     responseId: sub.responseId,

@@ -13,6 +13,7 @@ import { createSurveyApp } from './surveyRunner.js';
 import { enqueue, syncOutbox, pendingCount, exportBackup } from './outbox.js';
 import { loadPrefs, savePrefs, applyPrefs } from './encPrefs.js';
 import { staticBody } from './encCards.js';
+import { notifyRespondentHandoff, getNativeInterviewerTelemetry } from './nativeBridge.js';
 
 const $ = id => document.getElementById(id);
 const LS_SESSION = 'samplux.enc.session';
@@ -82,7 +83,8 @@ const app = createSurveyApp({
       jumps: caseMeta.jumps,
       handoffItems: caseMeta.handoffItems,
       startedAt: caseMeta.startedAt,
-      online: navigator.onLine
+      online: navigator.onLine,
+      ...(getNativeInterviewerTelemetry() && { nativeTelemetry: getNativeInterviewerTelemetry() })
     }),
     // Always save locally first; the upload happens in the background.
     deliver: async sub => { await enqueue(sub); sync(); },
@@ -163,6 +165,7 @@ function renderTrack(args) {
   if (wantRespondent !== respondentView) {
     respondentView = wantRespondent;
     document.body.classList.toggle('respondent', respondentView);
+    notifyRespondentHandoff(respondentView, item?.id || null);
     if (respondentView) {
       interstitial('🤝', 'Entrega el dispositivo', 'La siguiente parte la responde la persona encuestada por sí misma. Sus respuestas no se mostrarán a quien encuesta.', 'Soy quien responde · comenzar');
     } else {
@@ -378,7 +381,7 @@ $('sBackup').onclick = async () => {
 const SHELL = [
   'encuestador.html', 'css/app.css', 'css/encuestador.css',
   'js/encuestador.js', 'js/firebaseClient.js', 'js/surveyRunner.js', 'js/outbox.js', 'js/consent.js',
-  'js/receiptView.js', 'js/vendor/qrcode.js', 'js/deviceInfo.js', 'js/audioRecorder.js',
+  'js/receiptView.js', 'js/vendor/qrcode.js', 'js/deviceInfo.js', 'js/audioRecorder.js', 'js/nativeBridge.js',
   'js/tasks/helpers.js', 'js/tasks/rt.js', 'js/tasks/stroop.js', 'js/tasks/gonogo.js',
   'https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js',
   'https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js'

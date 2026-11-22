@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "samplux — Survey Application for Modern Psychometrics with a lightweight user experience. Mobile-first static site for running psychometric surveys and cognitive tasks with anonymous responses in Firebase Firestore.",
   "scripts": {
-    "test": "node --test tests/consent.test.mjs tests/revisions.test.mjs",
+    "test": "node --test tests/consent.test.mjs tests/revisions.test.mjs tests/zip.test.mjs tests/nativeBridge.test.mjs",
     "test:rules": "npx firebase-tools emulators:exec --only firestore --project samplux-lamp \"node --test tests/rules.test.mjs\"",
     "start": "python3 -m http.server 5175",
     "seed": "node scripts/seed-emulator.mjs"

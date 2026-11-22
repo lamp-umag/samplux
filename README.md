@@ -39,6 +39,7 @@ applications: write to lamp@umag.cl so we can give the go-ahead and check servic
 - [`docs/EDITING-LIVE-SURVEYS.md`](docs/EDITING-LIVE-SURVEYS.md) — what editing or deleting a live survey does to its data.
 - [`docs/CONSENT.md`](docs/CONSENT.md) — consent registry and withdrawal with a receipt code.
 - [`docs/ENCUESTADOR.md`](docs/ENCUESTADOR.md) — interviewer mode and how to test locally.
+- [`docs/ANDROID-LAB.md`](docs/ANDROID-LAB.md) — Android Lab & Field app (C++17 NDK 120Hz tasks, 400Hz IMU biomechanics & handoff verification, Oboe dBA probe, SQLite Data Mule `.zip`, tablet mode) + direct `.apk` download.
 - [`docs/DATA-POLICY.md`](docs/DATA-POLICY.md) — ethical data collection, policies to write, ideas (location, sensors, data donation).
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — item schema, randomization, internals. [`docs/ROADMAP.md`](docs/ROADMAP.md) — where it is headed.
 

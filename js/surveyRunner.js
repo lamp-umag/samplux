@@ -4,6 +4,7 @@ import { audioSupported, mountAudioWidget, clampMaxSeconds, extensionForMime } f
 import { run as runRT }     from './tasks/rt.js';
 import { run as runStroop } from './tasks/stroop.js';
 import { run as runGoNoGo } from './tasks/gonogo.js';
+import { runNativeTaskIfAvailable } from './nativeBridge.js';
 import { consentSettings, createConsentRecord, rememberReceipt } from './consent.js';
 import { renderReceipt } from './receiptView.js';
 import { splitPayload } from './paradata.js';
@@ -1304,10 +1305,12 @@ export function createSurveyApp({ db, elements, hooks = {} }) {
         overlay.className = 'task-overlay';
         document.body.appendChild(overlay);
         try {
-          let result;
-          if (item.type === 'task_rt')     result = await runRT(overlay, item.taskConfig);
-          if (item.type === 'task_stroop') result = await runStroop(overlay);
-          if (item.type === 'task_gonogo') result = await runGoNoGo(overlay);
+          let result = await runNativeTaskIfAvailable(item.type, item.taskConfig);
+          if (!result) {
+            if (item.type === 'task_rt')     result = await runRT(overlay, item.taskConfig);
+            if (item.type === 'task_stroop') result = await runStroop(overlay);
+            if (item.type === 'task_gonogo') result = await runGoNoGo(overlay);
+          }
           if (result) answers[item.id] = result;
         } catch (e) {
           console.error('[samplux] task error:', e);

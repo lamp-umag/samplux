@@ -1,3 +1,15 @@
 .DS_Store
 node_modules/
 *.log
+
+# Android + C++ NDK build outputs (web assets are copied at build time, never duplicated in git)
+android/.gradle/
+android/.kotlin/
+android/build/
+android/app/build/
+android/app/.cxx/
+android/app/src/main/assets/www/
+android/local.properties
+android/native/build/
+android/dist/*.apk
+

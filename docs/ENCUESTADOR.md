@@ -20,6 +20,7 @@ Para aplicar una encuesta cara a cara en tablet o computador. Usa el mismo motor
   reconstruye desde él, así que los saltos y las vueltas del modo encuestador se reproducen tal como ocurrieron
   ("visita 2" de una pregunta, 🤝 en los traspasos) y los toques fuera de botones aparecen como puntos.
 - Teclado: 1–9 opción, Enter sigue, ← → cambian de pregunta.
+- **App Android (Terreno y Laboratorio C++17):** ver [`docs/ANDROID-LAB.md`](ANDROID-LAB.md) o descargar directo desde `https://lamp-umag.github.io/samplux/downloads/samplux-lab.apk`.
 
 ## Probar
 

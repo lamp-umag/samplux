@@ -10,6 +10,8 @@
 // and is deliberately not collected.
 // ─────────────────────────────────────────────────────────────
 
+import { getNativeEnvironmentSnapshot } from './nativeBridge.js';
+
 const safe = (fn) => { try { const v = fn(); return v === undefined ? null : v; } catch { return null; } };
 
 function webglInfo() {
@@ -92,6 +94,8 @@ export async function collectDeviceInfo() {
       }
     } catch { /* ignore */ }
   }
+  const nativeEnv = getNativeEnvironmentSnapshot();
+  if (nativeEnv) info.nativeEnv = nativeEnv;
   return info;
 }
 
