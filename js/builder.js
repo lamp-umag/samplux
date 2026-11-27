@@ -218,12 +218,34 @@ function renderSurveyList() {
       <div class="survey-card-actions mt-8">
         <button type="button" class="btn btn-outline btn-sm" data-act="edit">Editar</button>
         <button type="button" class="btn btn-outline btn-sm" data-act="run" ${s.published ? '' : 'disabled'}>Abrir encuesta</button>
+        <button type="button" class="btn btn-outline btn-sm" data-act="enc" ${s.published ? '' : 'disabled'}>Copiar enlace encuestador</button>
+        <button type="button" class="btn btn-outline btn-sm" data-act="export">Exportar JSON</button>
       </div>`;
     card.querySelector('[data-act="edit"]').addEventListener('click', () => openEditor(structuredClone(s)));
     const runBtn = card.querySelector('[data-act="run"]');
     if (s.published) runBtn.addEventListener('click', () => window.open(`encuesta.html?survey=${encodeURIComponent(s.id)}`, '_blank'));
+    card.querySelector('[data-act="export"]').addEventListener('click', () => exportSurvey(s));
+    const encBtn = card.querySelector('[data-act="enc"]');
+    if (s.published) encBtn.addEventListener('click', async () => {
+      const url = new URL(`encuestador.html?survey=${encodeURIComponent(s.id)}`, location.href).href;
+      try { await navigator.clipboard.writeText(url); encBtn.textContent = 'Enlace copiado ✓'; }
+      catch { prompt('Copia el enlace:', url); }
+    });
     surveyListContainer.appendChild(card);
   });
+}
+
+// The survey definition only: no account emails, change log or server timestamps,
+// so the file can be passed on. "Importar JSON" takes it back.
+const EXPORT_OMIT = new Set(['ownerEmail', 'adminEmails', 'changeLog', 'createdAt', 'updatedAt', 'updatedBy', 'listed']);
+function exportSurvey(s) {
+  const def = Object.fromEntries(Object.entries(s).filter(([k]) => !EXPORT_OMIT.has(k)));
+  const url = URL.createObjectURL(new Blob([JSON.stringify(def, null, 2) + '\n'], { type: 'application/json' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${s.id}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 newSurveyBtn.addEventListener('click', () => openEditor(blankSurvey()));
@@ -259,6 +281,19 @@ importFile.addEventListener('change', async () => {
       adminEmails: isSuper() ? parseEmailList((parsed.adminEmails || []).join(',')) : [],   // viewers are a super-admin field
       _isNew: true
     };
+    const existing = surveysCache.find(s => s.id === slugifySurveyId(draft.id));
+    if (existing && confirm(`Ya existe la encuesta "${existing.id}". ¿Aplicar el archivo como una edición de ella?\n\nSe conservan responsable, historial de revisiones y estado de publicación; nada cambia hasta que guardes.\n(Cancelar = abrir como encuesta nueva.)`)) {
+      openEditor(structuredClone(existing));
+      Object.assign(currentSurvey, {
+        title: draft.title, description: draft.description,
+        settings: draft.settings, optionSets: draft.optionSets, items: draft.items
+      });
+      const original = savedSnapshot;
+      openEditor(currentSurvey);
+      savedSnapshot = original;   // diff and revision are computed against the stored survey
+      syncSaveStatus();
+      return;
+    }
     openEditor(draft);
     saveStatus.textContent = 'Importado — revisa y guarda para publicar.';
   } catch (e) {
@@ -952,7 +987,9 @@ saveSurveyBtn.addEventListener('click', async () => {
   saveSurveyBtn.disabled = true;
   saveStatus.textContent = 'Guardando…';
   try {
-    await setDoc(doc(db, 'surveys', id), payload, { merge: !currentSurvey._isNew });
+    // mergeFields replaces each field whole (merge:true would keep removed settings and scales)
+    // and leaves the fields we don't send (owner, listed) untouched.
+    await setDoc(doc(db, 'surveys', id), payload, currentSurvey._isNew ? {} : { mergeFields: Object.keys(payload) });
     if (currentSurvey._isNew) currentSurvey.ownerEmail = me.email;
     currentSurvey.revision = newRev; currentSurvey.changeLog = log; currentSurvey.retiredItems = retired;
     currentSurvey._isNew = false;

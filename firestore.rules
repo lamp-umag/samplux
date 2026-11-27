@@ -7,8 +7,8 @@ rules_version = '2';
 //
 // Paths used by the app:
 // - surveys/<surveyId>: a survey definition (items, optionSets, settings),
-//   authored via builder.html. Publicly readable once published so index.html
-//   can render it; only admins can write.
+//   authored via builder.html. Once published, anyone with its id can read it; the
+//   public can only enumerate those with listed == true (set by super admins).
 // - responses/<surveyId>/entries/<responseId>: one survey response, written
 //   anonymously by index.html on submit. Validated dynamically against the
 //   matching surveys/<surveyId> doc (must exist and be published) instead of
@@ -118,16 +118,23 @@ service cloud.firestore {
     }
 
     match /surveys/{surveyId} {
-      allow read: if resource.data.published == true || isAdmin() ||
+      // One survey at a time: a published one opens for anyone who knows its id (its link).
+      allow get: if resource.data.published == true || isAdmin() ||
         (verifiedGoogle() && resource.data.ownerEmail == emailLc()) ||
         signedInEmailIn(resource.data.get('adminEmails', [])) ||
         isCollab(surveyId);
+      // Enumerating is different: the public only gets the surveys a super admin listed.
+      allow list: if isAdmin() ||
+        (resource.data.published == true && resource.data.listed == true) ||
+        (verifiedGoogle() && resource.data.ownerEmail == emailLc()) ||
+        (verifiedGoogle() && emailLc() in resource.data.adminEmails);
 
       // Staff create surveys as their owner. adminEmails (legacy viewers) stays a
       // super-admin-only field; colleagues are added through collab/ instead.
       allow create: if isAdmin() || (isStaff() &&
         request.resource.data.ownerEmail == emailLc() &&
-        request.resource.data.get('adminEmails', []).size() == 0);
+        request.resource.data.get('adminEmails', []).size() == 0 &&
+        !request.resource.data.keys().hasAny(['listed']));
 
       // Owner and editor collaborators edit; nobody but a super admin changes the
       // owner or the legacy viewer list. Deleting is super-admin only (responses and
@@ -136,7 +143,8 @@ service cloud.firestore {
         (resource.data.ownerEmail == emailLc() ||
           (isCollab(surveyId) && get(collabPath(surveyId)).data.role == 'editor')) &&
         request.resource.data.ownerEmail == resource.data.ownerEmail &&
-        request.resource.data.get('adminEmails', []) == resource.data.get('adminEmails', []));
+        request.resource.data.get('adminEmails', []) == resource.data.get('adminEmails', []) &&
+        request.resource.data.get('listed', false) == resource.data.get('listed', false));
       allow delete: if isAdmin();
     }
 

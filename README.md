@@ -25,7 +25,7 @@ applications: write to lamp@umag.cl so we can give the go-ahead and check servic
 | Page | Audience | Purpose |
 |---|---|---|
 | `index.html` | Everyone | Landing page: what samplux is, how to use it, who to contact. |
-| `encuesta.html` | Participants | The survey runner (list of published surveys, or `?survey=<id>`). |
+| `encuesta.html` | Participants | The survey runner (`?survey=<id>`). Without it, lists only the surveys a super admin marked «en lista pública» in `super.html`. |
 | `encuestador.html` | Interviewers | Face-to-face mode for tablet/desktop, works offline. |
 | `encuestador-lab.html` | Interviewers / team | Lab to tune the look of interviewer mode and download a preferences zip. |
 | `retirar.html` | Participants | Withdraw consent with the code from the receipt. |

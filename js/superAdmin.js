@@ -82,7 +82,8 @@ function renderSurveys() {
     const detail = `<details><summary>detalle</summary>${m.rows.map(r => `<div class="sub">${esc(r.group)}: ${esc(r.text)}</div>`).join('')}</details>`;
     return `<tr>
       <td><a href="admin.html?survey=${encodeURIComponent(s.id)}"><strong>${esc(s.title || s.id)}</strong></a><div class="sub">${esc(s.id)} · ${(s.items || []).length} ítems · creada ${fmtDate(s.createdAt)}</div></td>
-      <td><span class="tag ${s.published ? '' : 'off'}">${s.published ? 'publicada' : 'borrador'}</span></td>
+      <td><span class="tag ${s.published ? '' : 'off'}">${s.published ? 'publicada' : 'borrador'}</span>
+        <div><label class="switch"><input type="checkbox" data-listed="${esc(s.id)}" ${s.listed === true ? 'checked' : ''}> en lista pública</label></div></td>
       <td class="num">${s.count ?? '—'}<div class="sub">${s.last ? 'última ' + fmtDate(s.last) : ''}</div></td>
       <td>${admins}${assign}${del}</td>
       <td>${tags}${warn}${detail}</td></tr>`;
@@ -93,6 +94,15 @@ function renderSurveys() {
     if (!email) return;
     if (!/^\S+@\S+\.\S+$/.test(email)) { alert('Correo no válido.'); return; }
     try { await updateDoc(doc(db, 'surveys', id), { ownerEmail: email }); loadAll(); } catch (e) { console.error(e); alert('No se pudo asignar.'); }
+  });
+  $('surveys').querySelectorAll('[data-listed]').forEach(cb => cb.onchange = async () => {
+    const id = cb.dataset.listed;
+    cb.disabled = true;
+    try {
+      await updateDoc(doc(db, 'surveys', id), { listed: cb.checked });
+      surveys.find(x => x.id === id).listed = cb.checked;
+    } catch (e) { console.error(e); cb.checked = !cb.checked; alert('No se pudo cambiar.'); }
+    cb.disabled = false;
   });
   $('surveys').querySelectorAll('[data-del]').forEach(b => b.onclick = () => purgeSurvey(b.dataset.del));
   $('surveysNote').textContent = `${surveys.length} encuestas · ${total} respuestas en total (incluye las ya retiradas, que quedan como registros vacíos).`;

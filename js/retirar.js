@@ -146,7 +146,7 @@ async function requestForm() {
   const survey = h('select', { 'aria-label': 'Encuesta' }, h('option', { value: '' }, 'No la recuerdo / no aparece'));
   const email = h('input', { type: 'email', placeholder: 'correo@ejemplo.com', maxlength: '200', autocomplete: 'email' });
   const when = h('input', { type: 'text', placeholder: 'Por ejemplo: el martes pasado en la tarde', maxlength: '200' });
-  const details = h('textarea', { placeholder: 'Cualquier dato que nos ayude a ubicar tus respuestas', maxlength: '2000' });
+  const details = h('textarea', { placeholder: 'Nombre o tema de la encuesta (si no aparece arriba) y cualquier dato que nos ayude a ubicar tus respuestas', maxlength: '2000' });
   const msg = h('p', { class: 'w-msg' });
   const send = h('button', { class: 'btn primary' }, 'Enviar solicitud');
   send.onclick = async () => {
@@ -184,8 +184,10 @@ async function requestForm() {
     )
   );
   try {
-    const snap = await getDocs(query(collection(db, 'surveys'), where('published', '==', true)));
-    snap.docs.forEach(s => survey.append(h('option', { value: s.id }, s.data().title || s.id)));
+    const options = new Map(listReceipts().map(r => [r.surveyId, r.surveyTitle || r.surveyId]));
+    const snap = await getDocs(query(collection(db, 'surveys'), where('published', '==', true), where('listed', '==', true)));
+    snap.docs.forEach(s => options.set(s.id, s.data().title || s.id));
+    options.forEach((title, id) => { if (id) survey.append(h('option', { value: id }, title)); });
   } catch (e) { console.warn('No se pudo cargar la lista de encuestas', e); }
 }
 

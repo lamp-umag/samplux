@@ -8,7 +8,7 @@
 // (5) stamps every response with an `interviewer` block.
 // ─────────────────────────────────────────────────────────────
 import { db } from './firebaseClient.js';
-import { collection, getDocsFromServer, query, where } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { collection, doc, getDocFromServer, getDocsFromServer, query, where } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import { createSurveyApp } from './surveyRunner.js';
 import { enqueue, syncOutbox, pendingCount, exportBackup } from './outbox.js';
 import { loadPrefs, savePrefs, applyPrefs } from './encPrefs.js';
@@ -18,6 +18,7 @@ import { notifyRespondentHandoff, getNativeInterviewerTelemetry } from './native
 const $ = id => document.getElementById(id);
 const LS_SESSION = 'samplux.enc.session';
 const LS_SURVEYS = 'samplux.enc.surveys';   // { [id]: survey definition } — for starting offline
+const LS_LINKED = 'samplux.enc.linked';     // survey ids this device received by link (?survey=)
 const FETCH_TIMEOUT_MS = 6000;
 
 const readJson = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } };
@@ -416,9 +417,22 @@ async function loadSurveys() {
   try {
     // FromServer: offline, a plain getDocs would answer with an empty cached result
     // and wipe the copy we keep for exactly that situation.
-    const snap = await withTimeout(getDocsFromServer(query(collection(db, 'surveys'), where('published', '==', true))), FETCH_TIMEOUT_MS);
+    const snap = await withTimeout(getDocsFromServer(query(collection(db, 'surveys'), where('published', '==', true), where('listed', '==', true))), FETCH_TIMEOUT_MS);
     const fresh = {};
     snap.docs.forEach(d => { fresh[d.id] = { id: d.id, ...d.data() }; });
+    // Unlisted surveys: only those this device was given a link to (or has a session on).
+    const linked = new Set([...readJson(LS_LINKED, []), session.surveyId, new URL(location.href).searchParams.get('survey')].filter(Boolean));
+    await Promise.all([...linked].filter(id => !fresh[id]).map(async id => {
+      try {
+        const d = await withTimeout(getDocFromServer(doc(db, 'surveys', id)), FETCH_TIMEOUT_MS);
+        if (d.exists() && d.data().published === true) fresh[id] = { id: d.id, ...d.data() };
+        else linked.delete(id);
+      } catch (e) {
+        if (e?.code === 'permission-denied') linked.delete(id);       // unpublished or gone
+        else if (cache[id]) fresh[id] = cache[id];                   // network trouble: keep the saved copy
+      }
+    }));
+    writeJson(LS_LINKED, [...linked]);
     writeJson(LS_SURVEYS, fresh);
     // Warm the cache with any base file a survey extends, so it also resolves offline.
     Object.values(fresh).forEach(s => {
@@ -453,7 +467,7 @@ async function showSetup() {
     return o;
   }));
   $('sMsg').textContent = !list.length
-    ? 'No hay encuestas disponibles. Conéctate a internet una vez para descargarlas.'
+    ? 'No hay encuestas en este dispositivo. Con internet, abre una vez el enlace de encuestador que te dio el equipo (constructor → «Enlace encuestador»).'
     : fromCache ? 'Sin conexión: se usan las encuestas guardadas en este dispositivo.' : '';
   $('sStart').disabled = !list.length;
 

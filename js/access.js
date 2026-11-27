@@ -42,7 +42,7 @@ export async function resolveAccess(db, user) {
 
 /**
  * Surveys a non-super account can open: the ones it owns, the ones it was added to (collab/),
- * and — legacy — published surveys that list it in adminEmails. Sorted by title.
+ * and — legacy — surveys that list it in adminEmails. Sorted by title.
  */
 export async function fetchMySurveys(db, email) {
   email = norm(email);
@@ -55,9 +55,6 @@ export async function fetchMySurveys(db, email) {
     if (byId.has(sid)) continue;
     try { const s = await getDoc(doc(db, 'surveys', sid)); if (s.exists()) add(s); } catch (_) { /* survey gone */ }
   }
-  (await getDocs(query(collection(db, 'surveys'), where('published', '==', true)))).forEach(d => {
-    const list = d.data().adminEmails;
-    if (Array.isArray(list) && list.map(norm).includes(email)) add(d);
-  });
+  (await getDocs(query(collection(db, 'surveys'), where('adminEmails', 'array-contains', email)))).forEach(add);
   return [...byId.values()].sort((a, b) => String(a.title || a.id).localeCompare(String(b.title || b.id)));
 }

@@ -228,7 +228,8 @@ export function createSurveyApp({ db, elements, hooks = {} }) {
   }
 
   async function loadSurveyIndex() {
-    const q = query(collection(db, 'surveys'), where('published', '==', true));
+    // Only the surveys a super admin chose to list (super.html). The rest open by link only.
+    const q = query(collection(db, 'surveys'), where('published', '==', true), where('listed', '==', true));
     const snap = await getDocs(q);
     return snap.docs.map(d => {
       const data = d.data();
@@ -245,7 +246,11 @@ export function createSurveyApp({ db, elements, hooks = {} }) {
     header.style.display = 'flex';
     homeSection.style.display = 'block';
     runnerSection.style.display = 'none';
-    if (listContainer) listContainer.innerHTML = '';
+    if (listContainer) {
+      listContainer.innerHTML = items.length
+        ? ''
+        : '<p>Para responder una encuesta, abre el enlace que te enviaron.</p>';
+    }
 
     items.forEach(item => {
       const row = document.createElement('div');

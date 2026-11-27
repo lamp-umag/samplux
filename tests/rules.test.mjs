@@ -214,7 +214,7 @@ test('owners list their own surveys; unpublished ones stay hidden from others', 
   await assertFails(getDocs(collection(ana, 'surveys')));                                 // can't list everything
   await assertSucceeds(getDoc(doc(ana, 'surveys/d1')));
   await assertFails(getDoc(doc(bea, 'surveys/d1')));
-  await assertSucceeds(getDocs(query(collection(bea, 'surveys'), where('published', '==', true))));
+  await assertFails(getDocs(query(collection(bea, 'surveys'), where('published', '==', true))));
   await assertSucceeds(getDocs(collection(admin, 'surveys')));
 });
 
@@ -291,4 +291,26 @@ test('only a super admin can purge a survey\'s records (entries, consents, reque
   await assertSucceeds(deleteDoc(doc(admin, `consents/${keys.consentId}`)));
   await assertSucceeds(deleteDoc(doc(admin, req.path)));
   await assertSucceeds(deleteDoc(doc(admin, 'responses/pub/audio/r1__voz')));
+});
+
+test('published surveys open by id; only super-admin-listed ones can be enumerated', async () => {
+  const ana = ctxAs('ana', 'ana@umag.cl');
+  const listed = db => query(collection(db, 'surveys'), where('published', '==', true), where('listed', '==', true));
+  await assertSucceeds(getDoc(doc(anon, 'surveys/pub')));
+  await assertFails(getDoc(doc(anon, 'surveys/draft')));
+  await assertFails(getDocs(collection(anon, 'surveys')));
+  await assertFails(getDocs(query(collection(anon, 'surveys'), where('published', '==', true))));
+  assert.equal((await assertSucceeds(getDocs(listed(anon)))).size, 0);
+  // only a super admin lists a survey
+  await assertFails(setDoc(doc(ana, 'surveys/s1'), mkSurvey({ ownerEmail: 'ana@umag.cl', listed: true })));
+  await assertSucceeds(setDoc(doc(ana, 'surveys/s1'), mkSurvey({ ownerEmail: 'ana@umag.cl', published: true })));
+  await assertFails(updateDoc(doc(ana, 'surveys/s1'), { listed: true }));
+  await assertSucceeds(updateDoc(doc(admin, 'surveys/s1'), { listed: true }));
+  await assertFails(updateDoc(doc(ana, 'surveys/s1'), { listed: false }));
+  await assertSucceeds(updateDoc(doc(ana, 'surveys/s1'), { title: 'x' }));
+  assert.equal((await assertSucceeds(getDocs(listed(anon)))).size, 1);
+  // the builder's own queries keep working
+  await assertSucceeds(getDocs(query(collection(ana, 'surveys'), where('ownerEmail', '==', 'ana@umag.cl'))));
+  await assertSucceeds(getDocs(query(collection(surveyAdmin, 'surveys'), where('adminEmails', 'array-contains', 'equipo@umag.cl'))));
+  await assertFails(getDocs(query(collection(ana, 'surveys'), where('adminEmails', 'array-contains', 'equipo@umag.cl'))));
 });
