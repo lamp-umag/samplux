@@ -77,6 +77,7 @@ const TYPE_LABELS = {
   phone: 'Teléfono',
   number: 'Número',
   date: 'Fecha',
+  duration: 'Duración (años, meses, días)',
   time: 'Hora',
   single_choice: 'Opción única',
   multi_choice: 'Opción múltiple',
@@ -88,7 +89,7 @@ const TYPE_LABELS = {
   task_stroop: 'Tarea cognitiva — Stroop',
   task_gonogo: 'Tarea cognitiva — Go / No-Go'
 };
-const TYPE_ORDER = ['info', 'text', 'email', 'url', 'phone', 'number', 'date', 'time',
+const TYPE_ORDER = ['info', 'text', 'email', 'url', 'phone', 'number', 'date', 'time', 'duration',
   'single_choice', 'multi_choice', 'ranking', 'slider', 'yes_no', 'file', 'task_rt', 'task_stroop', 'task_gonogo'];
 const NO_REQUIRED_TYPES = new Set(['info', 'task_rt', 'task_stroop', 'task_gonogo']);
 const TEXTLIKE_TYPES = new Set(['text', 'email', 'url', 'phone']);

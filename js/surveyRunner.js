@@ -1,3 +1,4 @@
+import { DURATION_PARTS, parseDuration, formatDuration } from './duration.js';
 import { collection, serverTimestamp, getDocs, query, where, doc, getDoc, setDoc, writeBatch, Bytes } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import { collectDeviceInfo, watchVisibility } from './deviceInfo.js';
 import { audioSupported, mountAudioWidget, clampMaxSeconds, extensionForMime } from './audioRecorder.js';
@@ -387,8 +388,11 @@ export function createSurveyApp({ db, elements, hooks = {} }) {
     return [v];
   }
 
-  function matchesClause(clause) {
+  function matchesClause(clause, seen) {
     if (!clause || !clause.item) return true;
+    // An answer left on a hidden item does not count, so conditions cascade.
+    const source = survey.items.find(it => it.id === clause.item);
+    if (source && source.showIf && !seen.has(source.id) && !isItemVisible(source, new Set(seen).add(source.id))) return false;
     const list = answerAsList(answers[clause.item]);
     if (Array.isArray(clause.in)) {
       const wanted = clause.in.map(String);
@@ -397,11 +401,11 @@ export function createSurveyApp({ db, elements, hooks = {} }) {
     return list.length > 0; // no `in`: "was answered at all"
   }
 
-  function isItemVisible(item) {
+  function isItemVisible(item, seen = new Set()) {
     const cond = item && item.showIf;
     if (!cond) return true;
-    if (Array.isArray(cond.anyOf)) return cond.anyOf.some(matchesClause);
-    return matchesClause(cond);
+    if (Array.isArray(cond.anyOf)) return cond.anyOf.some(c => matchesClause(c, seen));
+    return matchesClause(cond, seen);
   }
 
   function clearItemAnswers(item) {
@@ -667,6 +671,8 @@ export function createSurveyApp({ db, elements, hooks = {} }) {
 
   function prepareSurvey(rawSurvey) {
     const surveyCopy = sanitizeSurvey(structuredClone(rawSurvey));
+    // Card number = position in the builder (info cards count), even when the order is shuffled.
+    (surveyCopy.items || []).forEach((it, i) => { it._num = i + 1; });
     return applyRandomization(surveyCopy);
   }
 
@@ -1035,6 +1041,41 @@ export function createSurveyApp({ db, elements, hooks = {} }) {
           return;
         }
         if (num == null) delete answers[item.id]; else answers[item.id] = num;
+        goNext();
+      };
+      controlsContainer.append(back, next);
+      return;
+    }
+
+    if (item.type === 'duration') {
+      const values = parseDuration(answers[item.id]);
+      const row = document.createElement('div');
+      row.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:8px;';
+      DURATION_PARTS.forEach(part => {
+        const label = document.createElement('label');
+        label.textContent = part.label;
+        label.style.cssText = 'display:block;font-size:13px;font-weight:600;';
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.inputMode = 'numeric';
+        input.min = '0';
+        input.step = '1';
+        input.style.width = '100%';
+        if (values[part.key] != null) input.value = values[part.key];
+        input.addEventListener('input', () => {
+          values[part.key] = input.value === '' ? null : Math.max(0, Math.trunc(Number(input.value)));
+          const iso = formatDuration(values);
+          if (iso) answers[item.id] = iso; else delete answers[item.id];
+        });
+        label.appendChild(input);
+        row.appendChild(label);
+      });
+      optionsContainer.appendChild(row);
+      const back = button('← Atrás', 'secondary');
+      back.onclick = goPrev;
+      const next = button('Siguiente →', 'primary');
+      next.onclick = () => {
+        if (item.required && !answers[item.id]) return;
         goNext();
       };
       controlsContainer.append(back, next);

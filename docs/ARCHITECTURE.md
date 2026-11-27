@@ -71,6 +71,7 @@ none of them has builder UI yet, but the builder preserves them on save):
 |-------|-----------|--------|
 | `section` | any | Small label above the question (e.g. `"B · Encuentro entre carreras"`). The admin dashboard groups variables by it. |
 | `followUp: { id, whenCode, prompt, long }` | single choice / `yes_no` / `multi_choice` / `ranking` | Text box on the same screen when the answer includes `whenCode` (a code or array of codes). Stored as `answers[followUp.id]`; cleared if the option is deselected. |
+| `type: "duration"` | — | Years, months and days on one card; one ISO 8601 answer (`P2Y3M10D`). |
 | `showIf: { item, in: [codes] }` or `{ anyOf: [...] }` | any | Item is shown only if an earlier answer matches; otherwise it is skipped and its answer cleared (also re-checked on submit). |
 | `exitOnAnswer: [codes]`, `exitMessage` | single choice / `yes_no` | Ends the survey without saving (declined consent). |
 | `maxSelect` | `multi_choice` | "Elige hasta N". |

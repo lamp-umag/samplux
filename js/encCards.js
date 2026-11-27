@@ -1,5 +1,7 @@
 // samplux — full-content "preview" body for non-active cards in interviewer mode (deck style).
 // Pure DOM, no Firebase: used by encuestador.js and by the lab.
+import { describeDuration } from './duration.js';
+
 const clip = (s, n) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
 
 function el(tag, cls, text) { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
@@ -28,7 +30,7 @@ export function staticBody(item, view) {
     if (options.length > 6) list.append(el('span', 'enc-mini-more', `+${options.length - 6}`));
     box.append(list);
   } else {
-    const text = v == null || v === '' ? (view.hasAudio(item) ? '🎙 audio grabado' : '') : String(v);
+    const text = v == null || v === '' ? (view.hasAudio(item) ? '🎙 audio grabado' : '') : item.type === 'duration' ? describeDuration(v) : String(v);
     box.append(el('div', 'enc-mini-text' + (text ? ' has' : ''), text ? clip(text, 160) : '—'));
   }
   return box;

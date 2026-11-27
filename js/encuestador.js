@@ -13,6 +13,7 @@ import { createSurveyApp } from './surveyRunner.js';
 import { enqueue, syncOutbox, pendingCount, exportBackup } from './outbox.js';
 import { loadPrefs, savePrefs, applyPrefs } from './encPrefs.js';
 import { staticBody } from './encCards.js';
+import { describeDuration } from './duration.js';
 import { notifyRespondentHandoff, getNativeInterviewerTelemetry } from './nativeBridge.js';
 
 const $ = id => document.getElementById(id);
@@ -131,6 +132,7 @@ function answerSummary(item, st) {
   if (v == null || v === '') return st.audioClips[item.id] ? '🎙 audio grabado' : '';
   if (/^task_/.test(item.type || '')) return 'tarea completada';
   if (item.type === 'yes_no') return v === 'yes' ? 'Sí' : 'No';
+  if (item.type === 'duration') return describeDuration(v);
   const options = st.optionsFor(item);
   const label = code => {
     const o = options.find(opt => String(opt.code) === String(code));
@@ -176,7 +178,6 @@ function renderTrack(args) {
 
   stage.remove();
   const cards = [];
-  let number = 0;
   let answered = 0;
   let answerable = 0;
   let firstSkipped = -1;
@@ -187,14 +188,15 @@ function renderTrack(args) {
     const state = cardState(it, st);
     const isActive = i === index;
     if (it.type !== 'info') {
-      number += 1; answerable += 1;
+      answerable += 1;
       if (state === 'answered') answered += 1;
       if (state === 'skipped' && !isActive && firstSkipped < 0) firstSkipped = i;
     }
     const locked = st.gateIndex >= 0 && i > st.gateIndex;
     const card = el('div', `enc-card ${state}${isActive ? ' active' : ''}${locked ? ' locked' : ''}`);
     const head = el('div', 'enc-card-head');
-    head.append(el('span', 'n', it.type === 'info' ? 'Texto' : `${number}${it.required ? ' *' : ''}`));
+    const num = it._num ?? i + 1;   // same number the builder shows; hidden cards leave gaps
+    head.append(el('span', 'n', it.type === 'info' ? `${num} · Texto` : `${num}${it.required ? ' *' : ''}`));
     if (it.section) head.append(el('span', '', clip(it.section, 28)));
     if (!isActive) head.append(el('span', 'tag', state === 'answered' ? '✓' : state === 'skipped' ? 'sin responder' : ''));
     card.append(head);
@@ -249,7 +251,7 @@ function review(st) {
     ? `Faltan ${required.length} pregunta(s) obligatoria(s). Tócalas para volver a ellas.`
     : `${empty.length} pregunta(s) quedaron sin responder. Puedes enviar así o volver a ellas.`));
   [...required, ...empty.filter(e => !e.it.required)].slice(0, 12).forEach(({ it, i }) => {
-    const b = el('button', it.required ? 'required' : '', clip(plain(it.prompt || it.id), 90) + (it.required ? ' *' : ''));
+    const b = el('button', it.required ? 'required' : '', `${it._num ?? i + 1}. ${clip(plain(it.prompt || it.id), 90)}${it.required ? ' *' : ''}`);
     b.onclick = () => { caseMeta.jumps += 1; app.goTo(i); };
     box.append(b);
   });
